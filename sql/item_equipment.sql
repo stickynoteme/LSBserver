@@ -11232,7 +11232,7 @@ INSERT INTO `item_equipment` VALUES (23083,'bagua_galero_+2',99,119,1048576,310,
 INSERT INTO `item_equipment` VALUES (23084,'fu._bandeau_+2',99,119,2097152,339,0,0,16,0,0,0);
 INSERT INTO `item_equipment` VALUES (23085,'boii_mask_+2',99,129,1,282,0,0,16,0,0,0);
 INSERT INTO `item_equipment` VALUES (23086,'bhikku_crown_+2',99,129,2,283,0,0,16,0,0,0);
-INSERT INTO `item_equipment` VALUES (23087,'ebers_cap_+2',99,119,4,284,0,0,16,0,0,0);
+INSERT INTO `item_equipment` VALUES (23087,'ebers_cap_+2',99,129,4,284,0,0,16,0,0,0);
 INSERT INTO `item_equipment` VALUES (23088,'wicce_petasos_+2',99,129,8,285,0,0,16,0,0,0);
 INSERT INTO `item_equipment` VALUES (23089,'lethargy_chappel_+2',99,129,16,286,0,0,16,0,0,0);
 INSERT INTO `item_equipment` VALUES (23090,'skulkers_bonnet_+2',99,129,32,287,0,0,16,0,0,0);
