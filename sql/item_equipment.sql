@@ -11087,21 +11087,21 @@ INSERT INTO `item_equipment` VALUES (22145,'artemiss_bow_+2',99,119,1024,138,0,0
 INSERT INTO `item_equipment` VALUES (22147,'scouts_crossbow',99,119,1024,52,0,0,4,0,0,4);
 INSERT INTO `item_equipment` VALUES (22148,'arke_crossbow',99,119,1024,52,0,0,4,0,0,4);
 INSERT INTO `item_equipment` VALUES (22149,'sharanga',99,119,1024,142,0,0,4,0,0,5);
-INSERT INTO `item_equipment` VALUES (22150,'gletis_crossbow',99,0,0,0,0,0,32,0,0,0); -- TODO: Not implemented
-INSERT INTO `item_equipment` VALUES (22151,'mpacas_bow',99,0,0,0,0,0,32,0,0,0);      -- TODO: Not implemented
-INSERT INTO `item_equipment` VALUES (22152,'exeter',99,0,0,0,0,0,32,0,0,0);          -- TODO: Not implemented
+INSERT INTO `item_equipment` VALUES (22150,'gletis_crossbow',99,119,1024,52,0,0,4,0,0,0); -- RNG, crossbow, slot 4
+INSERT INTO `item_equipment` VALUES (22151,'mpacas_bow',99,119,1024,136,0,0,4,0,0,0);      -- RNG, bow, slot 4
+INSERT INTO `item_equipment` VALUES (22152,'exeter',99,119,65536,134,0,0,4,0,0,0);          -- COR, gun, slot 4
 INSERT INTO `item_equipment` VALUES (22153,'silver_gun',1,0,4194303,139,0,0,4,0,0,0);
 INSERT INTO `item_equipment` VALUES (22154,'silver_gun+1',1,0,4194303,139,0,0,4,0,0,0);
-INSERT INTO `item_equipment` VALUES (22155,'prime_bow',99,0,0,0,0,0,32,0,0,0); -- TODO: Not implemented
-INSERT INTO `item_equipment` VALUES (22156,'pinaka',99,0,0,0,0,0,32,0,0,0);    -- TODO: Not implemented
-INSERT INTO `item_equipment` VALUES (22157,'pinaka',99,0,0,0,0,0,32,0,0,0);    -- TODO: Not implemented
-INSERT INTO `item_equipment` VALUES (22158,'pinaka',99,0,0,0,0,0,32,0,0,0);    -- TODO: Not implemented
-INSERT INTO `item_equipment` VALUES (22159,'prime_gun',99,0,0,0,0,0,32,0,0,0); -- TODO: Not implemented
-INSERT INTO `item_equipment` VALUES (22160,'earp',99,0,0,0,0,0,32,0,0,0);      -- TODO: Not implemented
-INSERT INTO `item_equipment` VALUES (22161,'earp',99,0,0,0,0,0,32,0,0,0);      -- TODO: Not implemented
-INSERT INTO `item_equipment` VALUES (22162,'earp',99,0,0,0,0,0,32,0,0,0);      -- TODO: Not implemented
-INSERT INTO `item_equipment` VALUES (22163,'pinaka',99,0,0,0,0,0,32,0,0,0);    -- TODO: Not implemented
-INSERT INTO `item_equipment` VALUES (22164,'earp',99,0,0,0,0,0,32,0,0,0);      -- TODO: Not implemented
+INSERT INTO `item_equipment` VALUES (22155,'prime_bow',99,119,1024,136,0,0,4,0,0,0); -- RNG, bow, slot 4
+INSERT INTO `item_equipment` VALUES (22156,'pinaka',99,119,1024,136,0,0,4,0,0,0);    -- RNG, bow (Incomplete), slot 4
+INSERT INTO `item_equipment` VALUES (22157,'pinaka',99,119,1024,136,0,0,4,0,0,0);    -- RNG, bow (Level 119), slot 4
+INSERT INTO `item_equipment` VALUES (22158,'pinaka',99,119,1024,136,0,0,4,0,0,0);    -- RNG, bow (Level 119 III), slot 4
+INSERT INTO `item_equipment` VALUES (22159,'prime_gun',99,119,65536,134,0,0,4,0,0,0); -- COR, gun, slot 4
+INSERT INTO `item_equipment` VALUES (22160,'earp',99,119,65536,134,0,0,4,0,0,0);      -- COR, gun (Incomplete), slot 4
+INSERT INTO `item_equipment` VALUES (22161,'earp',99,119,65536,134,0,0,4,0,0,0);      -- COR, gun (Level 119), slot 4
+INSERT INTO `item_equipment` VALUES (22162,'earp',99,119,65536,134,0,0,4,0,0,0);      -- COR, gun (Level 119 II), slot 4
+INSERT INTO `item_equipment` VALUES (22163,'pinaka',99,119,1024,136,0,0,4,0,0,0);    -- RNG, bow variant, slot 4
+INSERT INTO `item_equipment` VALUES (22164,'earp',99,119,65536,134,0,0,4,0,0,0);      -- COR, gun (Level 119 III), slot 4
 INSERT INTO `item_equipment` VALUES (22195,'flanged_grip',99,0,4194303,0,0,0,2,0,0,0);
 INSERT INTO `item_equipment` VALUES (22196,'alber_strap',99,0,4194303,0,0,0,2,0,0,0);
 INSERT INTO `item_equipment` VALUES (22197,'niobid_strap',99,0,4194303,0,0,0,2,0,0,0);
@@ -11177,14 +11177,14 @@ INSERT INTO `item_equipment` VALUES (22298,'aurgelmir_orb_+1',99,0,2473971,0,0,0
 INSERT INTO `item_equipment` VALUES (22299,'per._lucky_egg',99,0,4194303,0,0,0,8,0,0,0);
 INSERT INTO `item_equipment` VALUES (22300,'crepuscular_pebble',99,0,4194303,0,0,0,8,4,0,0);
 INSERT INTO `item_equipment` VALUES (22301,'sroda_tathlum',99,0,4194303,0,0,0,8,4,0,0);
-INSERT INTO `item_equipment` VALUES (22302,'oshashas_treatise',99,0,0,0,0,0,32,0,0,0); -- TODO: Not implemented
-INSERT INTO `item_equipment` VALUES (22303,'prime_horn',99,0,0,0,0,0,32,0,0,0);        -- TODO: Not implemented
-INSERT INTO `item_equipment` VALUES (22304,'loughnashade',99,0,0,0,0,0,32,0,0,0);      -- TODO: Not implemented
-INSERT INTO `item_equipment` VALUES (22305,'loughnashade',99,0,0,0,0,0,32,0,0,0);      -- TODO: Not implemented
-INSERT INTO `item_equipment` VALUES (22306,'loughnashade',99,0,0,0,0,0,32,0,0,0);      -- TODO: Not implemented
-INSERT INTO `item_equipment` VALUES (22307,'loughnashade',99,0,0,0,0,0,32,0,0,0);      -- TODO: Not implemented
-INSERT INTO `item_equipment` VALUES (22308,'bayeux_bullet',99,0,0,0,0,0,32,0,0,0);     -- TODO: Not implemented
-INSERT INTO `item_equipment` VALUES (22309,'bayeux_arrow',99,0,0,0,0,0,32,0,0,0);      -- TODO: Not implemented
+INSERT INTO `item_equipment` VALUES (22302,'oshashas_treatise',99,119,512,0,0,0,8,0,0,0); -- BRD ammo, slot 8
+INSERT INTO `item_equipment` VALUES (22303,'prime_horn',99,119,512,68,0,0,4,0,0,0);        -- BRD, wind instrument, slot 4
+INSERT INTO `item_equipment` VALUES (22304,'loughnashade',99,119,512,68,0,0,4,0,0,0);      -- BRD, wind instrument (Incomplete), slot 4
+INSERT INTO `item_equipment` VALUES (22305,'loughnashade',99,119,512,68,0,0,4,0,0,0);      -- BRD, wind instrument (Level 119), slot 4
+INSERT INTO `item_equipment` VALUES (22306,'loughnashade',99,119,512,68,0,0,4,0,0,0);      -- BRD, wind instrument (Level 119 II), slot 4
+INSERT INTO `item_equipment` VALUES (22307,'loughnashade',99,119,512,68,0,0,4,0,0,0);      -- BRD, wind instrument (Level 119 III), slot 4
+INSERT INTO `item_equipment` VALUES (22308,'bayeux_bullet',99,119,1024,0,0,0,8,0,0,0);     -- RNG, ammo, slot 8
+INSERT INTO `item_equipment` VALUES (22309,'bayeux_arrow',99,119,1024,0,0,0,8,0,0,0);      -- RNG, ammo, slot 8
 INSERT INTO `item_equipment` VALUES (23040,'pummelers_mask_+2',99,119,1,64,0,0,16,0,0,0);
 INSERT INTO `item_equipment` VALUES (23041,'anch._crown_+2',99,119,2,66,0,0,16,0,0,0);
 INSERT INTO `item_equipment` VALUES (23042,'theophany_cap_+2',99,119,4,68,0,0,16,0,0,0);
@@ -11882,7 +11882,7 @@ INSERT INTO `item_equipment` VALUES (23733,'malignance_tabard',99,119,496946,458
 INSERT INTO `item_equipment` VALUES (23734,'malignance_gloves',99,119,496946,458,0,0,64,0,0,0);
 INSERT INTO `item_equipment` VALUES (23735,'malignance_tights',99,119,496946,458,0,0,128,0,0,0);
 INSERT INTO `item_equipment` VALUES (23736,'malignance_boots',99,119,496946,458,0,0,256,0,0,0);
-INSERT INTO `item_equipment` VALUES (23737,'byakko_masque',99,0,0,0,0,0,32,0,0,0); -- TODO: Not implemented
+INSERT INTO `item_equipment` VALUES (23737,'byakko_masque',99,119,4194303,453,0,0,16,0,0,0); -- All jobs, head
 INSERT INTO `item_equipment` VALUES (23738,'hervor_galea',99,119,10689,276,0,0,16,0,0,0);
 INSERT INTO `item_equipment` VALUES (23739,'heidrek_mask',99,119,2462754,252,0,0,16,0,0,0);
 INSERT INTO `item_equipment` VALUES (23740,'angantyr_beret',99,119,1720860,267,0,0,16,0,0,0);
@@ -11919,10 +11919,10 @@ INSERT INTO `item_equipment` VALUES (23770,'gletis_gauntlets',99,119,303392,465,
 INSERT INTO `item_equipment` VALUES (23771,'sakpatas_gauntlets',99,119,193,466,0,0,64,0,0,0);
 INSERT INTO `item_equipment` VALUES (23772,'mpacas_gloves',99,119,137218,467,0,0,64,0,0,0);
 INSERT INTO `item_equipment` VALUES (23773,'agwus_gages',99,119,3670024,468,0,0,64,0,0,0);
-INSERT INTO `item_equipment` VALUES (23774,'bunzis_gloves',99,0,0,0,0,0,32,0,0,0); -- TODO: Not implemented
+INSERT INTO `item_equipment` VALUES (23774,'bunzis_gloves',99,119,69120,450,0,0,64,0,0,0); -- WHM/RDM/BRD/SMN, hands
 INSERT INTO `item_equipment` VALUES (23775,'nyame_gauntlets',99,119,4194303,470,0,0,64,0,0,0);
 INSERT INTO `item_equipment` VALUES (23776,'ikengas_trousers',99,119,66560,464,0,0,128,0,0,0);
-INSERT INTO `item_equipment` VALUES (23777,'gletis_breeches',99,0,0,0,0,0,32,0,0,0); -- TODO: Not implemented
+INSERT INTO `item_equipment` VALUES (23777,'gletis_breeches',99,119,140816,451,0,0,128,0,0,0); -- THF/BST/DRG/BLU/DNC, legs
 INSERT INTO `item_equipment` VALUES (23778,'sakpatas_cuisses',99,119,193,466,0,0,128,0,0,0);
 INSERT INTO `item_equipment` VALUES (23779,'mpacas_hose',99,119,137218,467,0,0,128,0,0,0);
 INSERT INTO `item_equipment` VALUES (23780,'agwus_slops',99,119,3670024,468,0,0,128,0,0,0);
@@ -11942,36 +11942,36 @@ INSERT INTO `item_equipment` VALUES (23793,'ziamet_peti',1,0,4194303,172,0,0,32,
 INSERT INTO `item_equipment` VALUES (23794,'ziamet_bazubands',1,0,4194303,172,0,0,64,0,0,0);
 INSERT INTO `item_equipment` VALUES (23795,'ziamet_salvars',1,0,4194303,172,0,0,128,0,0,0);
 INSERT INTO `item_equipment` VALUES (23796,'ziamet_nails',1,0,4194303,172,0,0,256,0,0,0);
-INSERT INTO `item_equipment` VALUES (23797,'crepuscular_helm',99,0,0,0,0,0,32,0,0,0);  -- TODO: Not implemented
-INSERT INTO `item_equipment` VALUES (23798,'crepuscular_mail',99,0,0,0,0,0,32,0,0,0);  -- TODO: Not implemented
-INSERT INTO `item_equipment` VALUES (23799,'crepuscular_cloak',99,0,0,0,0,0,32,0,0,0); -- TODO: Not implemented
+INSERT INTO `item_equipment` VALUES (23797,'crepuscular_helm',99,119,4194303,452,0,0,16,0,0,0);  -- All jobs, head
+INSERT INTO `item_equipment` VALUES (23798,'crepuscular_mail',99,119,4194303,452,0,0,32,0,0,0);  -- All jobs, body
+INSERT INTO `item_equipment` VALUES (23799,'crepuscular_cloak',99,119,4194303,452,0,0,32,0,0,0); -- All jobs, body
 INSERT INTO `item_equipment` VALUES (23800,'cancrine_apron',1,0,4194303,475,0,0,32,0,0,0);
-INSERT INTO `item_equipment` VALUES (23801,'cancrine_apron_+1',99,0,0,0,0,0,32,0,0,0); -- TODO: Not implemented
-INSERT INTO `item_equipment` VALUES (23802,'aucuba_crown',99,0,0,0,0,0,32,0,0,0);      -- TODO: Not implemented
+INSERT INTO `item_equipment` VALUES (23801,'cancrine_apron_+1',99,119,4194303,454,0,0,32,0,0,0); -- All jobs, body
+INSERT INTO `item_equipment` VALUES (23802,'aucuba_crown',99,119,4194303,455,0,0,16,0,0,0);      -- All jobs, head
 INSERT INTO `item_equipment` VALUES (23803,'poroggo_cassock',1,0,4194303,477,0,0,32,16,0,0);
 INSERT INTO `item_equipment` VALUES (23804,'poroggo_cass._+1',1,0,4194303,477,0,0,32,16,0,0);
 INSERT INTO `item_equipment` VALUES (23805,'morbol_apron',1,0,4194303,478,0,0,32,0,0,0);
-INSERT INTO `item_equipment` VALUES (23806,'vaquero_hat',99,0,0,0,0,0,32,0,0,0); -- TODO: Not implemented
+INSERT INTO `item_equipment` VALUES (23806,'vaquero_hat',99,0,4194303,456,0,0,16,0,0,0); -- All jobs, head (Cosmetic)
 INSERT INTO `item_equipment` VALUES (23807,'esthetes_masque',1,0,4194303,480,0,0,16,0,0,0);
 INSERT INTO `item_equipment` VALUES (23808,'esthetes_coat',1,0,4194303,480,0,0,32,64,0,0);
 INSERT INTO `item_equipment` VALUES (23809,'esthetes_hose',1,0,4194303,480,0,0,128,256,0,0);
-INSERT INTO `item_equipment` VALUES (23810,'knit_cap',99,0,0,0,0,0,32,0,0,0);           -- TODO: Not implemented
-INSERT INTO `item_equipment` VALUES (23811,'knit_cap_+1',99,0,0,0,0,0,32,0,0,0);        -- TODO: Not implemented
-INSERT INTO `item_equipment` VALUES (23812,'sapphire_mask',99,0,0,0,0,0,32,0,0,0);      -- TODO: Not implemented
-INSERT INTO `item_equipment` VALUES (23813,'sapphire_platemail',99,0,0,0,0,0,32,0,0,0); -- TODO: Not implemented
-INSERT INTO `item_equipment` VALUES (23814,'sapphire_gauntlets',99,0,0,0,0,0,32,0,0,0); -- TODO: Not implemented
-INSERT INTO `item_equipment` VALUES (23815,'sapphire_trousers',99,0,0,0,0,0,32,0,0,0);  -- TODO: Not implemented
-INSERT INTO `item_equipment` VALUES (23816,'sapphire_leggings',99,0,0,0,0,0,32,0,0,0);  -- TODO: Not implemented
-INSERT INTO `item_equipment` VALUES (23817,'jadeite_visor',99,0,0,0,0,0,32,0,0,0);      -- TODO: Not implemented
-INSERT INTO `item_equipment` VALUES (23818,'jadeite_cuirie',99,0,0,0,0,0,32,0,0,0);     -- TODO: Not implemented
-INSERT INTO `item_equipment` VALUES (23819,'jadeite_gloves',99,0,0,0,0,0,32,0,0,0);     -- TODO: Not implemented
-INSERT INTO `item_equipment` VALUES (23820,'jadeite_chausses',99,0,0,0,0,0,32,0,0,0);   -- TODO: Not implemented
-INSERT INTO `item_equipment` VALUES (23821,'jadeite_jambeaux',99,0,0,0,0,0,32,0,0,0);   -- TODO: Not implemented
-INSERT INTO `item_equipment` VALUES (23832,'ruby_coronal',99,0,0,0,0,0,32,0,0,0);       -- TODO: Not implemented
-INSERT INTO `item_equipment` VALUES (23833,'ruby_robe',99,0,0,0,0,0,32,0,0,0);          -- TODO: Not implemented
-INSERT INTO `item_equipment` VALUES (23834,'ruby_cuffs',99,0,0,0,0,0,32,0,0,0);         -- TODO: Not implemented
-INSERT INTO `item_equipment` VALUES (23835,'ruby_slops',99,0,0,0,0,0,32,0,0,0);         -- TODO: Not implemented
-INSERT INTO `item_equipment` VALUES (23836,'ruby_pigaches',99,0,0,0,0,0,32,0,0,0);      -- TODO: Not implemented
+INSERT INTO `item_equipment` VALUES (23810,'knit_cap',99,0,4194303,457,0,0,16,0,0,0);           -- All jobs, head (Cosmetic)
+INSERT INTO `item_equipment` VALUES (23811,'knit_cap_+1',99,0,4194303,457,0,0,16,0,0,0);        -- All jobs, head (Cosmetic)
+INSERT INTO `item_equipment` VALUES (23812,'sapphire_mask',99,119,4194303,460,0,0,16,0,0,0);      -- All jobs, head
+INSERT INTO `item_equipment` VALUES (23813,'sapphire_platemail',99,119,4194303,460,0,0,32,0,0,0); -- All jobs, body
+INSERT INTO `item_equipment` VALUES (23814,'sapphire_gauntlets',99,119,4194303,460,0,0,64,0,0,0); -- All jobs, hands
+INSERT INTO `item_equipment` VALUES (23815,'sapphire_trousers',99,119,4194303,460,0,0,128,0,0,0);  -- All jobs, legs
+INSERT INTO `item_equipment` VALUES (23816,'sapphire_leggings',99,119,4194303,460,0,0,256,0,0,0);  -- All jobs, feet
+INSERT INTO `item_equipment` VALUES (23817,'jadeite_visor',99,119,4194303,461,0,0,16,0,0,0);      -- All jobs, head
+INSERT INTO `item_equipment` VALUES (23818,'jadeite_cuirie',99,119,4194303,461,0,0,32,0,0,0);     -- All jobs, body
+INSERT INTO `item_equipment` VALUES (23819,'jadeite_gloves',99,119,4194303,461,0,0,64,0,0,0);     -- All jobs, hands
+INSERT INTO `item_equipment` VALUES (23820,'jadeite_chausses',99,119,4194303,461,0,0,128,0,0,0);   -- All jobs, legs
+INSERT INTO `item_equipment` VALUES (23821,'jadeite_jambeaux',99,119,4194303,461,0,0,256,0,0,0);   -- All jobs, feet
+INSERT INTO `item_equipment` VALUES (23832,'ruby_coronal',99,119,4194303,462,0,0,16,0,0,0);       -- All jobs, head
+INSERT INTO `item_equipment` VALUES (23833,'ruby_robe',99,119,4194303,462,0,0,32,0,0,0);          -- All jobs, body
+INSERT INTO `item_equipment` VALUES (23834,'ruby_cuffs',99,119,4194303,462,0,0,64,0,0,0);         -- All jobs, hands
+INSERT INTO `item_equipment` VALUES (23835,'ruby_slops',99,119,4194303,462,0,0,128,0,0,0);         -- All jobs, legs
+INSERT INTO `item_equipment` VALUES (23836,'ruby_pigaches',99,119,4194303,462,0,0,256,0,0,0);      -- All jobs, feet
 INSERT INTO `item_equipment` VALUES (23837,'arrogance_crown',1,0,4194303,4587,0,0,16,0,0,0);
 INSERT INTO `item_equipment` VALUES (23838,'arrogance_platemail',1,0,4194303,8683,0,0,32,0,0,0);
 INSERT INTO `item_equipment` VALUES (23839,'arrogance_gauntlets',1,0,4194303,12779,0,0,64,0,0,0);
@@ -12174,7 +12174,7 @@ INSERT INTO `item_equipment` VALUES (25588,'aya._zucchetto',99,119,2130452,159,0
 INSERT INTO `item_equipment` VALUES (25589,'aya._zucchetto_+1',99,119,2130452,159,0,0,16,0,0,0);
 INSERT INTO `item_equipment` VALUES (25590,'taliah_turban',99,119,147712,160,0,0,16,0,0,0);
 INSERT INTO `item_equipment` VALUES (25591,'taliah_turban_+1',99,119,147712,160,0,0,16,0,0,0);
-INSERT INTO `item_equipment` VALUES (25592,'hjarrandi_helm',99,0,0,0,0,0,32,0,0,0); -- TODO: Not implemented
+INSERT INTO `item_equipment` VALUES (25592,'hjarrandi_helm',99,119,4194303,458,0,0,16,0,0,0); -- All jobs, head
 INSERT INTO `item_equipment` VALUES (25593,'cath_palug_crown',99,0,1589276,53,0,0,16,0,0,0);
 INSERT INTO `item_equipment` VALUES (25600,'maiitsoh_haube',99,119,14785,218,0,0,16,0,0,0);
 INSERT INTO `item_equipment` VALUES (25601,'blistering_sallet',99,119,4194303,29,0,0,16,0,0,0);
@@ -12467,7 +12467,7 @@ INSERT INTO `item_equipment` VALUES (25908,'turms_subligar_+1',99,119,2359328,14
 INSERT INTO `item_equipment` VALUES (25909,'morbol_subligar',1,0,4194303,461,0,0,128,0,0,0);
 INSERT INTO `item_equipment` VALUES (25910,'cait_sith_subligar',1,0,4194303,463,0,0,128,0,0,0);
 INSERT INTO `item_equipment` VALUES (25911,'denim_pants',1,0,4194303,479,0,0,128,0,0,0);
-INSERT INTO `item_equipment` VALUES (25912,'denim_pants_+1',99,0,0,0,0,0,32,0,0,0); -- TODO: Not implemented
+INSERT INTO `item_equipment` VALUES (25912,'denim_pants_+1',99,0,4194303,459,0,0,128,0,0,0); -- All jobs, legs (Cosmetic)
 INSERT INTO `item_equipment` VALUES (25920,'ahosi_leggings',99,119,2593826,110,0,0,256,0,0,0);
 INSERT INTO `item_equipment` VALUES (25921,'skaoi_boots',99,119,3850780,168,0,0,256,0,0,0);
 INSERT INTO `item_equipment` VALUES (25922,'navon_crackows',99,119,1589788,186,0,0,256,0,0,0);
@@ -12787,7 +12787,7 @@ INSERT INTO `item_equipment` VALUES (26403,'srivatsa',99,119,64,658,5,0,2,0,0,0)
 INSERT INTO `item_equipment` VALUES (26406,'kupo_shield',1,0,4194303,56,3,0,2,0,0,0);
 INSERT INTO `item_equipment` VALUES (26409,'dullahan_shield',1,0,4194303,669,3,0,2,0,0,0);
 INSERT INTO `item_equipment` VALUES (26410,'diamond_buckler',1,0,4194303,659,1,0,2,0,0,0);
-INSERT INTO `item_equipment` VALUES (26411,'diamond_buckler_+1',99,0,0,0,0,0,32,0,0,0); -- TODO: Not implemented
+INSERT INTO `item_equipment` VALUES (26411,'diamond_buckler_+1',99,119,4194303,63,2,0,2,0,0,0); -- All jobs, shield
 INSERT INTO `item_equipment` VALUES (26412,'kamalanauts_shield',1,0,4194303,668,1,0,2,0,0,0);
 INSERT INTO `item_equipment` VALUES (26413,'voluspa_shield',99,119,193,30,3,0,2,0,0,0);
 INSERT INTO `item_equipment` VALUES (26414,'twinned_shield',1,0,4194303,672,2,0,2,0,0,0);
@@ -12858,23 +12858,23 @@ INSERT INTO `item_equipment` VALUES (26483,'brewers_shield_-1',1,0,4194303,25,3,
 INSERT INTO `item_equipment` VALUES (26484,'chefs_ecu_-1',1,0,4194303,46,2,0,2,0,0,0);
 INSERT INTO `item_equipment` VALUES (26485,'chefs_scutum_-1',1,0,4194303,33,4,0,2,0,0,0);
 INSERT INTO `item_equipment` VALUES (26486,'chefs_shield_-1',1,0,4194303,25,3,0,2,0,0,0);
-INSERT INTO `item_equipment` VALUES (26487,'sacro_bulwark',99,0,0,0,0,0,32,0,0,0); -- TODO: Not implemented
-INSERT INTO `item_equipment` VALUES (26488,'diamond_aspis',99,0,0,0,0,0,32,0,0,0); -- TODO: Not implemented
-INSERT INTO `item_equipment` VALUES (26489,'troth',99,0,0,0,0,0,32,0,0,0);         -- TODO: Not implemented
+INSERT INTO `item_equipment` VALUES (26487,'sacro_bulwark',99,119,8483,58,4,0,2,0,0,0); -- WAR/RDM/PLD/BST, shield
+INSERT INTO `item_equipment` VALUES (26488,'diamond_aspis',99,119,4194303,60,3,0,2,0,0,0); -- All jobs, shield
+INSERT INTO `item_equipment` VALUES (26489,'troth',99,119,64,61,4,0,2,0,0,0);         -- PLD, shield
 INSERT INTO `item_equipment` VALUES (26490,'ark_shield',1,0,4194303,674,4,0,2,0,0,0);
-INSERT INTO `item_equipment` VALUES (26491,'prime_shield',99,0,0,0,0,0,32,0,0,0); -- TODO: Not implemented
-INSERT INTO `item_equipment` VALUES (26492,'duban',99,0,0,0,0,0,32,0,0,0);        -- TODO: Not implemented
-INSERT INTO `item_equipment` VALUES (26493,'duban',99,0,0,0,0,0,32,0,0,0);        -- TODO: Not implemented
-INSERT INTO `item_equipment` VALUES (26494,'duban',99,0,0,0,0,0,32,0,0,0);        -- TODO: Not implemented
-INSERT INTO `item_equipment` VALUES (26495,'duban',99,0,0,0,0,0,32,0,0,0);        -- TODO: Not implemented
+INSERT INTO `item_equipment` VALUES (26491,'prime_shield',99,119,64,57,4,0,2,0,0,0); -- PLD, shield (slot 2)
+INSERT INTO `item_equipment` VALUES (26492,'duban',99,119,64,59,4,0,2,0,0,0);        -- PLD, shield (Incomplete)
+INSERT INTO `item_equipment` VALUES (26493,'duban',99,119,64,59,5,0,2,0,0,0);        -- PLD, shield (Level 119)
+INSERT INTO `item_equipment` VALUES (26494,'duban',99,119,64,59,5,0,2,0,0,0);        -- PLD, shield (Level 119 II)
+INSERT INTO `item_equipment` VALUES (26495,'duban',99,119,64,59,6,0,2,0,0,0);        -- PLD, shield (Level 119 III)
 INSERT INTO `item_equipment` VALUES (26496,'ageist',1,0,4194303,677,3,0,2,0,0,0);
-INSERT INTO `item_equipment` VALUES (26497,'regis',99,0,0,0,0,0,32,0,0,0);             -- TODO: Not implemented
+INSERT INTO `item_equipment` VALUES (26497,'regis',99,119,64,62,4,0,2,0,0,0);             -- PLD, shield
 INSERT INTO `item_equipment` VALUES (26514,'poroggo_fleece',1,0,4194303,8652,0,0,32,16,16,0);
 INSERT INTO `item_equipment` VALUES (26515,'poroggo_fleece_+1',1,0,4194303,8652,0,0,32,16,16,0);
-INSERT INTO `item_equipment` VALUES (26516,'citrullus_shirt',99,0,0,0,0,0,32,0,0,0);   -- TODO: Not implemented
+INSERT INTO `item_equipment` VALUES (26516,'citrullus_shirt',99,0,4194303,463,0,0,32,0,0,0);   -- All jobs, body (Event)
 INSERT INTO `item_equipment` VALUES (26517,'shadow_lord_shirt',1,0,4194303,588,0,0,32,0,0,0);
 INSERT INTO `item_equipment` VALUES (26518,'jody_shirt',1,0,4194303,587,0,0,32,0,0,0);
-INSERT INTO `item_equipment` VALUES (26519,'mandragora_shirt',99,0,0,0,0,0,32,0,0,0); -- TODO: Not implemented
+INSERT INTO `item_equipment` VALUES (26519,'mandragora_shirt',99,0,4194303,464,0,0,32,0,0,0); -- All jobs, body (Event)
 INSERT INTO `item_equipment` VALUES (26520,'akitu_shirt',1,0,4194303,582,0,0,32,0,0,0);
 INSERT INTO `item_equipment` VALUES (26521,'ilm_weskit',1,0,4194303,8635,0,0,32,0,0,0);
 INSERT INTO `item_equipment` VALUES (26523,'delegates_garb',1,0,4194303,441,0,0,32,0,0,0);
@@ -12900,7 +12900,7 @@ INSERT INTO `item_equipment` VALUES (26542,'baayami_robe_+1',99,119,16384,115,0,
 INSERT INTO `item_equipment` VALUES (26543,'turms_harness',99,119,2359328,148,0,0,32,0,0,3);
 INSERT INTO `item_equipment` VALUES (26544,'tu._harness_+1',99,119,2359328,148,0,0,32,0,0,0);
 INSERT INTO `item_equipment` VALUES (26545,'mithkabob_shirt',1,0,4194303,8782,0,0,32,0,0,0);
-INSERT INTO `item_equipment` VALUES (26546,'moogle_shirt',99,0,0,0,0,0,32,0,0,0); -- TODO: Not implemented
+INSERT INTO `item_equipment` VALUES (26546,'moogle_shirt',99,0,4194303,465,0,0,32,0,0,0); -- All jobs, body (Event)
 INSERT INTO `item_equipment` VALUES (26624,'agoge_mask',99,109,1,65,0,0,16,0,0,0);
 INSERT INTO `item_equipment` VALUES (26625,'agoge_mask_+1',99,119,1,65,0,0,16,0,0,0);
 INSERT INTO `item_equipment` VALUES (26626,'hes._crown',99,109,2,67,0,0,16,0,0,0);
