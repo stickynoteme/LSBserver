@@ -11087,21 +11087,21 @@ INSERT INTO `item_equipment` VALUES (22145,'artemiss_bow_+2',99,119,1024,138,0,0
 INSERT INTO `item_equipment` VALUES (22147,'scouts_crossbow',99,119,1024,52,0,0,4,0,0,4);
 INSERT INTO `item_equipment` VALUES (22148,'arke_crossbow',99,119,1024,52,0,0,4,0,0,4);
 INSERT INTO `item_equipment` VALUES (22149,'sharanga',99,119,1024,142,0,0,4,0,0,5);
-INSERT INTO `item_equipment` VALUES (22150,'gletis_crossbow',99,0,0,0,0,0,32,0,0,0); -- TODO: Not implemented
-INSERT INTO `item_equipment` VALUES (22151,'mpacas_bow',99,0,0,0,0,0,32,0,0,0);      -- TODO: Not implemented
-INSERT INTO `item_equipment` VALUES (22152,'exeter',99,0,0,0,0,0,32,0,0,0);          -- TODO: Not implemented
+INSERT INTO `item_equipment` VALUES (22150,'gletis_crossbow',99,119,1024,52,0,0,4,0,0,0); -- RNG, crossbow, slot 4
+INSERT INTO `item_equipment` VALUES (22151,'mpacas_bow',99,119,1024,136,0,0,4,0,0,0);      -- RNG, bow, slot 4
+INSERT INTO `item_equipment` VALUES (22152,'exeter',99,119,65536,134,0,0,4,0,0,0);          -- COR, gun, slot 4
 INSERT INTO `item_equipment` VALUES (22153,'silver_gun',1,0,4194303,139,0,0,4,0,0,0);
 INSERT INTO `item_equipment` VALUES (22154,'silver_gun+1',1,0,4194303,139,0,0,4,0,0,0);
-INSERT INTO `item_equipment` VALUES (22155,'prime_bow',99,0,0,0,0,0,32,0,0,0); -- TODO: Not implemented
-INSERT INTO `item_equipment` VALUES (22156,'pinaka',99,0,0,0,0,0,32,0,0,0);    -- TODO: Not implemented
-INSERT INTO `item_equipment` VALUES (22157,'pinaka',99,0,0,0,0,0,32,0,0,0);    -- TODO: Not implemented
-INSERT INTO `item_equipment` VALUES (22158,'pinaka',99,0,0,0,0,0,32,0,0,0);    -- TODO: Not implemented
-INSERT INTO `item_equipment` VALUES (22159,'prime_gun',99,0,0,0,0,0,32,0,0,0); -- TODO: Not implemented
-INSERT INTO `item_equipment` VALUES (22160,'earp',99,0,0,0,0,0,32,0,0,0);      -- TODO: Not implemented
-INSERT INTO `item_equipment` VALUES (22161,'earp',99,0,0,0,0,0,32,0,0,0);      -- TODO: Not implemented
-INSERT INTO `item_equipment` VALUES (22162,'earp',99,0,0,0,0,0,32,0,0,0);      -- TODO: Not implemented
-INSERT INTO `item_equipment` VALUES (22163,'pinaka',99,0,0,0,0,0,32,0,0,0);    -- TODO: Not implemented
-INSERT INTO `item_equipment` VALUES (22164,'earp',99,0,0,0,0,0,32,0,0,0);      -- TODO: Not implemented
+INSERT INTO `item_equipment` VALUES (22155,'prime_bow',99,119,1024,136,0,0,4,0,0,0); -- RNG, bow, slot 4
+INSERT INTO `item_equipment` VALUES (22156,'pinaka',99,119,1024,136,0,0,4,0,0,0);    -- RNG, bow (Incomplete), slot 4
+INSERT INTO `item_equipment` VALUES (22157,'pinaka',99,119,1024,136,0,0,4,0,0,0);    -- RNG, bow (Level 119), slot 4
+INSERT INTO `item_equipment` VALUES (22158,'pinaka',99,119,1024,136,0,0,4,0,0,0);    -- RNG, bow (Level 119 III), slot 4
+INSERT INTO `item_equipment` VALUES (22159,'prime_gun',99,119,65536,134,0,0,4,0,0,0); -- COR, gun, slot 4
+INSERT INTO `item_equipment` VALUES (22160,'earp',99,119,65536,134,0,0,4,0,0,0);      -- COR, gun (Incomplete), slot 4
+INSERT INTO `item_equipment` VALUES (22161,'earp',99,119,65536,134,0,0,4,0,0,0);      -- COR, gun (Level 119), slot 4
+INSERT INTO `item_equipment` VALUES (22162,'earp',99,119,65536,134,0,0,4,0,0,0);      -- COR, gun (Level 119 II), slot 4
+INSERT INTO `item_equipment` VALUES (22163,'pinaka',99,119,1024,136,0,0,4,0,0,0);    -- RNG, bow variant, slot 4
+INSERT INTO `item_equipment` VALUES (22164,'earp',99,119,65536,134,0,0,4,0,0,0);      -- COR, gun (Level 119 III), slot 4
 INSERT INTO `item_equipment` VALUES (22195,'flanged_grip',99,0,4194303,0,0,0,2,0,0,0);
 INSERT INTO `item_equipment` VALUES (22196,'alber_strap',99,0,4194303,0,0,0,2,0,0,0);
 INSERT INTO `item_equipment` VALUES (22197,'niobid_strap',99,0,4194303,0,0,0,2,0,0,0);
@@ -11177,14 +11177,14 @@ INSERT INTO `item_equipment` VALUES (22298,'aurgelmir_orb_+1',99,0,2473971,0,0,0
 INSERT INTO `item_equipment` VALUES (22299,'per._lucky_egg',99,0,4194303,0,0,0,8,0,0,0);
 INSERT INTO `item_equipment` VALUES (22300,'crepuscular_pebble',99,0,4194303,0,0,0,8,4,0,0);
 INSERT INTO `item_equipment` VALUES (22301,'sroda_tathlum',99,0,4194303,0,0,0,8,4,0,0);
-INSERT INTO `item_equipment` VALUES (22302,'oshashas_treatise',99,0,0,0,0,0,32,0,0,0); -- TODO: Not implemented
-INSERT INTO `item_equipment` VALUES (22303,'prime_horn',99,0,0,0,0,0,32,0,0,0);        -- TODO: Not implemented
-INSERT INTO `item_equipment` VALUES (22304,'loughnashade',99,0,0,0,0,0,32,0,0,0);      -- TODO: Not implemented
-INSERT INTO `item_equipment` VALUES (22305,'loughnashade',99,0,0,0,0,0,32,0,0,0);      -- TODO: Not implemented
-INSERT INTO `item_equipment` VALUES (22306,'loughnashade',99,0,0,0,0,0,32,0,0,0);      -- TODO: Not implemented
-INSERT INTO `item_equipment` VALUES (22307,'loughnashade',99,0,0,0,0,0,32,0,0,0);      -- TODO: Not implemented
-INSERT INTO `item_equipment` VALUES (22308,'bayeux_bullet',99,0,0,0,0,0,32,0,0,0);     -- TODO: Not implemented
-INSERT INTO `item_equipment` VALUES (22309,'bayeux_arrow',99,0,0,0,0,0,32,0,0,0);      -- TODO: Not implemented
+INSERT INTO `item_equipment` VALUES (22302,'oshashas_treatise',99,119,512,0,0,0,8,0,0,0); -- BRD ammo, slot 8
+INSERT INTO `item_equipment` VALUES (22303,'prime_horn',99,119,512,68,0,0,4,0,0,0);        -- BRD, wind instrument, slot 4
+INSERT INTO `item_equipment` VALUES (22304,'loughnashade',99,119,512,68,0,0,4,0,0,0);      -- BRD, wind instrument (Incomplete), slot 4
+INSERT INTO `item_equipment` VALUES (22305,'loughnashade',99,119,512,68,0,0,4,0,0,0);      -- BRD, wind instrument (Level 119), slot 4
+INSERT INTO `item_equipment` VALUES (22306,'loughnashade',99,119,512,68,0,0,4,0,0,0);      -- BRD, wind instrument (Level 119 II), slot 4
+INSERT INTO `item_equipment` VALUES (22307,'loughnashade',99,119,512,68,0,0,4,0,0,0);      -- BRD, wind instrument (Level 119 III), slot 4
+INSERT INTO `item_equipment` VALUES (22308,'bayeux_bullet',99,119,1024,0,0,0,8,0,0,0);     -- RNG, ammo, slot 8
+INSERT INTO `item_equipment` VALUES (22309,'bayeux_arrow',99,119,1024,0,0,0,8,0,0,0);      -- RNG, ammo, slot 8
 INSERT INTO `item_equipment` VALUES (23040,'pummelers_mask_+2',99,119,1,64,0,0,16,0,0,0);
 INSERT INTO `item_equipment` VALUES (23041,'anch._crown_+2',99,119,2,66,0,0,16,0,0,0);
 INSERT INTO `item_equipment` VALUES (23042,'theophany_cap_+2',99,119,4,68,0,0,16,0,0,0);
