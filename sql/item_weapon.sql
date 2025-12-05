@@ -4683,14 +4683,14 @@ INSERT INTO `item_weapon` VALUES (21719,'ajja_axe',5,0,223,223,223,2,1,288,168,0
 INSERT INTO `item_weapon` VALUES (21720,'eletta_axe',5,0,231,231,231,2,1,288,176,0);  -- DMG:176 Delay:288
 INSERT INTO `item_weapon` VALUES (21721,'kaja_axe',5,0,242,242,242,2,1,288,188,0);    -- DMG:188 Delay:288
 INSERT INTO `item_weapon` VALUES (21722,'dolichenus',5,0,250,250,250,2,1,288,200,0);  -- DMG:200 Delay:288
-INSERT INTO `item_weapon` VALUES (21723,'ikengas_axe',5,0,255,0,0,2,1,288,192,0);         -- DMG:192 Delay:288
+INSERT INTO `item_weapon` VALUES (21723,'ikengas_axe',5,0,255,255,242,2,1,288,192,0);         -- DMG:192 Delay:288
 INSERT INTO `item_weapon` VALUES (21724,'agwus_axe',1,0,0,0,0,1,1,999,1,0);           -- TODO: Not implemented
 INSERT INTO `item_weapon` VALUES (21725,'malefic_axe',5,0,269,269,269,2,1,340,234,0);
 INSERT INTO `item_weapon` VALUES (21726,'prime_pickaxe',5,0,252,252,252,2,1,280,187,0); -- DMG:187 Delay:280
-INSERT INTO `item_weapon` VALUES (21727,'spalirisos',5,0,260,0,0,2,1,280,195,0);    -- DMG:195 Delay:280 (Incomplete)
-INSERT INTO `item_weapon` VALUES (21728,'spalirisos',5,0,265,0,0,2,1,280,200,0);    -- DMG:200 Delay:280 (Level 119)
-INSERT INTO `item_weapon` VALUES (21729,'spalirisos',5,0,267,0,0,2,1,280,204,0);    -- DMG:204 Delay:280 (Level 119 II)
-INSERT INTO `item_weapon` VALUES (21730,'spalirisos',5,0,269,0,0,2,1,280,207,0);    -- DMG:207 Delay:280 (Level 119 III)
+INSERT INTO `item_weapon` VALUES (21727,'spalirisos',5,0,260,260,260,2,1,280,195,0);    -- DMG:195 Delay:280 (Incomplete)
+INSERT INTO `item_weapon` VALUES (21728,'spalirisos',5,0,265,265,265,2,1,280,200,0);    -- DMG:200 Delay:280 (Level 119)
+INSERT INTO `item_weapon` VALUES (21729,'spalirisos',5,0,267,267,267,2,1,280,204,0);    -- DMG:204 Delay:280 (Level 119 II)
+INSERT INTO `item_weapon` VALUES (21730,'spalirisos',5,0,269,269,269,2,1,280,207,0);    -- DMG:207 Delay:280 (Level 119 III)
 INSERT INTO `item_weapon` VALUES (21741,'demonic_axe',5,0,0,0,0,2,1,288,1,0);   -- DMG:1 Delay:288
 INSERT INTO `item_weapon` VALUES (21742,'aern_axe',5,0,0,0,0,2,1,288,1,0);      -- DMG:1 Delay:288
 INSERT INTO `item_weapon` VALUES (21743,'aern_axe_ii',5,0,0,0,0,2,1,288,1,0);   -- DMG:1 Delay:288
@@ -4728,7 +4728,7 @@ INSERT INTO `item_weapon` VALUES (21776,'ajja_chopper',6,0,223,223,223,2,1,508,2
 INSERT INTO `item_weapon` VALUES (21777,'eletta_chopper',6,0,231,231,231,2,1,508,317,0); -- DMG:317 Delay:508
 INSERT INTO `item_weapon` VALUES (21778,'kaja_chopper',6,0,242,242,242,2,1,508,338,0);   -- DMG:338 Delay:508
 INSERT INTO `item_weapon` VALUES (21779,'lycurgos',6,0,250,250,250,2,1,508,359,0);       -- DMG:359 Delay:508
-INSERT INTO `item_weapon` VALUES (21780,'bunzis_chopper',6,0,255,0,0,2,1,504,336,0);         -- DMG:336 Delay:504
+INSERT INTO `item_weapon` VALUES (21780,'bunzis_chopper',6,0,255,255,252,2,1,504,336,0);         -- DMG:336 Delay:504
 INSERT INTO `item_weapon` VALUES (21781,'prime_great_axe',6,0,252,252,252,2,1,488,326,0); -- DMG:326 Delay:488
 INSERT INTO `item_weapon` VALUES (21782,'laphria',6,0,260,260,260,2,1,488,345,0);                -- DMG:345 Delay:488 (Incomplete)
 INSERT INTO `item_weapon` VALUES (21783,'laphria',6,0,265,265,265,2,1,488,353,0);                -- DMG:353 Delay:488 (Level 119)
@@ -4795,7 +4795,7 @@ INSERT INTO `item_weapon` VALUES (21880,'ajja_lance',8,0,223,223,223,1,1,480,280
 INSERT INTO `item_weapon` VALUES (21881,'eletta_lance',8,0,231,231,231,1,1,480,293,0);      -- DMG:293 Delay:480
 INSERT INTO `item_weapon` VALUES (21882,'kaja_lance',8,0,242,242,242,1,1,480,313,0);        -- DMG:313 Delay:480
 INSERT INTO `item_weapon` VALUES (21883,'shining_one',8,0,250,250,250,1,1,480,333,0);       -- DMG:333 Delay:480
-INSERT INTO `item_weapon` VALUES (21884,'ikengas_lance',8,0,255,0,0,1,1,492,302,0);             -- DMG:302 Delay:492
+INSERT INTO `item_weapon` VALUES (21884,'ikengas_lance',8,0,255,255,242,1,1,492,302,0);             -- DMG:302 Delay:492
 INSERT INTO `item_weapon` VALUES (21885,'hebos_spear',1,0,0,0,0,1,1,999,1,0);               -- TODO: Not implemented
 INSERT INTO `item_weapon` VALUES (21886,'iapetus',8,0,0,0,0,1,1,492,1,0);
 INSERT INTO `item_weapon` VALUES (21887,'prime_lance',8,0,252,252,252,1,1,492,329,0); -- DMG:329 Delay:492
@@ -4821,7 +4821,7 @@ INSERT INTO `item_weapon` VALUES (21921,'kaja_katana',9,0,242,242,242,0,1,227,14
 INSERT INTO `item_weapon` VALUES (21922,'gokotai',9,0,250,250,250,0,1,227,157,0);       -- DMG:157 Delay:227
 INSERT INTO `item_weapon` VALUES (21923,'debahocho',9,0,0,0,0,0,1,227,1,0);             -- DMG:1 Delay:227
 INSERT INTO `item_weapon` VALUES (21924,'debahocho_+1',9,0,0,0,0,0,1,222,2,0);          -- DMG:2 Delay:222
-INSERT INTO `item_weapon` VALUES (21925,'kunimitsu',9,0,255,0,0,2,1,227,168,0);             -- DMG:168 Delay:227
+INSERT INTO `item_weapon` VALUES (21925,'kunimitsu',9,0,255,255,255,2,1,227,168,0);             -- DMG:168 Delay:227
 INSERT INTO `item_weapon` VALUES (21926,'tsuru',1,0,0,0,0,1,1,999,1,0);                 -- TODO: Not implemented
 INSERT INTO `item_weapon` VALUES (21927,'yagyu_darkblade',1,0,0,0,0,1,1,999,1,0);       -- TODO: Not implemented
 INSERT INTO `item_weapon` VALUES (21928,'genshitanto',1,0,0,0,0,1,1,999,1,0);           -- TODO: Not implemented
@@ -4895,7 +4895,7 @@ INSERT INTO `item_weapon` VALUES (22037,'sifang_wand',11,0,242,242,255,0,1,280,1
 INSERT INTO `item_weapon` VALUES (22038,'bhima',11,0,255,255,269,0,1,280,194,0);             -- DMG:194 Delay:280
 INSERT INTO `item_weapon` VALUES (22039,'floral_hagoita',11,0,0,0,0,0,1,264,2,0);            -- DMG:2 Delay:264
 INSERT INTO `item_weapon` VALUES (22040,'daybreak',11,0,228,228,40,3,1,216,150,0);
-INSERT INTO `item_weapon` VALUES (22041,'bunzis_rod',11,0,255,0,0,3,1,216,144,0);                 -- DMG:144 Delay:216
+INSERT INTO `item_weapon` VALUES (22041,'bunzis_rod',11,0,255,255,242,3,1,216,144,0);                 -- DMG:144 Delay:216
 INSERT INTO `item_weapon` VALUES (22042,'wizards_rod',11,0,250,250,250,0,1,216,200,0);
 INSERT INTO `item_weapon` VALUES (22043,'apkallu_scepter',1,0,0,0,0,1,1,999,1,0);   -- TODO: Not implemented
 INSERT INTO `item_weapon` VALUES (22044,'tengu_war_fan',1,0,0,0,0,1,1,999,1,0);     -- TODO: Not implemented
