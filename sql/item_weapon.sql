@@ -4501,8 +4501,8 @@ INSERT INTO `item_weapon` VALUES (21482,'compensator',26,1,242,0,0,1,1,480,89,0)
 INSERT INTO `item_weapon` VALUES (21483,'malison',26,1,242,0,0,1,1,480,92,0);
 INSERT INTO `item_weapon` VALUES (21484,'malison_+1',26,1,242,0,0,1,1,466,93,0);
 INSERT INTO `item_weapon` VALUES (21485,'fomalhaut',26,1,269,0,0,1,1,600,167,0);
-INSERT INTO `item_weapon` VALUES (21488,'jug_of_pristine_sap',1,0,0,0,0,1,1,999,1,0);       -- TODO: Not implemented
-INSERT INTO `item_weapon` VALUES (21489,'jug_of_truly_pristine_sap',1,0,0,0,0,1,1,999,1,0); -- TODO: Not implemented
+INSERT INTO `item_weapon` VALUES (21488,'jug_of_pristine_sap',0,0,0,0,0,0,1,999,0,0);       -- BST jug pet item
+INSERT INTO `item_weapon` VALUES (21489,'jug_of_truly_pristine_sap',0,0,0,0,0,0,1,999,0,0); -- BST jug pet item
 INSERT INTO `item_weapon` VALUES (21490,'aged_humus',0,77,0,0,0,1,1,2295,257,0);
 INSERT INTO `item_weapon` VALUES (21492,'insipid_broth',0,0,0,0,0,0,1,2211,6734,0);
 INSERT INTO `item_weapon` VALUES (21493,'deepwater_broth',0,0,0,0,0,0,1,2212,6735,0);
@@ -4734,8 +4734,8 @@ INSERT INTO `item_weapon` VALUES (21782,'laphria',6,0,260,260,260,2,1,488,345,0)
 INSERT INTO `item_weapon` VALUES (21783,'laphria',6,0,265,265,265,2,1,488,353,0);                -- DMG:353 Delay:488 (Level 119)
 INSERT INTO `item_weapon` VALUES (21784,'laphria',6,0,267,267,267,2,1,488,357,0);                -- DMG:357 Delay:488 (Level 119 II)
 INSERT INTO `item_weapon` VALUES (21785,'laphria',6,0,269,269,269,2,1,488,361,0);                -- DMG:361 Delay:488 (Level 119 III)
-INSERT INTO `item_weapon` VALUES (21786,'poison_axe',1,0,0,0,0,1,1,999,1,0);             -- TODO: Not implemented
-INSERT INTO `item_weapon` VALUES (21787,'poison_axe_+1',1,0,0,0,0,1,1,999,1,0);          -- TODO: Not implemented
+INSERT INTO `item_weapon` VALUES (21786,'poison_axe',5,0,0,0,0,2,1,489,1,0);             -- DMG:1 Delay:489 (Novelty item)
+INSERT INTO `item_weapon` VALUES (21787,'poison_axe_+1',5,0,0,0,0,2,1,489,1,0);          -- DMG:1 Delay:489 (Novelty item)
 INSERT INTO `item_weapon` VALUES (21804,'obschine',7,0,242,242,188,2,1,501,295,0);
 INSERT INTO `item_weapon` VALUES (21805,'pixquizpan',7,0,242,242,215,2,1,501,290,0);
 INSERT INTO `item_weapon` VALUES (21806,'pixquizpan_+1',7,0,242,242,215,2,1,490,291,0);
@@ -4849,11 +4849,11 @@ INSERT INTO `item_weapon` VALUES (21974,'kaja_tachi',10,0,242,242,242,0,1,450,30
 INSERT INTO `item_weapon` VALUES (21975,'hachimonji',10,0,250,250,250,0,1,450,318,0);     -- DMG:318 Delay:450
 INSERT INTO `item_weapon` VALUES (21976,'voluspa_tachi',10,0,215,215,215,0,1,450,243,0);
 INSERT INTO `item_weapon` VALUES (21977,'mutsunokami',10,0,0,0,0,0,1,450,1,0);            -- DMG:1 Delay:450
-INSERT INTO `item_weapon` VALUES (21978,'mutsunokami_+1',1,0,0,0,0,1,1,999,1,0);          -- TODO: Not implemented
+INSERT INTO `item_weapon` VALUES (21978,'mutsunokami_+1',10,0,0,0,0,2,1,437,2,0);          -- DMG:2 Delay:437
 INSERT INTO `item_weapon` VALUES (21979,'gekkei',10,0,255,255,242,2,1,450,292,0);                  -- DMG:292 Delay:450
-INSERT INTO `item_weapon` VALUES (21980,'zanmato_+2',1,0,0,0,0,1,1,999,1,0);              -- TODO: Not implemented
-INSERT INTO `item_weapon` VALUES (21981,'mutsu-no-kami_yoshiyuki',1,0,0,0,0,1,1,999,1,0); -- TODO: Not implemented
-INSERT INTO `item_weapon` VALUES (21982,'genshito',1,0,0,0,0,1,1,999,1,0);                -- TODO: Not implemented
+INSERT INTO `item_weapon` VALUES (21980,'zanmato_+2',10,0,269,269,269,2,1,464,320,0);              -- DMG:320 Delay:464
+INSERT INTO `item_weapon` VALUES (21981,'mutsu-no-kami_yoshiyuki',10,0,269,269,269,2,1,450,310,0); -- DMG:310 Delay:450
+INSERT INTO `item_weapon` VALUES (21982,'genshito',10,0,252,252,252,2,1,437,292,0);                -- DMG:292 Delay:437
 INSERT INTO `item_weapon` VALUES (21983,'kusanagi-no-tsurugi',10,0,252,252,252,2,1,437,285,0);     -- DMG:285 Delay:437 (Incomplete)
 INSERT INTO `item_weapon` VALUES (21984,'kusanagi-no-tsurugi',10,0,252,252,252,2,1,437,292,0);     -- DMG:292 Delay:437 (Level 119)
 INSERT INTO `item_weapon` VALUES (21985,'kusanagi-no-tsurugi',10,0,252,252,252,2,1,437,310,0);     -- DMG:310 Delay:437 (Level 119 II)
@@ -4886,7 +4886,7 @@ INSERT INTO `item_weapon` VALUES (22028,'ajja_rod',11,0,223,223,223,0,1,288,168,
 INSERT INTO `item_weapon` VALUES (22029,'eletta_rod',11,0,231,231,231,0,1,288,176,0);        -- DMG:176 Delay:288
 INSERT INTO `item_weapon` VALUES (22030,'kaja_rod',11,0,242,242,242,0,1,288,188,0);          -- DMG:188 Delay:288
 INSERT INTO `item_weapon` VALUES (22031,'maxentius',11,0,250,250,250,0,1,288,200,0);         -- DMG:200 Delay:288
-INSERT INTO `item_weapon` VALUES (22032,'thunder_hammer',1,0,0,0,0,1,1,999,1,0);             -- TODO: Not implemented
+INSERT INTO `item_weapon` VALUES (22032,'thunder_hammer',11,0,0,0,0,3,1,308,36,0);             -- DMG:36 Delay:308
 INSERT INTO `item_weapon` VALUES (22033,'clerics_wand',11,0,228,228,242,0,1,288,192,0);      -- DMG:192 Delay:288
 INSERT INTO `item_weapon` VALUES (22034,'piety_wand',11,0,242,242,255,0,1,280,193,0);        -- DMG:193 Delay:280
 INSERT INTO `item_weapon` VALUES (22035,'asclepius',11,0,255,255,269,0,1,280,194,0);         -- DMG:194 Delay:280
@@ -4897,16 +4897,16 @@ INSERT INTO `item_weapon` VALUES (22039,'floral_hagoita',11,0,0,0,0,0,1,264,2,0)
 INSERT INTO `item_weapon` VALUES (22040,'daybreak',11,0,228,228,40,3,1,216,150,0);
 INSERT INTO `item_weapon` VALUES (22041,'bunzis_rod',11,0,255,255,242,3,1,216,144,0);                 -- DMG:144 Delay:216
 INSERT INTO `item_weapon` VALUES (22042,'wizards_rod',11,0,250,250,250,0,1,216,200,0);
-INSERT INTO `item_weapon` VALUES (22043,'apkallu_scepter',1,0,0,0,0,1,1,999,1,0);   -- TODO: Not implemented
-INSERT INTO `item_weapon` VALUES (22044,'tengu_war_fan',1,0,0,0,0,1,1,999,1,0);     -- TODO: Not implemented
-INSERT INTO `item_weapon` VALUES (22045,'feline_hagoita',1,0,0,0,0,1,1,999,1,0);    -- TODO: Not implemented
-INSERT INTO `item_weapon` VALUES (22046,'feline_hagoita_+1',1,0,0,0,0,1,1,999,1,0); -- TODO: Not implemented
-INSERT INTO `item_weapon` VALUES (22047,'korrigan_mallet',1,0,0,0,0,1,1,999,1,0);   -- TODO: Not implemented
-INSERT INTO `item_weapon` VALUES (22048,'adenium_mallet',1,0,0,0,0,1,1,999,1,0);    -- TODO: Not implemented
-INSERT INTO `item_weapon` VALUES (22049,'citrullus_mallet',1,0,0,0,0,1,1,999,1,0);  -- TODO: Not implemented
-INSERT INTO `item_weapon` VALUES (22050,'chac-chacs',1,0,0,0,0,1,1,999,1,0);        -- TODO: Not implemented
-INSERT INTO `item_weapon` VALUES (22051,'lycopodium_mallet',1,0,0,0,0,1,1,999,1,0); -- TODO: Not implemented
-INSERT INTO `item_weapon` VALUES (22052,'summer_uchiwa',1,0,0,0,0,1,1,999,1,0);     -- TODO: Not implemented
+INSERT INTO `item_weapon` VALUES (22043,'apkallu_scepter',11,0,0,0,0,3,1,264,1,0);   -- DMG:1 Delay:264 (Novelty)
+INSERT INTO `item_weapon` VALUES (22044,'tengu_war_fan',11,0,0,0,0,3,1,216,1,0);     -- DMG:1 Delay:216 (Costume item)
+INSERT INTO `item_weapon` VALUES (22045,'feline_hagoita',11,0,0,0,0,3,1,276,1,0);    -- DMG:1 Delay:276 (New Year's event)
+INSERT INTO `item_weapon` VALUES (22046,'feline_hagoita_+1',11,0,0,0,0,3,1,276,1,0); -- DMG:1 Delay:276 (New Year's event)
+INSERT INTO `item_weapon` VALUES (22047,'korrigan_mallet',11,0,0,0,0,3,1,276,1,0);   -- DMG:1 Delay:276 (Harvest Festival)
+INSERT INTO `item_weapon` VALUES (22048,'adenium_mallet',11,0,0,0,0,3,1,276,1,0);    -- DMG:1 Delay:276 (Harvest Festival)
+INSERT INTO `item_weapon` VALUES (22049,'citrullus_mallet',11,0,0,0,0,3,1,276,1,0);  -- DMG:1 Delay:276 (Harvest Festival)
+INSERT INTO `item_weapon` VALUES (22050,'chac-chacs',11,0,0,0,0,3,1,276,1,0);        -- DMG:1 Delay:276 (Carnival event)
+INSERT INTO `item_weapon` VALUES (22051,'lycopodium_mallet',11,0,0,0,0,3,1,276,1,0); -- DMG:1 Delay:276 (Harvest Festival)
+INSERT INTO `item_weapon` VALUES (22052,'summer_uchiwa',11,0,0,0,0,3,1,276,1,0);     -- DMG:1 Delay:276 (Summer Festival)
 INSERT INTO `item_weapon` VALUES (22054,'grioavolr',12,0,242,242,228,3,1,366,202,0);
 INSERT INTO `item_weapon` VALUES (22055,'oranyan',12,0,242,242,228,3,1,366,230,0);
 INSERT INTO `item_weapon` VALUES (22056,'gozuki_mezuki',12,0,242,242,188,3,1,412,266,0);
