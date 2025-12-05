@@ -5004,16 +5004,16 @@ INSERT INTO `item_weapon` VALUES (22151,'mpacas_bow',25,4,258,0,0,1,1,810,258,0)
 INSERT INTO `item_weapon` VALUES (22152,'exeter',26,1,269,0,0,1,1,264,180,0);     -- DMG:180 Delay:264
 INSERT INTO `item_weapon` VALUES (22153,'silver_gun',26,1,0,0,0,1,1,600,1,0);          -- DMG:1 Delay:600
 INSERT INTO `item_weapon` VALUES (22154,'silver_gun_+1',26,1,0,0,0,1,1,582,2,0);       -- DMG:2 Delay:582
-INSERT INTO `item_weapon` VALUES (22155,'prime_bow',25,4,252,0,0,1,1,524,277,0);   -- DMG:277 Delay:524
-INSERT INTO `item_weapon` VALUES (22156,'pinaka',25,4,260,0,0,1,1,524,293,0);          -- DMG:293 Delay:524 (Incomplete)
+INSERT INTO `item_weapon` VALUES (22155,'prime_bow',25,4,252,0,0,1,1,524,156,0);   -- DMG:156 Delay:524
+INSERT INTO `item_weapon` VALUES (22156,'pinaka',25,4,260,0,0,1,1,524,277,0);          -- DMG:277 Delay:524 (Incomplete)
 INSERT INTO `item_weapon` VALUES (22157,'pinaka',25,4,260,0,0,1,1,524,293,0);          -- DMG:293 Delay:524 (Level 119)
-INSERT INTO `item_weapon` VALUES (22158,'pinaka',25,4,269,0,0,1,1,524,309,0);          -- DMG:309 Delay:524 (Level 119 III)
-INSERT INTO `item_weapon` VALUES (22159,'prime_gun',26,1,252,0,0,1,1,600,140,0);   -- DMG:140 Delay:600
-INSERT INTO `item_weapon` VALUES (22160,'earp',26,1,260,0,0,1,1,600,135,0);            -- DMG:135 Delay:600 (Incomplete)
-INSERT INTO `item_weapon` VALUES (22161,'earp',26,1,269,0,0,1,1,600,140,0);            -- DMG:140 Delay:600 (Level 119)
-INSERT INTO `item_weapon` VALUES (22162,'earp',26,1,269,0,0,1,1,600,142,0);            -- DMG:142 Delay:600 (Level 119 II)
-INSERT INTO `item_weapon` VALUES (22163,'pinaka',25,4,269,0,0,1,1,524,309,0);          -- DMG:309 Delay:524
-INSERT INTO `item_weapon` VALUES (22164,'earp',26,1,269,0,0,1,1,600,144,0);            -- DMG:144 Delay:600 (Level 119 III)
+INSERT INTO `item_weapon` VALUES (22158,'pinaka',25,4,269,0,0,1,1,524,309,0);          -- DMG:309 Delay:524 (Level 119 II)
+INSERT INTO `item_weapon` VALUES (22159,'prime_gun',26,1,252,0,0,1,1,600,79,0);    -- DMG:79 Delay:600
+INSERT INTO `item_weapon` VALUES (22160,'earp',26,1,260,0,0,1,1,582,128,0);            -- DMG:128 Delay:582 (Incomplete)
+INSERT INTO `item_weapon` VALUES (22161,'earp',26,1,269,0,0,1,1,582,139,0);            -- DMG:139 Delay:582 (Level 119)
+INSERT INTO `item_weapon` VALUES (22162,'earp',26,1,269,0,0,1,1,582,151,0);            -- DMG:151 Delay:582 (Level 119 II)
+INSERT INTO `item_weapon` VALUES (22163,'pinaka',25,4,269,0,0,1,1,524,324,0);          -- DMG:324 Delay:524 (Level 119 III)
+INSERT INTO `item_weapon` VALUES (22164,'earp',26,1,269,0,0,1,1,582,162,0);            -- DMG:162 Delay:582 (Level 119 III)
 INSERT INTO `item_weapon` VALUES (22195,'flanged_grip',0,0,0,0,0,1,1,999,1,0);
 INSERT INTO `item_weapon` VALUES (22196,'alber_strap',0,0,0,0,0,1,1,999,1,0);
 INSERT INTO `item_weapon` VALUES (22197,'niobid_strap',0,0,0,0,0,1,1,999,1,0);
@@ -5096,7 +5096,7 @@ INSERT INTO `item_weapon` VALUES (22305,'loughnashade',45,0,260,0,0,0,1,240,0,0)
 INSERT INTO `item_weapon` VALUES (22306,'loughnashade',45,0,269,0,0,0,1,240,0,0);     -- Wind Instrument (Level 119 II)
 INSERT INTO `item_weapon` VALUES (22307,'loughnashade',45,0,269,0,0,0,1,240,0,0);     -- Wind Instrument (Level 119 III)
 INSERT INTO `item_weapon` VALUES (22308,'bayeux_bullet',26,1,0,0,0,1,1,240,58,0);   -- DMG:58 Delay:240
-INSERT INTO `item_weapon` VALUES (22309,'bayeux_arrow',25,0,0,0,0,1,1,240,315,0);   -- DMG:315 Delay:240
+INSERT INTO `item_weapon` VALUES (22309,'bayeux_arrow',25,0,0,0,0,1,1,90,116,0);   -- DMG:116 Delay:90
 
 /*!40000 ALTER TABLE `item_weapon` ENABLE KEYS */;
 UNLOCK TABLES;
