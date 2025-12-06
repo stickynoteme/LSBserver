@@ -464,6 +464,32 @@ SELECTOR_ARG_GUIDE = {
     'HELIX_MOB_WEAKNESS': '0',
 }
 
+TP_TRIGGER_DESCRIPTIONS = {
+    'ASAP': 'Use TP as soon as it is available.',
+    'RANDOM': 'Use TP at random intervals.',
+    'OPENER': 'Spend TP early to start skillchains.',
+    'CLOSER': 'Save TP to close skillchains.',
+    'CLOSER_UNTIL_TP': 'Close chains until TP reaches the Value threshold.',
+}
+
+TP_SELECT_DESCRIPTIONS = {
+    'HIGHEST': 'Choose strongest WS/skill.',
+    'LOWEST': 'Choose weakest WS/skill.',
+    'RANDOM': 'Pick randomly.',
+    'SPECIFIC': 'Use the explicit Sel. Arg (xi.ws.*, xi.ja.*, etc.).',
+    'SPECIAL_AYAME': 'Ayame TP logic.',
+    'BEST_AGAINST_TARGET': 'Pick best element vs target.',
+    'BEST_SAMBA': 'Pick best Samba.',
+    'HIGHEST_WALTZ': 'Highest Waltz available.',
+    'ENTRUSTED': 'Entrust logic.',
+    'BEST_INDI': 'Best Indi spell.',
+    'STORM_DAY': 'Storm matching day.',
+    'HELIX_DAY': 'Helix matching day.',
+    'EN_MOB_WEAKNESS': 'En-spell for mob weakness.',
+    'STORM_MOB_WEAKNESS': 'Storm for mob weakness.',
+    'HELIX_MOB_WEAKNESS': 'Helix for mob weakness.',
+}
+
 class TrustEditor(tk.Tk):
     def __init__(self):
         super().__init__()
@@ -480,7 +506,7 @@ class TrustEditor(tk.Tk):
 
         self.create_widgets()
 
-    def open_filter_list_dialog(self, values, target_var, title="Select", width=40, height=12):
+    def open_filter_list_dialog(self, values, target_var, title="Select", width=40, height=12, help_category=None):
         dialog = tk.Toplevel(self)
         dialog.title(title)
         dialog.grab_set()
@@ -497,16 +523,37 @@ class TrustEditor(tk.Tk):
         listbox = tk.Listbox(list_frame, height=height, yscrollcommand=scrollbar.set, exportselection=False)
         scrollbar.config(command=listbox.yview)
         listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        scrollbar.pack(side=tk.LEFT, fill=tk.Y)
+
+        detail = None
+        help_items = self.get_help_items(help_category) if help_category else []
+
+        if help_items:
+            detail = scrolledtext.ScrolledText(list_frame, wrap=tk.WORD, width=50)
+            detail.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(8, 0))
+
+        def describe(sel):
+            if not detail:
+                return
+            info = ""
+            for item in help_items:
+                if item['name'].startswith(sel):
+                    info = item['info']
+                    break
+            detail.config(state="normal")
+            detail.delete("1.0", tk.END)
+            detail.insert("1.0", info or sel)
+            detail.config(state="disabled")
 
         def refresh(filter_text=""):
             listbox.delete(0, tk.END)
             filtered = [v for v in values if filter_text.lower() in v.lower()]
+            listbox._items = filtered
             for item in filtered:
                 listbox.insert(tk.END, item)
             if filtered:
                 listbox.selection_set(0)
-        refresh()
+                describe(filtered[0])
 
         def choose(event=None):
             if listbox.curselection():
@@ -514,12 +561,19 @@ class TrustEditor(tk.Tk):
                 target_var.set(sel)
             dialog.destroy()
 
+        def on_select(event=None):
+            if listbox.curselection():
+                sel = listbox.get(tk.ACTIVE)
+                describe(sel)
+
         ttk.Button(dialog, text="Select", command=choose).pack(pady=(0, 8))
         listbox.bind("<Double-Button-1>", choose)
+        listbox.bind("<<ListboxSelect>>", on_select)
         search_var.trace_add("write", lambda *args: refresh(search_var.get()))
+        refresh()
         search_entry.focus_set()
 
-    def create_list_picker(self, parent, values, textvariable=None, width=20, title="Select"):
+    def create_list_picker(self, parent, values, textvariable=None, width=20, title="Select", help_category=None):
         var = textvariable or tk.StringVar()
         frame = ttk.Frame(parent)
         display = ttk.Label(frame, textvariable=var, width=width, relief="sunken", anchor="w")
@@ -535,7 +589,7 @@ class TrustEditor(tk.Tk):
             highlightthickness=0,
             relief="flat",
             font=("TkDefaultFont", 8),
-            command=lambda: self.open_filter_list_dialog(values, var, title=title),
+            command=lambda: self.open_filter_list_dialog(values, var, title=title, help_category=help_category),
         ).pack(side=tk.LEFT, padx=0, pady=0)
         return frame, var
 
@@ -753,14 +807,14 @@ class TrustEditor(tk.Tk):
         row_frame = ttk.Frame(self.gambits_scrollable_frame)
         row_frame.pack(fill=tk.X, pady=2)
 
-        t_frame, t_var = self.create_list_picker(row_frame, SORTED_AI_TARGETS, width=10, textvariable=tk.StringVar(), title="Pick Target"); t_var.set(t); t_frame.pack(side=tk.LEFT, padx=2)
-        c_frame, c_var = self.create_list_picker(row_frame, SORTED_AI_CONDITIONS, width=14, textvariable=tk.StringVar(), title="Pick Condition"); c_var.set(c); c_frame.pack(side=tk.LEFT, padx=2)
+        t_frame, t_var = self.create_list_picker(row_frame, SORTED_AI_TARGETS, width=10, textvariable=tk.StringVar(), title="Pick Target", help_category="TARGET"); t_var.set(t); t_frame.pack(side=tk.LEFT, padx=2)
+        c_frame, c_var = self.create_list_picker(row_frame, SORTED_AI_CONDITIONS, width=14, textvariable=tk.StringVar(), title="Pick Condition", help_category="CONDITION"); c_var.set(c); c_frame.pack(side=tk.LEFT, padx=2)
         c_arg_e = ttk.Entry(row_frame, width=8); c_arg_e.insert(0, str(c_arg)); c_arg_e.pack(side=tk.LEFT, padx=2)
-        r_frame, r_var = self.create_list_picker(row_frame, SORTED_AI_REACTIONS, width=10, textvariable=tk.StringVar(), title="Pick Reaction"); r_var.set(r); r_frame.pack(side=tk.LEFT, padx=2)
-        s_frame, s_var = self.create_list_picker(row_frame, SORTED_AI_SELECTS, width=14, textvariable=tk.StringVar(), title="Pick Selector"); s_var.set(s); s_frame.pack(side=tk.LEFT, padx=2)
+        r_frame, r_var = self.create_list_picker(row_frame, SORTED_AI_REACTIONS, width=10, textvariable=tk.StringVar(), title="Pick Reaction", help_category="REACTION"); r_var.set(r); r_frame.pack(side=tk.LEFT, padx=2)
+        s_frame, s_var = self.create_list_picker(row_frame, SORTED_AI_SELECTS, width=14, textvariable=tk.StringVar(), title="Pick Selector", help_category="SELECTOR"); s_var.set(s); s_frame.pack(side=tk.LEFT, padx=2)
         
         # Selector Arg: filtered picker with all constants + manual entry support
-        s_arg_frame, s_arg_var = self.create_list_picker(row_frame, ALL_CONSTANTS, width=22, textvariable=tk.StringVar(), title="Pick Selector Arg")
+        s_arg_frame, s_arg_var = self.create_list_picker(row_frame, ALL_CONSTANTS, width=22, textvariable=tk.StringVar(), title="Pick Selector Arg", help_category="SEL_ARG")
         s_arg_var.set(s_arg)
         s_arg_frame.pack(side=tk.LEFT, padx=2)
 
@@ -785,11 +839,11 @@ class TrustEditor(tk.Tk):
         f.pack(fill=tk.BOTH, expand=True, pady=10, padx=10)
 
         ttk.Label(f, text="Trigger:").grid(row=0, column=0, padx=5, pady=5)
-        trigger_picker, _ = self.create_list_picker(f, SORTED_AI_TP_TRIGGERS, textvariable=self.tp_trigger_var, width=14, title="Pick TP Trigger")
+        trigger_picker, _ = self.create_list_picker(f, SORTED_AI_TP_TRIGGERS, textvariable=self.tp_trigger_var, width=14, title="Pick TP Trigger", help_category="TP_TRIGGER")
         trigger_picker.grid(row=0, column=1, padx=5, pady=5)
 
         ttk.Label(f, text="Select:").grid(row=1, column=0, padx=5, pady=5)
-        select_picker, _ = self.create_list_picker(f, SORTED_AI_SELECTS, textvariable=self.tp_select_var, width=14, title="Pick TP Selector")
+        select_picker, _ = self.create_list_picker(f, SORTED_AI_SELECTS, textvariable=self.tp_select_var, width=14, title="Pick TP Selector", help_category="TP_SELECT")
         select_picker.grid(row=1, column=1, padx=5, pady=5)
 
         ttk.Label(f, text="Value (e.g. 1000):").grid(row=2, column=0, padx=5, pady=5)
@@ -845,10 +899,12 @@ class TrustEditor(tk.Tk):
         help_frame = ttk.LabelFrame(self.effects_frame, text="Status Effect Help")
         help_frame.pack(fill=tk.BOTH, expand=False, padx=10, pady=(0, 10))
         help_text = (
-            "Effect: Choose xi.effect.* to apply. This is both the effect id and icon.\n"
-            "Power: Magnitude (stat bonus, % haste, resist, etc.). Check effect implementation for expected scale.\n"
-            "Duration: Seconds the effect lasts; 0 may mean instant or default duration depending on effect.\n"
-            "Stacking: Re-applying the same effect overwrites previous power/duration in templates.\n"
+            "When applied: Effects are added once on trust spawn via mob:addStatusEffectEx.\n"
+            "Reapplication: No auto-recast; to refresh mid-fight, add gambits (e.g. NOT_STATUS + MA) or custom code.\n"
+            "Effect: Choose xi.effect.* (also used as the icon id).\n"
+            "Power: Magnitude (stat bonus, % haste, resist, etc.). Check effect implementation for expected scaling.\n"
+            "Duration: Seconds the effect lasts. 0 may mean instant or default. Expired effects do not reapply unless scripted.\n"
+            "Stacking: Re-applying the same effect overwrites earlier power/duration; in the editor, later rows overwrite prior ones for the same effect id.\n"
             "Examples: xi.effect.HASTE power=1500 (~15%), xi.effect.PHALANX power=20, xi.effect.ENLIGHT power=15.\n"
         )
         eff_txt = scrolledtext.ScrolledText(help_frame, wrap=tk.WORD, height=6)
@@ -1021,6 +1077,15 @@ class TrustEditor(tk.Tk):
             items.append({'name': "Effects", 'info': f"xi.effect.* ({len(EFFECTS)} options). Often used with STATUS/NOT_STATUS conditions."})
             items.append({'name': "Effect Flags", 'info': f"xi.effectFlag.* ({len(EFFECT_FLAGS)} options). Use with STATUS_FLAG condition; ERASABLE, DISPELABLE, etc."})
             items.append({'name': "Default zero", 'info': "Selectors like HIGHEST/LOWEST/MB_ELEMENT/BEST_SAMBA typically accept 0 when no explicit override is needed."})
+        elif category == "TP_TRIGGER":
+            for k in SORTED_AI_TP_TRIGGERS:
+                desc = TP_TRIGGER_DESCRIPTIONS.get(k, '')
+                items.append({'name': f"{k} ({AI_TP_TRIGGERS[k]})", 'info': f"{k}\nValue: {AI_TP_TRIGGERS[k]}\n{desc}"})
+        elif category == "TP_SELECT":
+            for k in SORTED_AI_SELECTS:
+                desc = TP_SELECT_DESCRIPTIONS.get(k, SELECTOR_DESCRIPTIONS.get(k, ''))
+                arg = SELECTOR_ARG_GUIDE.get(k, 'Usually 0')
+                items.append({'name': f"{k} ({AI_SELECTS[k]})", 'info': f"{k}\nValue: {AI_SELECTS[k]}\nSelector: {desc}\nSel. Arg: {arg}"})
         return items
 
     def populate_from_data(self, data):
