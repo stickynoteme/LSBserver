@@ -76,10 +76,10 @@ SLOT_BITMASK = {
 
 # Combined masks for dual slots (earrings can go in either ear slot)
 SLOT_COMBINED = {
-    'ear1': 2048 | 4096,  # 6144
-    'ear2': 2048 | 4096,  # 6144
-    'ring1': 8192 | 16384,  # 24576
-    'ring2': 8192 | 16384,  # 24576
+    'ear1': SLOT_BITMASK['ear1'] | SLOT_BITMASK['ear2'],
+    'ear2': SLOT_BITMASK['ear1'] | SLOT_BITMASK['ear2'],
+    'ring1': SLOT_BITMASK['ring1'] | SLOT_BITMASK['ring2'],
+    'ring2': SLOT_BITMASK['ring1'] | SLOT_BITMASK['ring2'],
 }
 
 # All equipment slots in display order
@@ -245,19 +245,46 @@ def cache_slot_lists(slot_lists):
             json.dump(items, f, indent=2)
 
 def load_cached_slot_lists():
-    """Load slot lists from cache if available."""
-    slot_lists = {}
+    """Load slot lists from cache if available, otherwise build from SQL."""
+    # Check if cache exists and is not empty
+    cache_valid = True
     for slot_name in ALL_EQUIP_SLOTS:
         cache_file = os.path.join(SYS_DIR, f"slot_{slot_name}.json")
-        if os.path.exists(cache_file):
+        if not os.path.exists(cache_file) or os.path.getsize(cache_file) == 0:
+            cache_valid = False
+            break
+    
+    if cache_valid:
+        # Load from cache
+        slot_lists = {}
+        for slot_name in ALL_EQUIP_SLOTS:
+            cache_file = os.path.join(SYS_DIR, f"slot_{slot_name}.json")
             try:
                 with open(cache_file, 'r') as f:
                     slot_lists[slot_name] = json.load(f)
             except (json.JSONDecodeError, IOError):
-                slot_lists[slot_name] = []
-        else:
-            slot_lists[slot_name] = []
+                cache_valid = False
+                break
+        
+        if cache_valid:
+            return slot_lists
+    
+    # Build from SQL and cache
+    equipment = parse_item_equipment()
+    names = parse_item_basic()
+    slot_lists = build_slot_item_lists(equipment, names)
+    cache_slot_lists(slot_lists)
     return slot_lists
+
+def get_slot_item_lists():
+    """Lazy loader for slot item lists - only loads when needed."""
+    global _SLOT_ITEM_LISTS
+    if _SLOT_ITEM_LISTS is None:
+        _SLOT_ITEM_LISTS = load_cached_slot_lists()
+    return _SLOT_ITEM_LISTS
+
+# Module-level cache (lazy loaded)
+_SLOT_ITEM_LISTS = None
 
 ITEM_NAMES = parse_item_basic()
 ITEM_NAME_LIST = [f"{name} ({item_id})" for item_id, name in ITEM_NAMES.items()]
@@ -265,9 +292,8 @@ ITEM_MODS = parse_item_mods()
 ITEM_WEAPONS = parse_item_weapon()
 ITEM_EQUIPMENT = parse_item_equipment()
 
-# Build and cache slot-specific item lists
-SLOT_ITEM_LISTS = build_slot_item_lists(ITEM_EQUIPMENT, ITEM_NAMES)
-cache_slot_lists(SLOT_ITEM_LISTS)
+# Slot item lists are lazy loaded via get_slot_item_lists()
+# This avoids expensive I/O at module import time
 
 def parse_nested_lua_enum(file_path, table_name):
     """Parses a specific table inside a Lua file."""
@@ -911,7 +937,7 @@ class TrustEditor(tk.Tk):
                 item_id = int(item_id_str)
                 name = ITEM_NAMES.get(item_id, f"Unknown ({item_id})")
                 # Find display name from slot lists if available
-                slot_items = SLOT_ITEM_LISTS.get(slot, [])
+                slot_items = get_slot_item_lists().get(slot, [])
                 for item in slot_items:
                     if item['id'] == item_id:
                         name_var.set(item['display'])
@@ -934,8 +960,8 @@ class TrustEditor(tk.Tk):
         dialog.geometry("550x500")
         dialog.grab_set()
 
-        # Get slot-specific items
-        slot_items = SLOT_ITEM_LISTS.get(slot, [])
+        # Get slot-specific items (lazy loaded)
+        slot_items = get_slot_item_lists().get(slot, [])
         
         search_var = tk.StringVar()
         ttk.Label(dialog, text="Filter:").pack(anchor="w", padx=8, pady=(8, 2))
@@ -1292,16 +1318,18 @@ class TrustEditor(tk.Tk):
                     for m in slot_mods:
                         gear_mods_summary.append(f"  {m}")
             
-            # Get weapon stats
-            if item_id in ITEM_WEAPONS:
+            # Get weapon stats - display separately from armor mods
+            if item_id in ITEM_WEAPONS and slot in ['main', 'sub', 'ranged']:
                 w = ITEM_WEAPONS[item_id]
                 dmg = w.get('dmg', 0)
                 delay = w.get('delay', 0)
-                gear_mods_summary.append(f"[{slot.upper()}] {item_name}:")
-                gear_mods_summary.append(f"  Weapon DMG: {dmg}")
-                gear_mods_summary.append(f"  Weapon Delay: {delay}")
-                # Weapon DMG adds to ATT approximation
-                stats['ATT'] += dmg
+                if not any(f"[{slot.upper()}]" in line for line in gear_mods_summary[-5:]):
+                    gear_mods_summary.append(f"[{slot.upper()}] {item_name}:")
+                gear_mods_summary.append(f"  Weapon DMG: {dmg} (uses {slot.upper()}_DMG_RATING)")
+                if slot != 'sub':  # Sub weapons don't have separate delay
+                    gear_mods_summary.append(f"  Weapon Delay: {delay}")
+                # Note: Weapon DMG contributes to damage calculation, not directly to ATT stat
+                # This is a simplified approximation for preview purposes only
         
         # Also add manual mods from the Mods tab
         if hasattr(self, 'mod_rows'):
@@ -1922,7 +1950,7 @@ class TrustEditor(tk.Tk):
                 # Try to get display name from slot list
                 display_name = ''
                 if item_id:
-                    slot_items = SLOT_ITEM_LISTS.get(slot, [])
+                    slot_items = get_slot_item_lists().get(slot, [])
                     for item in slot_items:
                         if item['id'] == int(item_id):
                             display_name = item['display']
@@ -2144,12 +2172,22 @@ class TrustEditor(tk.Tk):
                         if mod_name:
                             gear_mods_str += f"    mob:addMod(xi.mod.{mod_name}, {fmt_arg(val)}) -- {slot}: {item_name}\n"
                     
-                    # Add weapon stats for weapon slots
+                    # Add weapon stats for weapon slots - use slot-specific mods
                     if item_id in ITEM_WEAPONS and slot in ['main', 'sub', 'ranged']:
                         w = ITEM_WEAPONS[item_id]
+                        dmg = w.get('dmg', 0)
+                        delay = w.get('delay', 0)
                         gear_mods_str += f"    -- {slot}: {item_name} weapon stats\n"
-                        gear_mods_str += f"    mob:addMod(xi.mod.DMG, {fmt_arg(w.get('dmg'))}) -- weapon base dmg\n"
-                        gear_mods_str += f"    mob:addMod(xi.mod.DELAY, {fmt_arg(w.get('delay'))}) -- weapon delay\n"
+                        
+                        if slot == 'main':
+                            gear_mods_str += f"    mob:addMod(xi.mod.MAIN_DMG_RATING, {fmt_arg(dmg)}) -- main weapon dmg\n"
+                            gear_mods_str += f"    mob:addMod(xi.mod.DELAY, {fmt_arg(delay)}) -- main weapon delay\n"
+                        elif slot == 'sub':
+                            gear_mods_str += f"    mob:addMod(xi.mod.SUB_DMG_RATING, {fmt_arg(dmg)}) -- sub weapon dmg\n"
+                            # Note: Sub weapon delay typically doesn't apply separately
+                        elif slot == 'ranged':
+                            gear_mods_str += f"    mob:addMod(xi.mod.RANGED_DMG_RATING, {fmt_arg(dmg)}) -- ranged weapon dmg\n"
+                            gear_mods_str += f"    mob:addMod(xi.mod.RANGED_DELAY, {fmt_arg(delay)}) -- ranged weapon delay\n"
             
             if look_parts:
                 gear_setlook = "    -- Faux Gear Look\n"
