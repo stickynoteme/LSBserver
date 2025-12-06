@@ -15,7 +15,6 @@ end
 
 spellObject.onMobSpawn = function(mob)
     mob:setAutoAttackEnabled(true)
-
     -- Set main job to enable job-specific abilities and spells
     mob:changeJob(xi.job.DRK)
 

@@ -15,7 +15,6 @@ end
 
 spellObject.onMobSpawn = function(mob)
     mob:setAutoAttackEnabled(false)
-
     -- Set main job to enable job-specific abilities and spells
     mob:changeJob(xi.job.WHM)
 
@@ -24,7 +23,6 @@ spellObject.onMobSpawn = function(mob)
     mob:addMod(xi.mod.FASTCAST, 20)
     mob:addMod(xi.mod.MND, 20)
     mob:addMod(xi.mod.REFRESH, 3)
-
 
     -- Faux Gear Look
     mob:setLook({ main = 17024, head = 27733 })
@@ -40,7 +38,6 @@ spellObject.onMobSpawn = function(mob)
     mob:addGambit(ai.t.PARTY, { ai.c.NOT_STATUS, xi.effect.REGEN }, { ai.r.MA, ai.s.HIGHEST, xi.magic.spellFamily.REGEN })
     mob:addGambit(ai.t.PARTY, { ai.c.NOT_STATUS, xi.effect.PROTECT }, { ai.r.MA, ai.s.HIGHEST, xi.magic.spellFamily.PROTECT })
     mob:addGambit(ai.t.PARTY, { ai.c.NOT_STATUS, xi.effect.SHELL }, { ai.r.MA, ai.s.HIGHEST, xi.magic.spellFamily.SHELL })
-
 
     -- Custom Code
     

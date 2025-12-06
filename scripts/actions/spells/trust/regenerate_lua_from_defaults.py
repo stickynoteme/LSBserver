@@ -55,16 +55,21 @@ def generate_lua(filename, data):
     main_job = data.get('main_job', '')
     sub_job = data.get('sub_job', 'NONE')
     if main_job:
+        job_change_str += "\n"  # Blank line before
         job_change_str += f"    -- Set main job to enable job-specific abilities and spells\n"
         job_change_str += f"    mob:changeJob(xi.job.{main_job})\n"
         if sub_job and sub_job != 'NONE':
             job_change_str += f"    mob:changeSJob(xi.job.{sub_job})\n"
 
     mods_str = ""
+    if data.get('mods'):
+        mods_str += "\n"  # Blank line before
     for m in data.get('mods', []):
         mods_str += f"    mob:addMod(xi.mod.{m['name']}, {fmt_arg(m['value'])})\n"
 
     effects_str = ""
+    if data.get('effects'):
+        effects_str += "\n"  # Blank line before
     for e in data.get('effects', []):
         effects_str += f"    mob:addStatusEffectEx(xi.effect.{e['effect']}, xi.effect.{e['effect']}, {fmt_arg(e['power'])}, 0, {fmt_arg(e['duration'])})\n"
 
@@ -80,7 +85,8 @@ def generate_lua(filename, data):
                 look_parts.append(f"{slot} = {item_id}")
         
         if look_parts:
-            gear_setlook = "    -- Faux Gear Look\n"
+            gear_setlook = "\n"  # Blank line before
+            gear_setlook += "    -- Faux Gear Look\n"
             gear_setlook += "    mob:setLook({ " + ", ".join(look_parts) + " })\n"
 
     gambits_str = ""
@@ -119,14 +125,13 @@ spellObject.onSpellCast = function(caster, target, spell)
 end
 
 spellObject.onMobSpawn = function(mob)
-    mob:setAutoAttackEnabled({str(data.get('auto_attack', True)).lower()})
-
-{job_change_str}
-{mods_str}
-{effects_str}
+    mob:setAutoAttackEnabled({str(data.get('auto_attack', True)).lower()})\
+{job_change_str}\
+{mods_str}\
+{effects_str}\
 {gear_setlook}\
-{gambits_str}
-{tp_str}
+{gambits_str}\
+{tp_str}\
 {listeners_str}
     -- Custom Code
     {data.get('custom_code', '')}
