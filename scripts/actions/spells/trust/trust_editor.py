@@ -46,9 +46,69 @@ AI_TP_TRIGGERS = {
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 ENUM_DIR = os.path.abspath(os.path.join(CURRENT_DIR, "../../../../scripts/enum"))
 USERDATA_DIR = os.path.join(CURRENT_DIR, "userdata")
+SYS_DIR = os.path.join(CURRENT_DIR, "sys")
 
 if not os.path.exists(USERDATA_DIR):
     os.makedirs(USERDATA_DIR)
+
+if not os.path.exists(SYS_DIR):
+    os.makedirs(SYS_DIR)
+
+# Equipment slot bitmasks (from xi.slot enum, but as bitmask for item_equipment.slot field)
+SLOT_BITMASK = {
+    'main': 1,
+    'sub': 2,
+    'ranged': 4,
+    'ammo': 8,
+    'head': 16,
+    'body': 32,
+    'hands': 64,
+    'legs': 128,
+    'feet': 256,
+    'neck': 512,
+    'waist': 1024,
+    'ear1': 2048,
+    'ear2': 4096,
+    'ring1': 8192,
+    'ring2': 16384,
+    'back': 32768,
+}
+
+# Combined masks for dual slots (earrings can go in either ear slot)
+SLOT_COMBINED = {
+    'ear1': SLOT_BITMASK['ear1'] | SLOT_BITMASK['ear2'],
+    'ear2': SLOT_BITMASK['ear1'] | SLOT_BITMASK['ear2'],
+    'ring1': SLOT_BITMASK['ring1'] | SLOT_BITMASK['ring2'],
+    'ring2': SLOT_BITMASK['ring1'] | SLOT_BITMASK['ring2'],
+}
+
+# All equipment slots in display order
+ALL_EQUIP_SLOTS = [
+    'main', 'sub', 'ranged', 'ammo',
+    'head', 'body', 'hands', 'legs', 'feet',
+    'neck', 'waist', 'ear1', 'ear2', 'ring1', 'ring2', 'back'
+]
+
+# Base stats for a lv99 trust (approximations based on typical player stats)
+BASE_STATS_LV99 = {
+    'HP': 2000,
+    'MP': 500,
+    'STR': 75,
+    'DEX': 75,
+    'VIT': 75,
+    'AGI': 75,
+    'INT': 75,
+    'MND': 75,
+    'CHR': 75,
+    'ATT': 300,
+    'ACC': 400,
+    'DEF': 400,
+    'EVA': 350,
+    'MATT': 100,
+    'MACC': 350,
+    'MDEF': 100,
+    'MEVA': 350,
+}
 
 def parse_lua_enum(file_path, enum_name):
     """Parses a Lua file for enum definitions."""
@@ -87,7 +147,9 @@ def parse_item_basic():
     if not file_path.exists():
         return data
     content = file_path.read_text(errors="ignore")
-    for item_id, name in re.findall(r"\((\d+),'([^']*)',", content):
+    # Format: (itemid,subid,'name','sortname',type,stackSize,flags,aH,BaseSell)
+    for match in re.findall(r"VALUES\s*\((\d+),\d+,'([^']*)',", content):
+        item_id, name = match
         data[int(item_id)] = name
     return data
 
@@ -112,10 +174,126 @@ def parse_item_weapon():
         weapons[int(item_id)] = {'delay': int(delay), 'dmg': int(dmg)}
     return weapons
 
+def parse_item_equipment():
+    """Parse item_equipment.sql to get slot information for each item."""
+    equipment = {}
+    file_path = SQL_DIR / "item_equipment.sql"
+    if not file_path.exists():
+        return equipment
+    content = file_path.read_text(errors="ignore")
+    # Format: (itemId,'name',level,ilevel,jobs,MId,shieldSize,scriptType,slot,rslot,rslotlook,su_level)
+    for match in re.findall(r"VALUES\s*\((\d+),'([^']*)',(\d+),(\d+),(\d+),(\d+),(\d+),(\d+),(\d+),(\d+),(\d+),(\d+)\)", content):
+        item_id = int(match[0])
+        name = match[1]
+        level = int(match[2])
+        ilevel = int(match[3])
+        slot_bitmask = int(match[8])
+        equipment[item_id] = {
+            'name': name,
+            'level': level,
+            'ilevel': ilevel,
+            'slot': slot_bitmask
+        }
+    return equipment
+
+def build_slot_item_lists(equipment_data, item_names):
+    """Build filtered item lists for each equipment slot."""
+    slot_lists = {slot: [] for slot in ALL_EQUIP_SLOTS}
+    
+    for item_id, eq_info in equipment_data.items():
+        slot_bitmask = eq_info.get('slot', 0)
+        name = item_names.get(item_id, eq_info.get('name', f'Item {item_id}'))
+        level = eq_info.get('level', 0)
+        ilevel = eq_info.get('ilevel', 0)
+        
+        # Create display string with level info
+        if ilevel > 0:
+            display = f"{name} (iLv{ilevel}) [{item_id}]"
+        elif level > 0:
+            display = f"{name} (Lv{level}) [{item_id}]"
+        else:
+            display = f"{name} [{item_id}]"
+        
+        # Check each slot and add item if bitmask matches
+        for slot_name in ALL_EQUIP_SLOTS:
+            if slot_name in SLOT_COMBINED:
+                # For ear/ring slots, check combined mask
+                check_mask = SLOT_COMBINED[slot_name]
+            else:
+                check_mask = SLOT_BITMASK.get(slot_name, 0)
+            
+            if slot_bitmask & check_mask:
+                slot_lists[slot_name].append({
+                    'id': item_id,
+                    'name': name,
+                    'display': display,
+                    'level': level,
+                    'ilevel': ilevel
+                })
+    
+    # Sort each list by ilevel (descending), then level (descending), then name
+    for slot_name in slot_lists:
+        slot_lists[slot_name].sort(key=lambda x: (-x['ilevel'], -x['level'], x['name'].lower()))
+    
+    return slot_lists
+
+def cache_slot_lists(slot_lists):
+    """Cache the slot lists to JSON files in the sys folder."""
+    for slot_name, items in slot_lists.items():
+        cache_file = os.path.join(SYS_DIR, f"slot_{slot_name}.json")
+        with open(cache_file, 'w') as f:
+            json.dump(items, f, indent=2)
+
+def load_cached_slot_lists():
+    """Load slot lists from cache if available, otherwise build from SQL."""
+    # Check if cache exists and is not empty
+    cache_valid = True
+    for slot_name in ALL_EQUIP_SLOTS:
+        cache_file = os.path.join(SYS_DIR, f"slot_{slot_name}.json")
+        if not os.path.exists(cache_file) or os.path.getsize(cache_file) == 0:
+            cache_valid = False
+            break
+    
+    if cache_valid:
+        # Load from cache
+        slot_lists = {}
+        for slot_name in ALL_EQUIP_SLOTS:
+            cache_file = os.path.join(SYS_DIR, f"slot_{slot_name}.json")
+            try:
+                with open(cache_file, 'r') as f:
+                    slot_lists[slot_name] = json.load(f)
+            except (json.JSONDecodeError, IOError):
+                cache_valid = False
+                break
+        
+        if cache_valid:
+            return slot_lists
+    
+    # Build from SQL and cache
+    equipment = parse_item_equipment()
+    names = parse_item_basic()
+    slot_lists = build_slot_item_lists(equipment, names)
+    cache_slot_lists(slot_lists)
+    return slot_lists
+
+def get_slot_item_lists():
+    """Lazy loader for slot item lists - only loads when needed."""
+    global _SLOT_ITEM_LISTS
+    if _SLOT_ITEM_LISTS is None:
+        _SLOT_ITEM_LISTS = load_cached_slot_lists()
+    return _SLOT_ITEM_LISTS
+
+# Module-level cache (lazy loaded)
+_SLOT_ITEM_LISTS = None
+
 ITEM_NAMES = parse_item_basic()
 ITEM_NAME_LIST = [f"{name} ({item_id})" for item_id, name in ITEM_NAMES.items()]
 ITEM_MODS = parse_item_mods()
 ITEM_WEAPONS = parse_item_weapon()
+ITEM_EQUIPMENT = parse_item_equipment()
+
+# Slot item lists are lazy loaded via get_slot_item_lists()
+# This avoids expensive I/O at module import time
 
 def parse_nested_lua_enum(file_path, table_name):
     """Parses a specific table inside a Lua file."""
@@ -711,61 +889,167 @@ class TrustEditor(tk.Tk):
         return frame, var
 
     def create_gear_rows(self, parent):
-        slots = ['main', 'sub', 'head', 'body', 'hands', 'legs', 'feet']
-        for i, slot in enumerate(slots, start=1):
-            ttk.Label(parent, text=slot.upper() + ":").grid(row=i, column=0, padx=5, pady=4, sticky="w")
+        """Create gear selection rows for all equipment slots, organized in two columns."""
+        # Split slots into two columns for better layout
+        left_slots = ['main', 'sub', 'ranged', 'ammo', 'head', 'body', 'hands', 'legs', 'feet']
+        right_slots = ['neck', 'waist', 'ear1', 'ear2', 'ring1', 'ring2', 'back']
+        
+        # Create two frames for left and right columns
+        left_frame = ttk.Frame(parent)
+        left_frame.grid(row=1, column=0, sticky="nw", padx=5)
+        
+        right_frame = ttk.Frame(parent)
+        right_frame.grid(row=1, column=1, sticky="nw", padx=5)
+        
+        def add_slot_row(frame, slot, row_num):
+            slot_label = slot.upper().replace('1', ' 1').replace('2', ' 2')  # "EAR1" -> "EAR 1"
+            ttk.Label(frame, text=slot_label + ":").grid(row=row_num, column=0, padx=5, pady=3, sticky="w")
             id_var = tk.StringVar()
             name_var = tk.StringVar()
 
-            entry = ttk.Entry(parent, textvariable=id_var, width=10)
-            entry.grid(row=i, column=1, padx=5, pady=4, sticky="w")
+            entry = ttk.Entry(frame, textvariable=id_var, width=8)
+            entry.grid(row=row_num, column=1, padx=3, pady=3, sticky="w")
+            
+            # Bind id_var changes to update name and trigger stats refresh
+            id_var.trace_add("write", lambda *args, iv=id_var, nv=name_var, s=slot: self.on_gear_id_changed(iv, nv, s))
 
-            name_label = ttk.Label(parent, textvariable=name_var, width=30, relief="sunken", anchor="w")
-            name_label.grid(row=i, column=2, padx=5, pady=4, sticky="w")
+            name_label = ttk.Label(frame, textvariable=name_var, width=25, relief="sunken", anchor="w")
+            name_label.grid(row=row_num, column=2, padx=3, pady=3, sticky="w")
 
-            tk.Button(parent, text="🔍", width=1, height=1, padx=0, pady=0, borderwidth=0, highlightthickness=0,
-                      command=lambda s=slot, iv=id_var, nv=name_var: self.pick_gear_item(s, iv, nv)).grid(row=i, column=3, padx=2, pady=2)
+            tk.Button(frame, text="🔍", width=1, height=1, padx=0, pady=0, borderwidth=0, highlightthickness=0,
+                      command=lambda s=slot, iv=id_var, nv=name_var: self.pick_gear_item(s, iv, nv)).grid(row=row_num, column=3, padx=2, pady=2)
 
             self.gear_rows.append({'slot': slot, 'id_var': id_var, 'name_var': name_var})
+        
+        # Add left column slots
+        for i, slot in enumerate(left_slots):
+            add_slot_row(left_frame, slot, i)
+        
+        # Add right column slots
+        for i, slot in enumerate(right_slots):
+            add_slot_row(right_frame, slot, i)
+
+    def on_gear_id_changed(self, id_var, name_var, slot):
+        """Called when a gear ID is manually changed - update name and stats."""
+        item_id_str = id_var.get().strip()
+        if item_id_str:
+            try:
+                item_id = int(item_id_str)
+                name = ITEM_NAMES.get(item_id, f"Unknown ({item_id})")
+                # Find display name from slot lists if available
+                slot_items = get_slot_item_lists().get(slot, [])
+                for item in slot_items:
+                    if item['id'] == item_id:
+                        name_var.set(item['display'])
+                        break
+                else:
+                    name_var.set(f"{name} [{item_id}]")
+            except ValueError:
+                pass
+        else:
+            name_var.set("")
+        
+        # Refresh stats preview if it exists
+        if hasattr(self, 'refresh_stats_preview'):
+            self.refresh_stats_preview()
 
     def pick_gear_item(self, slot, id_var, name_var):
+        """Open a dialog to pick gear from slot-filtered item list."""
         dialog = tk.Toplevel(self)
-        dialog.title(f"Select {slot}")
-        dialog.geometry("500x400")
+        dialog.title(f"Select {slot.upper()}")
+        dialog.geometry("550x500")
         dialog.grab_set()
 
+        # Get slot-specific items (lazy loaded)
+        slot_items = get_slot_item_lists().get(slot, [])
+        
         search_var = tk.StringVar()
         ttk.Label(dialog, text="Filter:").pack(anchor="w", padx=8, pady=(8, 2))
         search_entry = ttk.Entry(dialog, textvariable=search_var)
         search_entry.pack(fill=tk.X, padx=8)
+        
+        # Info label
+        ttk.Label(dialog, text=f"Found {len(slot_items)} items for {slot.upper()} slot", 
+                  foreground="#666").pack(anchor="w", padx=8, pady=(2, 4))
 
-        listbox = tk.Listbox(dialog, exportselection=False)
-        listbox.pack(fill=tk.BOTH, expand=True, padx=8, pady=8)
+        list_frame = ttk.Frame(dialog)
+        list_frame.pack(fill=tk.BOTH, expand=True, padx=8, pady=4)
+        
+        scrollbar = ttk.Scrollbar(list_frame, orient=tk.VERTICAL)
+        listbox = tk.Listbox(list_frame, yscrollcommand=scrollbar.set, exportselection=False)
+        scrollbar.config(command=listbox.yview)
+        listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        
+        # Item details panel
+        detail_frame = ttk.LabelFrame(dialog, text="Item Details")
+        detail_frame.pack(fill=tk.X, padx=8, pady=4)
+        detail_text = scrolledtext.ScrolledText(detail_frame, wrap=tk.WORD, height=6)
+        detail_text.pack(fill=tk.BOTH, expand=True, padx=4, pady=4)
+
+        def show_item_details(item_id):
+            """Show mods and weapon stats for selected item."""
+            detail_text.config(state="normal")
+            detail_text.delete("1.0", tk.END)
+            
+            lines = [f"Item ID: {item_id}"]
+            name = ITEM_NAMES.get(item_id, "Unknown")
+            lines.append(f"Name: {name}")
+            
+            # Show weapon stats if applicable
+            if item_id in ITEM_WEAPONS:
+                w = ITEM_WEAPONS[item_id]
+                lines.append(f"Weapon DMG: {w.get('dmg', 0)}")
+                lines.append(f"Weapon Delay: {w.get('delay', 0)}")
+            
+            # Show mods
+            if item_id in ITEM_MODS:
+                lines.append("\nModifiers:")
+                for mod_id, val in ITEM_MODS[item_id]:
+                    mod_name = MOD_ID_TO_NAME.get(mod_id, f"MOD_{mod_id}")
+                    lines.append(f"  {mod_name}: {val:+d}")
+            
+            detail_text.insert("1.0", "\n".join(lines))
+            detail_text.config(state="disabled")
 
         def refresh():
             term = search_var.get().lower()
             listbox.delete(0, tk.END)
-            filtered = [item for item in ITEM_NAME_LIST if term in item.lower()]
+            filtered = [item for item in slot_items if term in item['display'].lower() or term in item['name'].lower()]
             listbox._items = filtered
             for item in filtered:
-                listbox.insert(tk.END, item)
+                listbox.insert(tk.END, item['display'])
             if filtered:
                 listbox.selection_set(0)
+                show_item_details(filtered[0]['id'])
         refresh()
+
+        def on_select(event=None):
+            if listbox.curselection():
+                idx = listbox.curselection()[0]
+                items = getattr(listbox, '_items', [])
+                if idx < len(items):
+                    show_item_details(items[idx]['id'])
 
         def choose(event=None):
             if not listbox.curselection():
                 return
-            sel = listbox.get(tk.ACTIVE)
-            # Extract id from "name (id)"
-            if "(" in sel and sel.endswith(")"):
-                item_id = sel.split("(")[-1].strip(")")
-                id_var.set(item_id)
-                name_var.set(sel)
+            idx = listbox.curselection()[0]
+            items = getattr(listbox, '_items', [])
+            if idx < len(items):
+                selected = items[idx]
+                id_var.set(str(selected['id']))
+                name_var.set(selected['display'])
             dialog.destroy()
 
-        ttk.Button(dialog, text="Select", command=choose).pack(pady=(0, 8))
+        btn_frame = ttk.Frame(dialog)
+        btn_frame.pack(fill=tk.X, padx=8, pady=(0, 8))
+        ttk.Button(btn_frame, text="Select", command=choose).pack(side=tk.LEFT, padx=4)
+        ttk.Button(btn_frame, text="Clear", command=lambda: (id_var.set(""), name_var.set(""), dialog.destroy())).pack(side=tk.LEFT, padx=4)
+        ttk.Button(btn_frame, text="Cancel", command=dialog.destroy).pack(side=tk.RIGHT, padx=4)
+        
         listbox.bind("<Double-Button-1>", choose)
+        listbox.bind("<<ListboxSelect>>", on_select)
         search_var.trace_add("write", lambda *args: refresh())
         search_entry.focus_set()
 
@@ -886,7 +1170,23 @@ class TrustEditor(tk.Tk):
         self.auto_attack_var = tk.BooleanVar(value=True)
         self.gear_rows = []
 
-        preset_frame = ttk.LabelFrame(self.general_frame, text="Player-like Preset", padding=10)
+        # Create a scrollable frame for the general tab
+        general_canvas = tk.Canvas(self.general_frame)
+        general_scrollbar = ttk.Scrollbar(self.general_frame, orient="vertical", command=general_canvas.yview)
+        general_scrollable = ttk.Frame(general_canvas)
+        
+        general_scrollable.bind(
+            "<Configure>",
+            lambda e: general_canvas.configure(scrollregion=general_canvas.bbox("all"))
+        )
+        
+        general_canvas.create_window((0, 0), window=general_scrollable, anchor="nw")
+        general_canvas.configure(yscrollcommand=general_scrollbar.set)
+        
+        general_canvas.pack(side="left", fill="both", expand=True)
+        general_scrollbar.pack(side="right", fill="y")
+
+        preset_frame = ttk.LabelFrame(general_scrollable, text="Player-like Preset", padding=10)
         preset_frame.pack(fill=tk.X, padx=10, pady=10)
 
         ttk.Label(preset_frame, text="Main Job").grid(row=0, column=0, padx=5, pady=5, sticky="w")
@@ -899,12 +1199,172 @@ class TrustEditor(tk.Tk):
 
         ttk.Button(preset_frame, text="Apply Job Template", command=self.apply_job_template).grid(row=1, column=0, columnspan=4, pady=5, sticky="w")
 
-        ttk.Checkbutton(self.general_frame, text="Auto Attack Enabled", variable=self.auto_attack_var).pack(pady=10, anchor="w", padx=10)
+        ttk.Checkbutton(general_scrollable, text="Auto Attack Enabled", variable=self.auto_attack_var).pack(pady=10, anchor="w", padx=10)
 
-        gear_frame = ttk.LabelFrame(self.general_frame, text="Faux Gear (Look + Mods)", padding=10)
-        gear_frame.pack(fill=tk.X, padx=10, pady=10)
-        ttk.Label(gear_frame, text="Assign item IDs to visually lockstyle and apply stats from SQL (item_mods + weapon dmg/delay).").grid(row=0, column=0, columnspan=4, sticky="w")
+        # Main content frame with gear and stats side by side
+        content_frame = ttk.Frame(general_scrollable)
+        content_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
+
+        gear_frame = ttk.LabelFrame(content_frame, text="Faux Gear (Look + Mods)", padding=10)
+        gear_frame.grid(row=0, column=0, sticky="nsew", padx=(0, 5))
+        ttk.Label(gear_frame, text="Assign items to apply stats from SQL. Use 🔍 for slot-filtered lists.").grid(row=0, column=0, columnspan=2, sticky="w")
         self.create_gear_rows(gear_frame)
+
+        # Stats Preview Panel
+        stats_frame = ttk.LabelFrame(content_frame, text="Stats Preview (Lv99 + Gear)", padding=10)
+        stats_frame.grid(row=0, column=1, sticky="nsew", padx=(5, 0))
+        
+        self.create_stats_preview(stats_frame)
+        
+        content_frame.columnconfigure(0, weight=2)
+        content_frame.columnconfigure(1, weight=1)
+    
+    def create_stats_preview(self, parent):
+        """Create the stats preview panel showing combined base + gear stats."""
+        # Header
+        ttk.Label(parent, text="Base stats for Lv99 trust + gear mods:", foreground="#666").pack(anchor="w", pady=(0, 5))
+        
+        # Refresh button
+        ttk.Button(parent, text="↻ Refresh Stats", command=self.refresh_stats_preview).pack(anchor="w", pady=(0, 5))
+        
+        # Stats display frame
+        self.stats_display_frame = ttk.Frame(parent)
+        self.stats_display_frame.pack(fill=tk.BOTH, expand=True)
+        
+        # Create stat labels
+        self.stat_labels = {}
+        stat_groups = [
+            ('HP/MP', ['HP', 'MP']),
+            ('Primary Stats', ['STR', 'DEX', 'VIT', 'AGI', 'INT', 'MND', 'CHR']),
+            ('Physical', ['ATT', 'ACC', 'DEF', 'EVA']),
+            ('Magical', ['MATT', 'MACC', 'MDEF', 'MEVA']),
+        ]
+        
+        row = 0
+        for group_name, stats in stat_groups:
+            ttk.Label(self.stats_display_frame, text=group_name + ":", font=("TkDefaultFont", 9, "bold")).grid(
+                row=row, column=0, columnspan=4, sticky="w", pady=(8, 2))
+            row += 1
+            
+            col = 0
+            for stat in stats:
+                ttk.Label(self.stats_display_frame, text=stat + ":", width=6).grid(row=row, column=col, sticky="w", padx=2)
+                val_label = ttk.Label(self.stats_display_frame, text="0", width=6, relief="sunken", anchor="e")
+                val_label.grid(row=row, column=col + 1, sticky="w", padx=2)
+                self.stat_labels[stat] = val_label
+                col += 2
+                if col >= 4:
+                    col = 0
+                    row += 1
+            if col > 0:
+                row += 1
+        
+        # Gear mods summary
+        ttk.Label(self.stats_display_frame, text="Gear Mods:", font=("TkDefaultFont", 9, "bold")).grid(
+            row=row, column=0, columnspan=4, sticky="w", pady=(8, 2))
+        row += 1
+        
+        self.gear_mods_text = scrolledtext.ScrolledText(self.stats_display_frame, wrap=tk.WORD, height=8, width=30)
+        self.gear_mods_text.grid(row=row, column=0, columnspan=4, sticky="nsew", pady=2)
+        
+        # Initialize stats
+        self.refresh_stats_preview()
+    
+    def refresh_stats_preview(self):
+        """Calculate and display combined stats from base + gear mods."""
+        # Start with base stats
+        stats = dict(BASE_STATS_LV99)
+        gear_mods_summary = []
+        
+        # Map mod names to stat names for display
+        mod_to_stat = {
+            'HP': 'HP', 'MP': 'MP',
+            'STR': 'STR', 'DEX': 'DEX', 'VIT': 'VIT', 'AGI': 'AGI',
+            'INT': 'INT', 'MND': 'MND', 'CHR': 'CHR',
+            'ATT': 'ATT', 'ACC': 'ACC', 'DEF': 'DEF', 'EVA': 'EVA',
+            'MATT': 'MATT', 'MACC': 'MACC', 'MDEF': 'MDEF', 'MEVA': 'MEVA',
+            # Alt names from mod.lua
+            'MAIN_DMG_RATING': 'ATT',
+        }
+        
+        # Collect mods from equipped gear
+        for row in self.gear_rows:
+            item_id_str = row['id_var'].get().strip()
+            if not item_id_str:
+                continue
+            try:
+                item_id = int(item_id_str)
+            except ValueError:
+                continue
+            
+            slot = row['slot']
+            item_name = ITEM_NAMES.get(item_id, f"Item {item_id}")
+            
+            # Get item mods
+            if item_id in ITEM_MODS:
+                slot_mods = []
+                for mod_id, val in ITEM_MODS[item_id]:
+                    mod_name = MOD_ID_TO_NAME.get(mod_id, f"MOD_{mod_id}")
+                    slot_mods.append(f"{mod_name}: {val:+d}")
+                    
+                    # Apply to stats if mappable
+                    if mod_name in mod_to_stat:
+                        stat_key = mod_to_stat[mod_name]
+                        if stat_key in stats:
+                            stats[stat_key] += val
+                
+                if slot_mods:
+                    gear_mods_summary.append(f"[{slot.upper()}] {item_name}:")
+                    for m in slot_mods:
+                        gear_mods_summary.append(f"  {m}")
+            
+            # Get weapon stats - display separately from armor mods
+            if item_id in ITEM_WEAPONS and slot in ['main', 'sub', 'ranged']:
+                w = ITEM_WEAPONS[item_id]
+                dmg = w.get('dmg', 0)
+                delay = w.get('delay', 0)
+                if not any(f"[{slot.upper()}]" in line for line in gear_mods_summary[-5:]):
+                    gear_mods_summary.append(f"[{slot.upper()}] {item_name}:")
+                gear_mods_summary.append(f"  Weapon DMG: {dmg} (uses {slot.upper()}_DMG_RATING)")
+                if slot != 'sub':  # Sub weapons don't have separate delay
+                    gear_mods_summary.append(f"  Weapon Delay: {delay}")
+                # Note: Weapon DMG contributes to damage calculation, not directly to ATT stat
+                # This is a simplified approximation for preview purposes only
+        
+        # Also add manual mods from the Mods tab
+        if hasattr(self, 'mod_rows'):
+            manual_mods = []
+            for _, mod_var, val_entry in self.mod_rows:
+                mod_name = mod_var.get()
+                if mod_name:
+                    try:
+                        val = int(val_entry.get())
+                        manual_mods.append(f"{mod_name}: {val:+d}")
+                        if mod_name in mod_to_stat:
+                            stat_key = mod_to_stat[mod_name]
+                            if stat_key in stats:
+                                stats[stat_key] += val
+                    except ValueError:
+                        pass
+            
+            if manual_mods:
+                gear_mods_summary.append("\n[MANUAL MODS]:")
+                for m in manual_mods:
+                    gear_mods_summary.append(f"  {m}")
+        
+        # Update stat labels
+        for stat_name, label in self.stat_labels.items():
+            val = stats.get(stat_name, 0)
+            label.config(text=str(val))
+        
+        # Update gear mods text
+        self.gear_mods_text.config(state="normal")
+        self.gear_mods_text.delete("1.0", tk.END)
+        if gear_mods_summary:
+            self.gear_mods_text.insert("1.0", "\n".join(gear_mods_summary))
+        else:
+            self.gear_mods_text.insert("1.0", "(No gear equipped)")
+        self.gear_mods_text.config(state="disabled")
 
     def create_mods_tab(self):
         # List
@@ -1485,13 +1945,20 @@ class TrustEditor(tk.Tk):
         for row in self.gear_rows:
             slot = row['slot']
             if slot in gear_map:
-                row['id_var'].set(str(gear_map[slot].get('item_id', '')))
-                name = gear_map[slot].get('name', '')
-                if not name and gear_map[slot].get('item_id'):
-                    iid = gear_map[slot].get('item_id')
-                    nm = ITEM_NAMES.get(int(iid), '')
-                    name = f"{nm} ({iid})" if nm else str(iid)
-                row['name_var'].set(name)
+                item_id = gear_map[slot].get('item_id', '')
+                row['id_var'].set(str(item_id) if item_id else '')
+                # Try to get display name from slot list
+                display_name = ''
+                if item_id:
+                    slot_items = get_slot_item_lists().get(slot, [])
+                    for item in slot_items:
+                        if item['id'] == int(item_id):
+                            display_name = item['display']
+                            break
+                    if not display_name:
+                        nm = ITEM_NAMES.get(int(item_id), '')
+                        display_name = f"{nm} [{item_id}]" if nm else str(item_id)
+                row['name_var'].set(display_name)
 
         for m in data.get('mods', []):
             self.add_mod_row(m.get('name', ''), m.get('value', ''))
@@ -1519,6 +1986,10 @@ class TrustEditor(tk.Tk):
 
         if data.get('custom_code'):
             self.custom_code.insert('1.0', data.get('custom_code', ''))
+        
+        # Refresh stats preview
+        if hasattr(self, 'refresh_stats_preview'):
+            self.refresh_stats_preview()
 
     def is_form_dirty(self):
         if self.main_job_var.get() or (self.sub_job_var.get() and self.sub_job_var.get() != 'NONE'):
@@ -1683,22 +2154,47 @@ class TrustEditor(tk.Tk):
         gear_setlook = ""
         gear_mods_str = ""
         if data.get('gear'):
+            # Slots that affect visual appearance
+            visual_slots = ['main', 'sub', 'ranged', 'ammo', 'head', 'body', 'hands', 'legs', 'feet']
             look_parts = []
             for g in data['gear']:
                 slot = g.get('slot')
                 item_id = g.get('item_id')
+                item_name = g.get('name', ITEM_NAMES.get(item_id, ''))
                 if slot and item_id:
-                    look_parts.append(f"{slot} = {item_id}")
-                for mod_id, val in ITEM_MODS.get(item_id, []):
-                    mod_name = MOD_ID_TO_NAME.get(mod_id)
-                    if mod_name:
-                        gear_mods_str += f"    mob:addMod(xi.mod.{mod_name}, {fmt_arg(val)}) -- {g.get('name', '')}\n"
-                if item_id in ITEM_WEAPONS:
-                    w = ITEM_WEAPONS[item_id]
-                    gear_mods_str += f"    mob:addMod(xi.mod.DMG, {fmt_arg(w.get('dmg'))}) -- weapon base dmg\n"
-                    gear_mods_str += f"    mob:addMod(xi.mod.DELAY, {fmt_arg(w.get('delay'))}) -- weapon delay\n"
+                    # Only add to look table for visual slots
+                    if slot in visual_slots:
+                        look_parts.append(f"{slot} = {item_id}")
+                    
+                    # Add item mods for all slots
+                    for mod_id, val in ITEM_MODS.get(item_id, []):
+                        mod_name = MOD_ID_TO_NAME.get(mod_id)
+                        if mod_name:
+                            gear_mods_str += f"    mob:addMod(xi.mod.{mod_name}, {fmt_arg(val)}) -- {slot}: {item_name}\n"
+                    
+                    # Add weapon stats for weapon slots - use slot-specific mods
+                    if item_id in ITEM_WEAPONS and slot in ['main', 'sub', 'ranged']:
+                        w = ITEM_WEAPONS[item_id]
+                        dmg = w.get('dmg', 0)
+                        delay = w.get('delay', 0)
+                        gear_mods_str += f"    -- {slot}: {item_name} weapon stats\n"
+                        
+                        if slot == 'main':
+                            gear_mods_str += f"    mob:addMod(xi.mod.MAIN_DMG_RATING, {fmt_arg(dmg)}) -- main weapon dmg\n"
+                            gear_mods_str += f"    mob:addMod(xi.mod.DELAY, {fmt_arg(delay)}) -- main weapon delay\n"
+                        elif slot == 'sub':
+                            gear_mods_str += f"    mob:addMod(xi.mod.SUB_DMG_RATING, {fmt_arg(dmg)}) -- sub weapon dmg\n"
+                            # Note: Sub weapon delay typically doesn't apply separately
+                        elif slot == 'ranged':
+                            gear_mods_str += f"    mob:addMod(xi.mod.RANGED_DMG_RATING, {fmt_arg(dmg)}) -- ranged weapon dmg\n"
+                            gear_mods_str += f"    mob:addMod(xi.mod.RANGED_DELAY, {fmt_arg(delay)}) -- ranged weapon delay\n"
+            
             if look_parts:
-                gear_setlook = "    mob:setLook({ " + ", ".join(look_parts) + " })\n"
+                gear_setlook = "    -- Faux Gear Look\n"
+                gear_setlook += "    mob:setLook({ " + ", ".join(look_parts) + " })\n"
+            
+            if gear_mods_str:
+                gear_mods_str = "    -- Gear Mods (from item_mods.sql)\n" + gear_mods_str
 
         gambits_str = ""
         for g in data['gambits']:
