@@ -2238,6 +2238,17 @@ class TrustEditor(tk.Tk):
                 if "xi." in val or "ai." in val: return val
                 return val # Fallback
 
+        # Generate job change call if main_job is specified
+        job_change_str = ""
+        main_job = data.get('main_job', '')
+        sub_job = data.get('sub_job', 'NONE')
+        if main_job:
+            job_change_str += f"    -- Set main job to enable job-specific abilities and spells\n"
+            job_change_str += f"    mob:changeJob(xi.job.{main_job})\n"
+            if sub_job and sub_job != 'NONE':
+                job_change_str += f"    mob:changeSJob(xi.job.{sub_job})\n"
+            job_change_str += "\n"
+
         mods_str = ""
         for m in data['mods']:
             mods_str += f"    mob:addMod(xi.mod.{m['name']}, {fmt_arg(m['value'])})\n"
@@ -2333,6 +2344,7 @@ end
 spellObject.onMobSpawn = function(mob)
     mob:setAutoAttackEnabled({str(data['auto_attack']).lower()})
 
+{job_change_str}\
 {mods_str}
 {effects_str}
 {gear_setlook}{gear_mods_str}\

@@ -1,5 +1,6 @@
 -----------------------------------
 -- Trust: Zeid
+-- Jobs: DRK/NONE
 -----------------------------------
 ---@type TSpellTrust
 local spellObject = {}
@@ -13,6 +14,17 @@ spellObject.onSpellCast = function(caster, target, spell)
 end
 
 spellObject.onMobSpawn = function(mob)
+    mob:setAutoAttackEnabled(true)
+
+    -- Set main job to enable job-specific abilities and spells
+    mob:changeJob(xi.job.DRK)
+
+
+
+
+
+    -- Custom Code
+    
     xi.trust.message(mob, xi.trust.messageOffset.SPAWN)
 end
 

@@ -1,5 +1,6 @@
 -----------------------------------
 -- Trust: Lion
+-- Jobs: WHM/NONE
 -----------------------------------
 ---@type TSpellTrust
 local spellObject = {}
@@ -14,6 +15,9 @@ end
 
 spellObject.onMobSpawn = function(mob)
     mob:setAutoAttackEnabled(false)
+
+    -- Set main job to enable job-specific abilities and spells
+    mob:changeJob(xi.job.WHM)
 
     mob:addMod(xi.mod.CURE_POTENCY, 30)
     mob:addMod(xi.mod.CURE_POTENCY_II, 10)
