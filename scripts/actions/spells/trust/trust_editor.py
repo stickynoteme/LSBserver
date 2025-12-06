@@ -2177,7 +2177,7 @@ class TrustEditor(tk.Tk):
         
         default_path = os.path.join(DEFAULTS_DIR, base_name + ".json")
         if not os.path.exists(default_path):
-            messagebox.showwarning("No Default Available", f"No default configuration found for {base_name}.lua.")
+            messagebox.showwarning("No Default Available", f"No default configuration found for {base_name}.")
             return
         
         # Confirm action
