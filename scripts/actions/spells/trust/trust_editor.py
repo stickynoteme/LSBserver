@@ -71,6 +71,8 @@ MODS = parse_lua_enum(os.path.join(ENUM_DIR, "mod.lua"), "xi.mod")
 EFFECTS = parse_lua_enum(os.path.join(ENUM_DIR, "effect.lua"), "xi.effect")
 EFFECT_FLAGS = parse_lua_enum(os.path.join(ENUM_DIR, "effect_flag.lua"), "xi.effectFlag")
 JOBS = parse_lua_enum(os.path.join(ENUM_DIR, "job.lua"), "xi.job")
+JOB_ABILITIES = parse_lua_enum(os.path.join(ENUM_DIR, "job_ability.lua"), "xi.jobAbility")
+WEAPONSKILLS = parse_lua_enum(os.path.join(ENUM_DIR, "weaponskill.lua"), "xi.weaponskill")
 
 def parse_nested_lua_enum(file_path, table_name):
     """Parses a specific table inside a Lua file."""
@@ -102,6 +104,8 @@ for k in sorted(MAGIC_FAMILIES.keys()): ALL_CONSTANTS.append(f"xi.magic.spellFam
 for k in sorted(MAGIC_SPELLS.keys()): ALL_CONSTANTS.append(f"xi.magic.spell.{k}")
 for k in sorted(EFFECTS.keys()): ALL_CONSTANTS.append(f"xi.effect.{k}")
 for k in sorted(EFFECT_FLAGS.keys()): ALL_CONSTANTS.append(f"xi.effectFlag.{k}")
+for k in sorted(JOB_ABILITIES.keys()): ALL_CONSTANTS.append(f"xi.ja.{k}")
+for k in sorted(WEAPONSKILLS.keys()): ALL_CONSTANTS.append(f"xi.ws.{k}")
 # Add JA/WS placeholders if needed, or user types them
 
 # Sort for dropdowns
@@ -941,9 +945,55 @@ class TrustEditor(tk.Tk):
         row_frame.destroy()
 
     def create_code_tab(self):
-        ttk.Label(self.code_frame, text="Extra Lua Code (Inserted at end of onMobSpawn):").pack(pady=5)
+        header = ttk.Frame(self.code_frame)
+        header.pack(fill=tk.X, padx=10, pady=(10, 5))
+        ttk.Label(header, text="Extra Lua Code (Inserted at end of onMobSpawn):").pack(side=tk.LEFT)
+        help_btn = tk.Button(header, text="?", width=2, height=1, padx=0, pady=0, borderwidth=0, highlightthickness=0,
+                             command=self.open_custom_code_help)
+        help_btn.pack(side=tk.LEFT, padx=(6, 0))
+
         self.custom_code = scrolledtext.ScrolledText(self.code_frame, height=20)
-        self.custom_code.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        self.custom_code.pack(fill=tk.BOTH, expand=True, padx=10, pady=(0, 10))
+
+    def open_custom_code_help(self):
+        help_items = self.get_help_items("CUSTOM_CODE")
+        dialog = tk.Toplevel(self)
+        dialog.title("Custom Code Help")
+        dialog.geometry("700x400")
+        dialog.grab_set()
+
+        content_frame = ttk.Frame(dialog)
+        content_frame.pack(fill=tk.BOTH, expand=True, padx=8, pady=8)
+
+        listbox = tk.Listbox(content_frame, width=30, exportselection=False)
+        listbox.pack(side=tk.LEFT, fill=tk.Y)
+
+        scrollbar = ttk.Scrollbar(content_frame, orient=tk.VERTICAL, command=listbox.yview)
+        scrollbar.pack(side=tk.LEFT, fill=tk.Y)
+        listbox.configure(yscrollcommand=scrollbar.set)
+
+        detail = scrolledtext.ScrolledText(content_frame, wrap=tk.WORD)
+        detail.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(8, 0))
+
+        for item in help_items:
+            listbox.insert(tk.END, item['name'])
+        listbox._items = help_items
+
+        def show_detail(index):
+            if 0 <= index < len(help_items):
+                detail.config(state="normal")
+                detail.delete("1.0", tk.END)
+                detail.insert("1.0", help_items[index]['info'])
+                detail.config(state="disabled")
+
+        def on_select(event=None):
+            if listbox.curselection():
+                show_detail(listbox.curselection()[0])
+
+        listbox.bind("<<ListboxSelect>>", on_select)
+        if help_items:
+            listbox.selection_set(0)
+            show_detail(0)
 
     def reset_form(self):
         self.auto_attack_var.set(True)
@@ -1086,6 +1136,12 @@ class TrustEditor(tk.Tk):
                 desc = TP_SELECT_DESCRIPTIONS.get(k, SELECTOR_DESCRIPTIONS.get(k, ''))
                 arg = SELECTOR_ARG_GUIDE.get(k, 'Usually 0')
                 items.append({'name': f"{k} ({AI_SELECTS[k]})", 'info': f"{k}\nValue: {AI_SELECTS[k]}\nSelector: {desc}\nSel. Arg: {arg}"})
+        elif category == "CUSTOM_CODE":
+            items.append({'name': "onMobSpawn context", 'info': "Code runs inside spellObject.onMobSpawn(mob). 'mob' is available; use mob:addMod, mob:addGambit, mob:addStatusEffectEx, addListener, etc."})
+            items.append({'name': "AI helpers", 'info': "ai.t.*, ai.c.*, ai.r.*, ai.s.*, ai.tp.* are available once you require globals/trust/magic. Follow existing trust scripts for patterns."})
+            items.append({'name': "Examples", 'info': "mob:addListener('WEAPONSKILL_USE', 'TAG', function(mobArg, target, wsid, tp, action) ... end)\n mob:setTrustTPSkillSettings(ai.tp.ASAP, ai.s.RANDOM)\n mob:addGambit(ai.t.SELF, { ai.c.NOT_STATUS, xi.effect.PHALANX }, { ai.r.MA, ai.s.HIGHEST, xi.magic.spellFamily.PHALANX })"})
+            items.append({'name': "Safety", 'info': "Keep code idempotent; avoid heavy loops; do not assume player globals. Validate constants exist in xi.* enums."})
+            items.append({'name': "Where to learn", 'info': "Browse scripts/actions/spells/trust/*.lua for patterns; reuse their listeners and gambits. This snippet is appended after the generated blocks in onMobSpawn."})
         return items
 
     def populate_from_data(self, data):
