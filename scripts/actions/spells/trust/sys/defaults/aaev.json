@@ -462,5 +462,51 @@
   "custom_code": "",
   "main_job": "",
   "sub_job": "NONE",
-  "gear": []
+  "gear": [
+    {
+      "slot": "main",
+      "item_id": 21966,
+      "name": ""
+    },
+    {
+      "slot": "sub",
+      "item_id": 17609,
+      "name": ""
+    },
+    {
+      "slot": "ranged",
+      "item_id": 21392,
+      "name": ""
+    },
+    {
+      "slot": "ammo",
+      "item_id": 21295,
+      "name": ""
+    },
+    {
+      "slot": "head",
+      "item_id": 16116,
+      "name": ""
+    },
+    {
+      "slot": "body",
+      "item_id": 23489,
+      "name": ""
+    },
+    {
+      "slot": "hands",
+      "item_id": 23230,
+      "name": ""
+    },
+    {
+      "slot": "legs",
+      "item_id": 23293,
+      "name": ""
+    },
+    {
+      "slot": "feet",
+      "item_id": 23676,
+      "name": ""
+    }
+  ]
 }

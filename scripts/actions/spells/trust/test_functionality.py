@@ -175,7 +175,7 @@ def test_defaults_for_multiple_trusts():
         ('curilla.json', 'Tank', True, 3),  # name, type, auto_attack, min_gambits
         ('shantotto.json', 'Caster', False, 2),
         ('ayame.json', 'Melee', True, 3),
-        ('lion.json', 'Thief', True, 0),
+        ('lion.json', 'Healer', False, 12),  # Updated: Lion is now WHM with healing gambits
     ]
     
     all_passed = True
