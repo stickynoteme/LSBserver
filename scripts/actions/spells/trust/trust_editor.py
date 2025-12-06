@@ -4,6 +4,7 @@ import os
 import re
 import json
 import copy
+from pathlib import Path
 
 # --- Constants & Enums ---
 
@@ -73,6 +74,48 @@ EFFECT_FLAGS = parse_lua_enum(os.path.join(ENUM_DIR, "effect_flag.lua"), "xi.eff
 JOBS = parse_lua_enum(os.path.join(ENUM_DIR, "job.lua"), "xi.job")
 JOB_ABILITIES = parse_lua_enum(os.path.join(ENUM_DIR, "job_ability.lua"), "xi.jobAbility")
 WEAPONSKILLS = parse_lua_enum(os.path.join(ENUM_DIR, "weaponskill.lua"), "xi.weaponskill")
+
+# Reverse mod lookup for SQL-driven gear mods
+MOD_ID_TO_NAME = {v: k for k, v in MODS.items()}
+
+# SQL parsing helpers for pseudo-gear
+SQL_DIR = Path(os.path.abspath(os.path.join(CURRENT_DIR, "../../../.."))) / "sql"
+
+def parse_item_basic():
+    data = {}
+    file_path = SQL_DIR / "item_basic.sql"
+    if not file_path.exists():
+        return data
+    content = file_path.read_text(errors="ignore")
+    for item_id, name in re.findall(r"\((\d+),'([^']*)',", content):
+        data[int(item_id)] = name
+    return data
+
+def parse_item_mods():
+    mods = {}
+    file_path = SQL_DIR / "item_mods.sql"
+    if not file_path.exists():
+        return mods
+    content = file_path.read_text(errors="ignore")
+    for item_id, mod_id, val in re.findall(r"\((\d+),(\d+),(-?\d+)\)", content):
+        mods.setdefault(int(item_id), []).append((int(mod_id), int(val)))
+    return mods
+
+def parse_item_weapon():
+    weapons = {}
+    file_path = SQL_DIR / "item_weapon.sql"
+    if not file_path.exists():
+        return weapons
+    content = file_path.read_text(errors="ignore")
+    for match in re.findall(r"\((\d+),'[^']*',\s*\d+,\s*\d+,\s*\d+,\s*\d+,\s*\d+,\s*\d+,\s*\d+,\s*(\d+),\s*(\d+)\)", content):
+        item_id, delay, dmg = match
+        weapons[int(item_id)] = {'delay': int(delay), 'dmg': int(dmg)}
+    return weapons
+
+ITEM_NAMES = parse_item_basic()
+ITEM_NAME_LIST = [f"{name} ({item_id})" for item_id, name in ITEM_NAMES.items()]
+ITEM_MODS = parse_item_mods()
+ITEM_WEAPONS = parse_item_weapon()
 
 def parse_nested_lua_enum(file_path, table_name):
     """Parses a specific table inside a Lua file."""
@@ -667,6 +710,65 @@ class TrustEditor(tk.Tk):
         ).pack(side=tk.LEFT, padx=0, pady=0)
         return frame, var
 
+    def create_gear_rows(self, parent):
+        slots = ['main', 'sub', 'head', 'body', 'hands', 'legs', 'feet']
+        for i, slot in enumerate(slots, start=1):
+            ttk.Label(parent, text=slot.upper() + ":").grid(row=i, column=0, padx=5, pady=4, sticky="w")
+            id_var = tk.StringVar()
+            name_var = tk.StringVar()
+
+            entry = ttk.Entry(parent, textvariable=id_var, width=10)
+            entry.grid(row=i, column=1, padx=5, pady=4, sticky="w")
+
+            name_label = ttk.Label(parent, textvariable=name_var, width=30, relief="sunken", anchor="w")
+            name_label.grid(row=i, column=2, padx=5, pady=4, sticky="w")
+
+            tk.Button(parent, text="🔍", width=1, height=1, padx=0, pady=0, borderwidth=0, highlightthickness=0,
+                      command=lambda s=slot, iv=id_var, nv=name_var: self.pick_gear_item(s, iv, nv)).grid(row=i, column=3, padx=2, pady=2)
+
+            self.gear_rows.append({'slot': slot, 'id_var': id_var, 'name_var': name_var})
+
+    def pick_gear_item(self, slot, id_var, name_var):
+        dialog = tk.Toplevel(self)
+        dialog.title(f"Select {slot}")
+        dialog.geometry("500x400")
+        dialog.grab_set()
+
+        search_var = tk.StringVar()
+        ttk.Label(dialog, text="Filter:").pack(anchor="w", padx=8, pady=(8, 2))
+        search_entry = ttk.Entry(dialog, textvariable=search_var)
+        search_entry.pack(fill=tk.X, padx=8)
+
+        listbox = tk.Listbox(dialog, exportselection=False)
+        listbox.pack(fill=tk.BOTH, expand=True, padx=8, pady=8)
+
+        def refresh():
+            term = search_var.get().lower()
+            listbox.delete(0, tk.END)
+            filtered = [item for item in ITEM_NAME_LIST if term in item.lower()]
+            listbox._items = filtered
+            for item in filtered:
+                listbox.insert(tk.END, item)
+            if filtered:
+                listbox.selection_set(0)
+        refresh()
+
+        def choose(event=None):
+            if not listbox.curselection():
+                return
+            sel = listbox.get(tk.ACTIVE)
+            # Extract id from "name (id)"
+            if "(" in sel and sel.endswith(")"):
+                item_id = sel.split("(")[-1].strip(")")
+                id_var.set(item_id)
+                name_var.set(sel)
+            dialog.destroy()
+
+        ttk.Button(dialog, text="Select", command=choose).pack(pady=(0, 8))
+        listbox.bind("<Double-Button-1>", choose)
+        search_var.trace_add("write", lambda *args: refresh())
+        search_entry.focus_set()
+
     def get_trust_files(self):
         files = [f for f in os.listdir(CURRENT_DIR) if f.endswith(".lua") and f != os.path.basename(__file__)]
         return sorted(files)
@@ -782,6 +884,7 @@ class TrustEditor(tk.Tk):
         self.main_job_var = tk.StringVar()
         self.sub_job_var = tk.StringVar(value="NONE")
         self.auto_attack_var = tk.BooleanVar(value=True)
+        self.gear_rows = []
 
         preset_frame = ttk.LabelFrame(self.general_frame, text="Player-like Preset", padding=10)
         preset_frame.pack(fill=tk.X, padx=10, pady=10)
@@ -797,6 +900,11 @@ class TrustEditor(tk.Tk):
         ttk.Button(preset_frame, text="Apply Job Template", command=self.apply_job_template).grid(row=1, column=0, columnspan=4, pady=5, sticky="w")
 
         ttk.Checkbutton(self.general_frame, text="Auto Attack Enabled", variable=self.auto_attack_var).pack(pady=10, anchor="w", padx=10)
+
+        gear_frame = ttk.LabelFrame(self.general_frame, text="Faux Gear (Look + Mods)", padding=10)
+        gear_frame.pack(fill=tk.X, padx=10, pady=10)
+        ttk.Label(gear_frame, text="Assign item IDs to visually lockstyle and apply stats from SQL (item_mods + weapon dmg/delay).").grid(row=0, column=0, columnspan=4, sticky="w")
+        self.create_gear_rows(gear_frame)
 
     def create_mods_tab(self):
         # List
@@ -1211,6 +1319,9 @@ class TrustEditor(tk.Tk):
         self.tp_trigger_var.set('')
         self.tp_select_var.set('')
         self.tp_value_var.set('')
+        for row in self.gear_rows:
+            row['id_var'].set('')
+            row['name_var'].set('')
 
         for frame, _, _ in list(self.mod_rows):
             self.remove_mod_row(frame)
@@ -1237,6 +1348,7 @@ class TrustEditor(tk.Tk):
         tpl.setdefault('custom_code', '')
         tpl.setdefault('main_job', '')
         tpl.setdefault('sub_job', 'NONE')
+        tpl.setdefault('gear', [])
         tp = tpl.get('tp_settings', {}) or {}
         tpl['tp_settings'] = {
             'trigger': tp.get('trigger', ''),
@@ -1369,6 +1481,17 @@ class TrustEditor(tk.Tk):
         self.auto_attack_var.set(data.get('auto_attack', True))
         self.main_job_var.set(data.get('main_job', ''))
         self.sub_job_var.set(data.get('sub_job', 'NONE') or 'NONE')
+        gear_map = {g.get('slot'): g for g in data.get('gear', [])}
+        for row in self.gear_rows:
+            slot = row['slot']
+            if slot in gear_map:
+                row['id_var'].set(str(gear_map[slot].get('item_id', '')))
+                name = gear_map[slot].get('name', '')
+                if not name and gear_map[slot].get('item_id'):
+                    iid = gear_map[slot].get('item_id')
+                    nm = ITEM_NAMES.get(int(iid), '')
+                    name = f"{nm} ({iid})" if nm else str(iid)
+                row['name_var'].set(name)
 
         for m in data.get('mods', []):
             self.add_mod_row(m.get('name', ''), m.get('value', ''))
@@ -1403,6 +1526,10 @@ class TrustEditor(tk.Tk):
 
         if not self.auto_attack_var.get():
             return True
+
+        for row in self.gear_rows:
+            if row['id_var'].get():
+                return True
 
         if self.tp_trigger_var.get() or self.tp_select_var.get() or self.tp_value_var.get():
             return True
@@ -1461,6 +1588,7 @@ class TrustEditor(tk.Tk):
             'main_job': self.main_job_var.get(),
             'sub_job': self.sub_job_var.get(),
             'auto_attack': self.auto_attack_var.get(),
+            'gear': [],
             'mods': [],
             'gambits': [],
             'tp_settings': {
@@ -1476,6 +1604,18 @@ class TrustEditor(tk.Tk):
         for _, name_var, val_e in self.mod_rows:
             if name_var.get():
                 data['mods'].append({'name': name_var.get(), 'value': val_e.get()})
+
+        for row in self.gear_rows:
+            if row['id_var'].get():
+                try:
+                    iid = int(row['id_var'].get())
+                except ValueError:
+                    continue
+                data['gear'].append({
+                    'slot': row['slot'],
+                    'item_id': iid,
+                    'name': ITEM_NAMES.get(iid, '')
+                })
 
         for _, t_var, c_var, c_arg_e, r_var, s_var, s_arg_var in self.gambit_rows:
             if t_var.get():
@@ -1540,6 +1680,26 @@ class TrustEditor(tk.Tk):
             # Simplification: using same ID for icon
             effects_str += f"    mob:addStatusEffectEx(xi.effect.{e['effect']}, xi.effect.{e['effect']}, {fmt_arg(e['power'])}, 0, {fmt_arg(e['duration'])})\n"
 
+        gear_setlook = ""
+        gear_mods_str = ""
+        if data.get('gear'):
+            look_parts = []
+            for g in data['gear']:
+                slot = g.get('slot')
+                item_id = g.get('item_id')
+                if slot and item_id:
+                    look_parts.append(f"{slot} = {item_id}")
+                for mod_id, val in ITEM_MODS.get(item_id, []):
+                    mod_name = MOD_ID_TO_NAME.get(mod_id)
+                    if mod_name:
+                        gear_mods_str += f"    mob:addMod(xi.mod.{mod_name}, {fmt_arg(val)}) -- {g.get('name', '')}\n"
+                if item_id in ITEM_WEAPONS:
+                    w = ITEM_WEAPONS[item_id]
+                    gear_mods_str += f"    mob:addMod(xi.mod.DMG, {fmt_arg(w.get('dmg'))}) -- weapon base dmg\n"
+                    gear_mods_str += f"    mob:addMod(xi.mod.DELAY, {fmt_arg(w.get('delay'))}) -- weapon delay\n"
+            if look_parts:
+                gear_setlook = "    mob:setLook({ " + ", ".join(look_parts) + " })\n"
+
         gambits_str = ""
         for g in data['gambits']:
             # mob:addGambit(ai.t.TARGET, { ai.c.HPP_LT, 25 }, { ai.r.MA, ai.s.HIGHEST, xi.magic.spellFamily.CURE })
@@ -1585,6 +1745,7 @@ spellObject.onMobSpawn = function(mob)
 
 {mods_str}
 {effects_str}
+{gear_setlook}{gear_mods_str}\
 {gambits_str}
 {tp_str}
 {listeners_str}\
