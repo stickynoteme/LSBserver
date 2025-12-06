@@ -118,19 +118,37 @@ This will recreate all JSON files in `sys/defaults/` from the Lua files.
 ✅ **Flexibility** - One-click clear for blank slate  
 ✅ **Safety** - Your customizations in `userdata/`, defaults preserved  
 
+## Important Notes
+
+### Gear Stats Limitation
+⚠️ **Most high-level gear does NOT have stat mods in the database**
+- Visual appearance (setLook) works ✅
+- Weapon DMG/Delay works ✅
+- Armor/accessory stats DON'T apply ❌ (not in database)
+
+**Solution**: Use the **Mods tab** to add stats manually (ATT, ACC, Haste, etc.)
+
+See **TROUBLESHOOTING.md** for detailed information on:
+- Why trusts don't cast spells
+- How to make trusts powerful
+- Common mistakes and solutions
+- How the gear system actually works
+
 ## Notes
 
 - User customizations are stored in `userdata/` (not committed to git)
 - Default configurations are in `sys/defaults/` (committed to git)
 - Equipment cache files (`slot_*.json`) are auto-generated and not committed
+- **Always restart the server** after saving trust changes for them to take effect
 
 ## Support
 
 If you encounter issues:
-1. Check that `sys/defaults/` contains 120 JSON files
-2. Run `python3 test_changes.py` to verify integrity
-3. Check console output for errors
-4. Review documentation files for detailed information
+1. **Read TROUBLESHOOTING.md** - Covers common problems and solutions
+2. Check that `sys/defaults/` contains 120 JSON files
+3. Run `python3 test_changes.py` to verify integrity
+4. Check console output for errors
+5. Review documentation files for detailed information
 
 ---
 

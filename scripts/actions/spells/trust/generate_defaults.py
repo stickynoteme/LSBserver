@@ -11,6 +11,9 @@ from pathlib import Path
 TRUST_DIR = Path(__file__).parent
 DEFAULTS_DIR = TRUST_DIR / "sys" / "defaults"
 
+# Mods to exclude when parsing (these can interfere with trust functionality)
+EXCLUDED_MODS = {'EQUIPMENT_ONLY_RACE'}
+
 def parse_trust_lua(lua_path):
     """Parse a trust Lua file and extract configuration data."""
     with open(lua_path, 'r', encoding='utf-8') as f:
@@ -39,7 +42,9 @@ def parse_trust_lua(lua_path):
     for match in re.finditer(mod_pattern, content):
         mod_name = match.group(1)
         value = match.group(2).strip()
-        # Skip dynamic values (expressions with variables)
+        # Skip excluded mods and dynamic values (expressions with variables)
+        if mod_name in EXCLUDED_MODS:
+            continue  # Skip mods that can interfere with trust functionality
         if not any(x in value for x in ['mob:', 'power', 'level', '/', '*', 'Lvl']):
             data['mods'].append({'name': mod_name, 'value': value})
     

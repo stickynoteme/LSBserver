@@ -20,7 +20,6 @@ spellObject.onMobSpawn = function(mob)
     mob:addMod(xi.mod.FASTCAST, 20)
     mob:addMod(xi.mod.MND, 20)
     mob:addMod(xi.mod.REFRESH, 3)
-    mob:addMod(xi.mod.EQUIPMENT_ONLY_RACE, 149)
 
 
     -- Faux Gear Look
