@@ -2238,11 +2238,26 @@ class TrustEditor(tk.Tk):
                 if "xi." in val or "ai." in val: return val
                 return val # Fallback
 
+        # Generate job change call if main_job is specified
+        job_change_str = ""
+        main_job = data.get('main_job', '')
+        sub_job = data.get('sub_job', 'NONE')
+        if main_job:
+            job_change_str += "\n"  # Blank line before
+            job_change_str += f"    -- Set main job to enable job-specific abilities and spells\n"
+            job_change_str += f"    mob:changeJob(xi.job.{main_job})\n"
+            if sub_job and sub_job != 'NONE':
+                job_change_str += f"    mob:changeSJob(xi.job.{sub_job})\n"
+
         mods_str = ""
+        if data['mods']:
+            mods_str += "\n"  # Blank line before
         for m in data['mods']:
             mods_str += f"    mob:addMod(xi.mod.{m['name']}, {fmt_arg(m['value'])})\n"
 
         effects_str = ""
+        if data['effects']:
+            effects_str += "\n"  # Blank line before
         for e in data['effects']:
             # addStatusEffectEx(effect, icon, power, tick, duration, ...)
             # Simplification: using same ID for icon
@@ -2288,11 +2303,12 @@ class TrustEditor(tk.Tk):
                             gear_mods_str += f"    mob:addMod(xi.mod.RANGED_DELAY, {fmt_arg(delay)}) -- ranged weapon delay\n"
             
             if look_parts:
-                gear_setlook = "    -- Faux Gear Look\n"
+                gear_setlook = "\n"  # Blank line before
+                gear_setlook += "    -- Faux Gear Look\n"
                 gear_setlook += "    mob:setLook({ " + ", ".join(look_parts) + " })\n"
             
             if gear_mods_str:
-                gear_mods_str = "    -- Gear Mods (from item_mods.sql)\n" + gear_mods_str
+                gear_mods_str = "\n    -- Gear Mods (from item_mods.sql)\n" + gear_mods_str
 
         gambits_str = ""
         for g in data['gambits']:
@@ -2331,14 +2347,14 @@ spellObject.onSpellCast = function(caster, target, spell)
 end
 
 spellObject.onMobSpawn = function(mob)
-    mob:setAutoAttackEnabled({str(data['auto_attack']).lower()})
-
-{mods_str}
-{effects_str}
+    mob:setAutoAttackEnabled({str(data['auto_attack']).lower()})\
+{job_change_str}\
+{mods_str}\
+{effects_str}\
 {gear_setlook}{gear_mods_str}\
-{gambits_str}
-{tp_str}
-{listeners_str}\
+{gambits_str}\
+{tp_str}\
+{listeners_str}
     -- Custom Code
     {data['custom_code']}
 end
