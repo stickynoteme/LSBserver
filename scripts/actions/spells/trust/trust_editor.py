@@ -58,6 +58,9 @@ if not os.path.exists(SYS_DIR):
 if not os.path.exists(DEFAULTS_DIR):
     os.makedirs(DEFAULTS_DIR)
 
+# Mods to exclude when parsing/generating (these can interfere with trust functionality)
+EXCLUDED_MODS = {'EQUIPMENT_ONLY_RACE'}
+
 # Equipment slot bitmasks (from xi.slot enum, but as bitmask for item_equipment.slot field)
 SLOT_BITMASK = {
     'main': 1,
@@ -2263,8 +2266,8 @@ class TrustEditor(tk.Tk):
                     # Add item mods for all slots
                     for mod_id, val in ITEM_MODS.get(item_id, []):
                         mod_name = MOD_ID_TO_NAME.get(mod_id)
-                        # Skip EQUIPMENT_ONLY_RACE as it can interfere with trust functionality
-                        if mod_name and mod_name != 'EQUIPMENT_ONLY_RACE':
+                        # Skip excluded mods that can interfere with trust functionality
+                        if mod_name and mod_name not in EXCLUDED_MODS:
                             gear_mods_str += f"    mob:addMod(xi.mod.{mod_name}, {fmt_arg(val)}) -- {slot}: {item_name}\n"
                     
                     # Add weapon stats for weapon slots - use slot-specific mods
