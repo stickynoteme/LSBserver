@@ -2033,12 +2033,35 @@ class TrustEditor(tk.Tk):
             return
 
         if self.is_form_dirty():
-            proceed = messagebox.askyesno("Replace current values?", "Applying a job template will replace the current form values.")
+            proceed = messagebox.askyesno("Replace current values?", "Applying a job template will replace the current form values (except gear).")
             if not proceed:
                 return
 
+        # Preserve current gear before resetting
+        current_gear = []
+        for row in self.gear_rows:
+            if row['id_var'].get():
+                try:
+                    iid = int(row['id_var'].get())
+                    current_gear.append({
+                        'slot': row['slot'],
+                        'item_id': iid,
+                        'name': row['name_var'].get()
+                    })
+                except ValueError:
+                    pass
+
         self.reset_form()
         self.populate_from_data(template)
+        
+        # Restore preserved gear
+        if current_gear:
+            for gear_item in current_gear:
+                for row in self.gear_rows:
+                    if row['slot'] == gear_item['slot']:
+                        row['id_var'].set(str(gear_item['item_id']))
+                        row['name_var'].set(gear_item['name'])
+                        break
 
     def on_trust_selected(self, *args):
         filename = self.current_trust.get()

@@ -85,6 +85,22 @@ def parse_trust_lua(lua_path):
                 'duration': duration
             })
     
+    # Parse gear from setLook: mob:setLook({ main = 17024, head = 27733 })
+    setlook_pattern = r'mob:setLook\(\{([^}]+)\}\)'
+    setlook_match = re.search(setlook_pattern, content)
+    if setlook_match:
+        look_content = setlook_match.group(1)
+        # Parse slot = itemid pairs
+        gear_pattern = r'(\w+)\s*=\s*(\d+)'
+        for gear_match in re.finditer(gear_pattern, look_content):
+            slot = gear_match.group(1)
+            item_id = int(gear_match.group(2))
+            data['gear'].append({
+                'slot': slot,
+                'item_id': item_id,
+                'name': ''  # Name will be looked up by editor
+            })
+    
     return data
 
 def main():
