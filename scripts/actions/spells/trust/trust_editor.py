@@ -194,11 +194,13 @@ def parse_item_equipment():
         name = match[1]
         level = int(match[2])
         ilevel = int(match[3])
+        mid = int(match[5])
         slot_bitmask = int(match[8])
         equipment[item_id] = {
             'name': name,
             'level': level,
             'ilevel': ilevel,
+            'mid': mid,
             'slot': slot_bitmask
         }
     return equipment
@@ -374,6 +376,30 @@ JOB_ROLE_MAP = {
     'DRG': 'MELEE', 'BST': 'MELEE', 'PUP': 'MELEE', 'BLU': 'MELEE', 'DNC': 'MELEE',
     'RNG': 'RANGED', 'COR': 'RANGED',
     'WHM': 'CASTER', 'SCH': 'CASTER', 'RDM': 'CASTER', 'BRD': 'CASTER', 'GEO': 'CASTER', 'SMN': 'CASTER', 'BLM': 'CASTER',
+}
+
+# Default spell lists for jobs (based on mob_spell_lists.sql)
+JOB_SPELL_LISTS = {
+    'WHM': 1,   # Beastmen_WHM
+    'BLM': 2,   # Beastmen_BLM
+    'RDM': 3,   # Beastmen_RDM
+    'PLD': 4,   # Beastmen_PLD
+    'DRK': 5,   # Beastmen_DRK
+    'BRD': 6,   # Beastmen_BRD
+    'NIN': 7,   # Beastmen_NIN
+    'BLU': 8,   # Beastmen_BLU
+    'SMN': 30,  # Yagudo_SMN
+    'GEO': 2,   # Fallback to BLM? Or custom.
+    'SCH': 3,   # Fallback to RDM?
+    'RUN': 4,   # Fallback to PLD?
+}
+
+# Base delay set by changeJob in lua_baseentity.cpp
+# Used to calculate the delay mod offset
+JOB_BASE_DELAY = {
+    'MNK': 8000, 'PUP': 8000,
+    'RUN': 8000, 'SAM': 8000, 'DRK': 8000, 'DRG': 8000, 'SMN': 8000,
+    # Others are 4000
 }
 
 JOB_TEMPLATES = {
@@ -2248,6 +2274,10 @@ class TrustEditor(tk.Tk):
             job_change_str += f"    mob:changeJob(xi.job.{main_job})\n"
             if sub_job and sub_job != 'NONE':
                 job_change_str += f"    mob:changeSJob(xi.job.{sub_job})\n"
+            
+            # Set spell list if available
+            if main_job in JOB_SPELL_LISTS:
+                job_change_str += f"    mob:setSpellList({JOB_SPELL_LISTS[main_job]})\n"
 
         mods_str = ""
         if data['mods']:
@@ -2273,10 +2303,15 @@ class TrustEditor(tk.Tk):
                 slot = g.get('slot')
                 item_id = g.get('item_id')
                 item_name = g.get('name', ITEM_NAMES.get(item_id, ''))
+                # Get equipment info for MId
+                equip_info = ITEM_EQUIPMENT.get(item_id, {})
+                mid = equip_info.get('mid', item_id) # Fallback to item_id if not found (e.g. weapons sometimes)
+
                 if slot and item_id:
                     # Only add to look table for visual slots
                     if slot in visual_slots:
-                        look_parts.append(f"{slot} = {item_id}")
+                        # Use MId for setLook
+                        look_parts.append(f"{slot} = {mid}")
                     
                     # Add item mods for all slots
                     for mod_id, val in ITEM_MODS.get(item_id, []):
@@ -2290,17 +2325,43 @@ class TrustEditor(tk.Tk):
                         w = ITEM_WEAPONS[item_id]
                         dmg = w.get('dmg', 0)
                         delay = w.get('delay', 0)
-                        gear_mods_str += f"    -- {slot}: {item_name} weapon stats\n"
+                        
+                        # Calculate delay offset based on job base delay
+                        # Default base is 4000, unless job specifies 8000
+                        base_delay = JOB_BASE_DELAY.get(main_job, 4000)
+                        # We want final delay to be 'delay'. 
+                        # final = base + mod. So mod = final - base.
+                        # However, item_weapon delay is in delay units (e.g. 240).
+                        # base_delay is in ms (e.g. 4000).
+                        # We need to convert units? 
+                        # Actually, let's assume the user wants the delay from the item.
+                        # If we assume 1 delay unit ~= 16.6ms.
+                        # But changeJob sets delay in ms.
+                        # If we use addMod(DELAY, val), it adds to the delay.
+                        # If we want to force the delay, we need to offset the base.
+                        # But we don't know if the core converts the mod value.
+                        # Assuming mod value is added directly to the delay variable in core.
+                        # If core delay variable is in ms, we need to provide ms.
+                        # item_weapon delay is in units. 240 units = 4000ms.
+                        # So we should convert item delay to ms first?
+                        # 240 * 1000 / 60 = 4000.
+                        # So item_delay_ms = delay * 1000 / 60.
+                        # mod_val = item_delay_ms - base_delay.
+                        
+                        item_delay_ms = int(delay * 1000 / 60)
+                        delay_offset = item_delay_ms - base_delay
+                        
+                        gear_mods_str += f"    -- {slot}: {item_name} weapon stats (DMG: {dmg}, Delay: {delay} -> {item_delay_ms}ms)\n"
                         
                         if slot == 'main':
                             gear_mods_str += f"    mob:addMod(xi.mod.MAIN_DMG_RATING, {fmt_arg(dmg)}) -- main weapon dmg\n"
-                            gear_mods_str += f"    mob:addMod(xi.mod.DELAY, {fmt_arg(delay)}) -- main weapon delay\n"
+                            gear_mods_str += f"    mob:addMod(xi.mod.DELAY, {fmt_arg(delay_offset)}) -- main weapon delay offset\n"
                         elif slot == 'sub':
                             gear_mods_str += f"    mob:addMod(xi.mod.SUB_DMG_RATING, {fmt_arg(dmg)}) -- sub weapon dmg\n"
                             # Note: Sub weapon delay typically doesn't apply separately
                         elif slot == 'ranged':
                             gear_mods_str += f"    mob:addMod(xi.mod.RANGED_DMG_RATING, {fmt_arg(dmg)}) -- ranged weapon dmg\n"
-                            gear_mods_str += f"    mob:addMod(xi.mod.RANGED_DELAY, {fmt_arg(delay)}) -- ranged weapon delay\n"
+                            gear_mods_str += f"    mob:addMod(xi.mod.RANGED_DELAY, {fmt_arg(delay_offset)}) -- ranged weapon delay offset\n"
             
             if look_parts:
                 gear_setlook = "\n"  # Blank line before
