@@ -19,10 +19,6 @@ spellObject.onMobSpawn = function(mob)
     -- Set main job to enable job-specific abilities and spells
     mob:changeJob(xi.job.DRK)
 
-
-
-
-
     -- Custom Code
     
     xi.trust.message(mob, xi.trust.messageOffset.SPAWN)

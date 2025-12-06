@@ -2247,7 +2247,6 @@ class TrustEditor(tk.Tk):
             job_change_str += f"    mob:changeJob(xi.job.{main_job})\n"
             if sub_job and sub_job != 'NONE':
                 job_change_str += f"    mob:changeSJob(xi.job.{sub_job})\n"
-            job_change_str += "\n"
 
         mods_str = ""
         for m in data['mods']:
@@ -2344,13 +2343,13 @@ end
 spellObject.onMobSpawn = function(mob)
     mob:setAutoAttackEnabled({str(data['auto_attack']).lower()})
 
-{job_change_str}\
+{job_change_str}
 {mods_str}
 {effects_str}
 {gear_setlook}{gear_mods_str}\
 {gambits_str}
 {tp_str}
-{listeners_str}\
+{listeners_str}
     -- Custom Code
     {data['custom_code']}
 end
