@@ -1,0 +1,162 @@
+{
+  "auto_attack": false,
+  "mods": [
+    {
+      "name": "REGAIN",
+      "value": "75"
+    }
+  ],
+  "gambits": [
+    {
+      "target": "SELF",
+      "condition": "MPP_LT",
+      "cond_arg": "25",
+      "reaction": "JA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.ja.CONVERT"
+    },
+    {
+      "target": "PARTY",
+      "condition": "HPP_LT",
+      "cond_arg": "25",
+      "reaction": "MA",
+      "selector": "HIGHEST",
+      "sel_arg": "xi.magic.spellFamily.CURE"
+    },
+    {
+      "target": "PARTY",
+      "condition": "STATUS",
+      "cond_arg": "xi.effect.SLEEP_I",
+      "reaction": "MA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.magic.spell.CURAGA"
+    },
+    {
+      "target": "PARTY",
+      "condition": "STATUS",
+      "cond_arg": "xi.effect.SLEEP_II",
+      "reaction": "MA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.magic.spell.CURAGA"
+    },
+    {
+      "target": "PARTY",
+      "condition": "HPP_LT",
+      "cond_arg": "75",
+      "reaction": "MA",
+      "selector": "HIGHEST",
+      "sel_arg": "xi.magic.spellFamily.CURE"
+    },
+    {
+      "target": "PARTY",
+      "condition": "NOT_STATUS",
+      "cond_arg": "xi.effect.PROTECT",
+      "reaction": "MA",
+      "selector": "HIGHEST",
+      "sel_arg": "xi.magic.spellFamily.PROTECTRA"
+    },
+    {
+      "target": "PARTY",
+      "condition": "NOT_STATUS",
+      "cond_arg": "xi.effect.SHELL",
+      "reaction": "MA",
+      "selector": "HIGHEST",
+      "sel_arg": "xi.magic.spellFamily.SHELLRA"
+    },
+    {
+      "target": "MELEE",
+      "condition": "NOT_STATUS",
+      "cond_arg": "xi.effect.HASTE",
+      "reaction": "MA",
+      "selector": "HIGHEST",
+      "sel_arg": "xi.magic.spellFamily.HASTE"
+    },
+    {
+      "target": "PARTY",
+      "condition": "STATUS",
+      "cond_arg": "xi.effect.POISON",
+      "reaction": "MA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.magic.spell.POISONA"
+    },
+    {
+      "target": "PARTY",
+      "condition": "STATUS",
+      "cond_arg": "xi.effect.PARALYSIS",
+      "reaction": "MA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.magic.spell.PARALYNA"
+    },
+    {
+      "target": "PARTY",
+      "condition": "STATUS",
+      "cond_arg": "xi.effect.BLINDNESS",
+      "reaction": "MA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.magic.spell.BLINDNA"
+    },
+    {
+      "target": "PARTY",
+      "condition": "STATUS",
+      "cond_arg": "xi.effect.SILENCE",
+      "reaction": "MA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.magic.spell.SILENA"
+    },
+    {
+      "target": "PARTY",
+      "condition": "STATUS",
+      "cond_arg": "xi.effect.PETRIFICATION",
+      "reaction": "MA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.magic.spell.STONA"
+    },
+    {
+      "target": "PARTY",
+      "condition": "STATUS",
+      "cond_arg": "xi.effect.DISEASE",
+      "reaction": "MA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.magic.spell.VIRUNA"
+    },
+    {
+      "target": "PARTY",
+      "condition": "STATUS",
+      "cond_arg": "xi.effect.CURSE_I",
+      "reaction": "MA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.magic.spell.CURSNA"
+    },
+    {
+      "target": "SELF",
+      "condition": "STATUS_FLAG",
+      "cond_arg": "xi.effectFlag.ERASABLE",
+      "reaction": "MA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.magic.spell.ERASE"
+    },
+    {
+      "target": "PARTY",
+      "condition": "STATUS_FLAG",
+      "cond_arg": "xi.effectFlag.ERASABLE",
+      "reaction": "MA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.magic.spell.ERASE"
+    },
+    {
+      "target": "SELF",
+      "condition": "NOT_STATUS",
+      "cond_arg": "xi.effect.STONESKIN",
+      "reaction": "MA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.magic.spell.STONESKIN"
+    }
+  ],
+  "tp_settings": {},
+  "effects": [],
+  "listeners": [],
+  "custom_code": "",
+  "main_job": "",
+  "sub_job": "NONE",
+  "gear": []
+}

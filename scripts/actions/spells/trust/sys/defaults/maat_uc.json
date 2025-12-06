@@ -1,0 +1,41 @@
+{
+  "auto_attack": true,
+  "mods": [],
+  "gambits": [
+    {
+      "target": "SELF",
+      "condition": "HPP_LT",
+      "cond_arg": "50",
+      "reaction": "JA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.ja.CHAKRA"
+    },
+    {
+      "target": "SELF",
+      "condition": "HAS_TOP_ENMITY",
+      "cond_arg": "0",
+      "reaction": "JA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.ja.COUNTERSTANCE"
+    },
+    {
+      "target": "SELF",
+      "condition": "ALWAYS",
+      "cond_arg": "0",
+      "reaction": "JA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.ja.IMPETUS"
+    }
+  ],
+  "tp_settings": {
+    "trigger": "CLOSER_UNTIL_TP",
+    "select": "HIGHEST",
+    "value": "3000"
+  },
+  "effects": [],
+  "listeners": [],
+  "custom_code": "",
+  "main_job": "",
+  "sub_job": "NONE",
+  "gear": []
+}

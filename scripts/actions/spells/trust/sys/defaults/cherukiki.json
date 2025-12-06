@@ -1,0 +1,122 @@
+{
+  "auto_attack": false,
+  "mods": [
+    {
+      "name": "REGEN",
+      "value": "5"
+    }
+  ],
+  "gambits": [
+    {
+      "target": "MASTER",
+      "condition": "NOT_STATUS",
+      "cond_arg": "xi.effect.REGEN",
+      "reaction": "MA",
+      "selector": "HIGHEST",
+      "sel_arg": "xi.magic.spellFamily.REGEN"
+    },
+    {
+      "target": "MELEE",
+      "condition": "NOT_STATUS",
+      "cond_arg": "xi.effect.REGEN",
+      "reaction": "MA",
+      "selector": "HIGHEST",
+      "sel_arg": "xi.magic.spellFamily.REGEN"
+    },
+    {
+      "target": "PARTY",
+      "condition": "HPP_LT",
+      "cond_arg": "25",
+      "reaction": "MA",
+      "selector": "HIGHEST",
+      "sel_arg": "xi.magic.spellFamily.CURE"
+    },
+    {
+      "target": "PARTY",
+      "condition": "STATUS",
+      "cond_arg": "xi.effect.SLEEP_I",
+      "reaction": "MA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.magic.spellFamily.CURE"
+    },
+    {
+      "target": "PARTY",
+      "condition": "STATUS",
+      "cond_arg": "xi.effect.SLEEP_II",
+      "reaction": "MA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.magic.spellFamily.CURE"
+    },
+    {
+      "target": "PARTY",
+      "condition": "HPP_LT",
+      "cond_arg": "75",
+      "reaction": "MA",
+      "selector": "HIGHEST",
+      "sel_arg": "xi.magic.spellFamily.CURE"
+    },
+    {
+      "target": "PARTY",
+      "condition": "NOT_STATUS",
+      "cond_arg": "xi.effect.PROTECT",
+      "reaction": "MA",
+      "selector": "HIGHEST",
+      "sel_arg": "xi.magic.spellFamily.PROTECTRA"
+    },
+    {
+      "target": "PARTY",
+      "condition": "NOT_STATUS",
+      "cond_arg": "xi.effect.SHELL",
+      "reaction": "MA",
+      "selector": "HIGHEST",
+      "sel_arg": "xi.magic.spellFamily.SHELLRA"
+    },
+    {
+      "target": "MASTER",
+      "condition": "NOT_STATUS",
+      "cond_arg": "xi.effect.HASTE",
+      "reaction": "MA",
+      "selector": "HIGHEST",
+      "sel_arg": "xi.magic.spellFamily.HASTE"
+    },
+    {
+      "target": "MELEE",
+      "condition": "NOT_STATUS",
+      "cond_arg": "xi.effect.HASTE",
+      "reaction": "MA",
+      "selector": "HIGHEST",
+      "sel_arg": "xi.magic.spellFamily.HASTE"
+    },
+    {
+      "target": "TARGET",
+      "condition": "NOT_STATUS",
+      "cond_arg": "xi.effect.PARALYSIS",
+      "reaction": "MA",
+      "selector": "HIGHEST",
+      "sel_arg": "xi.magic.spellFamily.PARALYZE"
+    },
+    {
+      "target": "TARGET",
+      "condition": "NOT_STATUS",
+      "cond_arg": "xi.effect.SLOW",
+      "reaction": "MA",
+      "selector": "HIGHEST",
+      "sel_arg": "xi.magic.spellFamily.SLOW"
+    },
+    {
+      "target": "TARGET",
+      "condition": "NOT_STATUS",
+      "cond_arg": "xi.effect.SILENCE",
+      "reaction": "MA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.magic.spell.SILENCE"
+    }
+  ],
+  "tp_settings": {},
+  "effects": [],
+  "listeners": [],
+  "custom_code": "",
+  "main_job": "",
+  "sub_job": "NONE",
+  "gear": []
+}

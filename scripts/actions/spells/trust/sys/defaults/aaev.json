@@ -1,0 +1,466 @@
+{
+  "auto_attack": true,
+  "mods": [
+    {
+      "name": "CHR",
+      "value": "15"
+    },
+    {
+      "name": "DEX",
+      "value": "15"
+    },
+    {
+      "name": "EVA",
+      "value": "10"
+    },
+    {
+      "name": "ITEM_ADDEFFECT_TYPE",
+      "value": "10"
+    },
+    {
+      "name": "ITEM_SUBEFFECT",
+      "value": "7"
+    },
+    {
+      "name": "ITEM_ADDEFFECT_CHANCE",
+      "value": "5"
+    },
+    {
+      "name": "AUTOMATON_LVL_BONUS",
+      "value": "20"
+    },
+    {
+      "name": "1",
+      "value": "19"
+    },
+    {
+      "name": "MP",
+      "value": "40"
+    },
+    {
+      "name": "ENMITY",
+      "value": "-4"
+    },
+    {
+      "name": "MACC",
+      "value": "6"
+    },
+    {
+      "name": "DMGPHYS",
+      "value": "400"
+    },
+    {
+      "name": "1",
+      "value": "155"
+    },
+    {
+      "name": "HP",
+      "value": "127"
+    },
+    {
+      "name": "MP",
+      "value": "139"
+    },
+    {
+      "name": "STR",
+      "value": "30"
+    },
+    {
+      "name": "DEX",
+      "value": "35"
+    },
+    {
+      "name": "VIT",
+      "value": "35"
+    },
+    {
+      "name": "AGI",
+      "value": "30"
+    },
+    {
+      "name": "INT",
+      "value": "45"
+    },
+    {
+      "name": "MND",
+      "value": "48"
+    },
+    {
+      "name": "CHR",
+      "value": "39"
+    },
+    {
+      "name": "ACC",
+      "value": "64"
+    },
+    {
+      "name": "MDEF",
+      "value": "11"
+    },
+    {
+      "name": "MACC",
+      "value": "64"
+    },
+    {
+      "name": "MEVA",
+      "value": "130"
+    },
+    {
+      "name": "EVA",
+      "value": "91"
+    },
+    {
+      "name": "HEALING",
+      "value": "34"
+    },
+    {
+      "name": "AFFLATUS_SOLACE",
+      "value": "21"
+    },
+    {
+      "name": "REFRESH",
+      "value": "5"
+    },
+    {
+      "name": "REGEN",
+      "value": "9"
+    },
+    {
+      "name": "HASTE_GEAR",
+      "value": "300"
+    },
+    {
+      "name": "1",
+      "value": "124"
+    },
+    {
+      "name": "HP",
+      "value": "47"
+    },
+    {
+      "name": "STR",
+      "value": "19"
+    },
+    {
+      "name": "DEX",
+      "value": "42"
+    },
+    {
+      "name": "VIT",
+      "value": "42"
+    },
+    {
+      "name": "AGI",
+      "value": "18"
+    },
+    {
+      "name": "INT",
+      "value": "16"
+    },
+    {
+      "name": "MND",
+      "value": "34"
+    },
+    {
+      "name": "CHR",
+      "value": "26"
+    },
+    {
+      "name": "ATT",
+      "value": "52"
+    },
+    {
+      "name": "RATT",
+      "value": "52"
+    },
+    {
+      "name": "ACC",
+      "value": "52"
+    },
+    {
+      "name": "RACC",
+      "value": "52"
+    },
+    {
+      "name": "MDEF",
+      "value": "4"
+    },
+    {
+      "name": "MACC",
+      "value": "52"
+    },
+    {
+      "name": "MEVA",
+      "value": "72"
+    },
+    {
+      "name": "EVA",
+      "value": "64"
+    },
+    {
+      "name": "HASTE_GEAR",
+      "value": "400"
+    },
+    {
+      "name": "ALL_WSDMG_FIRST_HIT",
+      "value": "8"
+    },
+    {
+      "name": "1",
+      "value": "149"
+    },
+    {
+      "name": "HP",
+      "value": "72"
+    },
+    {
+      "name": "MP",
+      "value": "61"
+    },
+    {
+      "name": "STR",
+      "value": "48"
+    },
+    {
+      "name": "VIT",
+      "value": "30"
+    },
+    {
+      "name": "AGI",
+      "value": "25"
+    },
+    {
+      "name": "INT",
+      "value": "36"
+    },
+    {
+      "name": "MND",
+      "value": "24"
+    },
+    {
+      "name": "CHR",
+      "value": "21"
+    },
+    {
+      "name": "ATT",
+      "value": "63"
+    },
+    {
+      "name": "ACC",
+      "value": "53"
+    },
+    {
+      "name": "MDEF",
+      "value": "7"
+    },
+    {
+      "name": "MACC",
+      "value": "53"
+    },
+    {
+      "name": "MEVA",
+      "value": "109"
+    },
+    {
+      "name": "EVA",
+      "value": "64"
+    },
+    {
+      "name": "DARK",
+      "value": "25"
+    },
+    {
+      "name": "DMG",
+      "value": "-1100"
+    },
+    {
+      "name": "HASTE_GEAR",
+      "value": "500"
+    },
+    {
+      "name": "1",
+      "value": "88"
+    },
+    {
+      "name": "HP",
+      "value": "33"
+    },
+    {
+      "name": "STR",
+      "value": "24"
+    },
+    {
+      "name": "DEX",
+      "value": "34"
+    },
+    {
+      "name": "VIT",
+      "value": "20"
+    },
+    {
+      "name": "AGI",
+      "value": "51"
+    },
+    {
+      "name": "MND",
+      "value": "22"
+    },
+    {
+      "name": "CHR",
+      "value": "40"
+    },
+    {
+      "name": "RATT",
+      "value": "81"
+    },
+    {
+      "name": "RACC",
+      "value": "36"
+    },
+    {
+      "name": "ENMITY",
+      "value": "-8"
+    },
+    {
+      "name": "MDEF",
+      "value": "7"
+    },
+    {
+      "name": "MACC",
+      "value": "36"
+    },
+    {
+      "name": "MEVA",
+      "value": "89"
+    },
+    {
+      "name": "EVA",
+      "value": "92"
+    },
+    {
+      "name": "CRITHITRATE",
+      "value": "8"
+    },
+    {
+      "name": "RAPID_SHOT",
+      "value": "10"
+    },
+    {
+      "name": "HASTE_GEAR",
+      "value": "400"
+    },
+    {
+      "name": "MACC",
+      "value": "30"
+    },
+    {
+      "name": "GEOMANCY_BONUS",
+      "value": "7"
+    },
+    {
+      "name": "1",
+      "value": "13"
+    },
+    {
+      "name": "ATT",
+      "value": "10"
+    },
+    {
+      "name": "ACC",
+      "value": "10"
+    },
+    {
+      "name": "ATT",
+      "value": "10"
+    },
+    {
+      "name": "EVA",
+      "value": "10"
+    },
+    {
+      "name": "STORETP",
+      "value": "3"
+    },
+    {
+      "name": "INT",
+      "value": "2"
+    },
+    {
+      "name": "MATT",
+      "value": "4"
+    },
+    {
+      "name": "ACC",
+      "value": "11"
+    },
+    {
+      "name": "RACC",
+      "value": "16"
+    },
+    {
+      "name": "1",
+      "value": "21"
+    },
+    {
+      "name": "MP",
+      "value": "30"
+    },
+    {
+      "name": "ICE_MEVA",
+      "value": "11"
+    },
+    {
+      "name": "MACC",
+      "value": "9"
+    },
+    {
+      "name": "MAGIC_DAMAGE",
+      "value": "15"
+    }
+  ],
+  "gambits": [
+    {
+      "target": "TARGET",
+      "condition": "NO_SAMBA",
+      "cond_arg": "0",
+      "reaction": "JA",
+      "selector": "BEST_SAMBA",
+      "sel_arg": "0"
+    },
+    {
+      "target": "TARGET",
+      "condition": "ALWAYS",
+      "cond_arg": "0",
+      "reaction": "JA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.ja.BOX_STEP"
+    },
+    {
+      "target": "PARTY",
+      "condition": "HPP_LT",
+      "cond_arg": "55",
+      "reaction": "JA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.ja.CURING_WALTZ_IV"
+    },
+    {
+      "target": "SELF",
+      "condition": "TP_GTE",
+      "cond_arg": "1250",
+      "reaction": "WS",
+      "selector": "HIGHEST",
+      "sel_arg": "0"
+    }
+  ],
+  "tp_settings": {
+    "trigger": "CLOSER_UNTIL_TP",
+    "select": "HIGHEST",
+    "value": "1250"
+  },
+  "effects": [],
+  "listeners": [],
+  "custom_code": "",
+  "main_job": "",
+  "sub_job": "NONE",
+  "gear": []
+}

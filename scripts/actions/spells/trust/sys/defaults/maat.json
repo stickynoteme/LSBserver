@@ -1,0 +1,21 @@
+{
+  "auto_attack": true,
+  "mods": [],
+  "gambits": [
+    {
+      "target": "SELF",
+      "condition": "ALWAYS",
+      "cond_arg": "0",
+      "reaction": "JA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.ja.MANTRA"
+    }
+  ],
+  "tp_settings": {},
+  "effects": [],
+  "listeners": [],
+  "custom_code": "",
+  "main_job": "",
+  "sub_job": "NONE",
+  "gear": []
+}

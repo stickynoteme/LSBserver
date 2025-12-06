@@ -1,0 +1,93 @@
+{
+  "auto_attack": false,
+  "mods": [],
+  "gambits": [
+    {
+      "target": "PARTY",
+      "condition": "STATUS",
+      "cond_arg": "xi.effect.POISON",
+      "reaction": "MA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.magic.spell.POISONA"
+    },
+    {
+      "target": "PARTY",
+      "condition": "STATUS",
+      "cond_arg": "xi.effect.PARALYSIS",
+      "reaction": "MA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.magic.spell.PARALYNA"
+    },
+    {
+      "target": "PARTY",
+      "condition": "STATUS",
+      "cond_arg": "xi.effect.BLINDNESS",
+      "reaction": "MA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.magic.spell.BLINDNA"
+    },
+    {
+      "target": "PARTY",
+      "condition": "STATUS",
+      "cond_arg": "xi.effect.SILENCE",
+      "reaction": "MA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.magic.spell.SILENA"
+    },
+    {
+      "target": "PARTY",
+      "condition": "STATUS",
+      "cond_arg": "xi.effect.PETRIFICATION",
+      "reaction": "MA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.magic.spell.STONA"
+    },
+    {
+      "target": "PARTY",
+      "condition": "STATUS",
+      "cond_arg": "xi.effect.DISEASE",
+      "reaction": "MA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.magic.spell.VIRUNA"
+    },
+    {
+      "target": "PARTY",
+      "condition": "STATUS",
+      "cond_arg": "xi.effect.CURSE_I",
+      "reaction": "MA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.magic.spell.CURSNA"
+    },
+    {
+      "target": "SELF",
+      "condition": "NOT_STATUS",
+      "cond_arg": "xi.effect.MARCH",
+      "reaction": "MA",
+      "selector": "HIGHEST",
+      "sel_arg": "xi.magic.spellFamily.MARCH"
+    },
+    {
+      "target": "SELF",
+      "condition": "NOT_STATUS",
+      "cond_arg": "xi.effect.BALLAD",
+      "reaction": "MA",
+      "selector": "HIGHEST",
+      "sel_arg": "xi.magic.spellFamily.MAGES_BALLAD"
+    },
+    {
+      "target": "PARTY",
+      "condition": "HPP_LT",
+      "cond_arg": "75",
+      "reaction": "MA",
+      "selector": "HIGHEST",
+      "sel_arg": "xi.magic.spellFamily.CURE"
+    }
+  ],
+  "tp_settings": {},
+  "effects": [],
+  "listeners": [],
+  "custom_code": "",
+  "main_job": "",
+  "sub_job": "NONE",
+  "gear": []
+}

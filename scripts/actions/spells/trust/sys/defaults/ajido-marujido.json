@@ -1,0 +1,45 @@
+{
+  "auto_attack": true,
+  "mods": [],
+  "gambits": [
+    {
+      "target": "TARGET",
+      "condition": "MB_AVAILABLE",
+      "cond_arg": "0",
+      "reaction": "MA",
+      "selector": "MB_ELEMENT",
+      "sel_arg": "xi.magic.spellFamily.NONE"
+    },
+    {
+      "target": "PARTY",
+      "condition": "HPP_LT",
+      "cond_arg": "25",
+      "reaction": "MA",
+      "selector": "HIGHEST",
+      "sel_arg": "xi.magic.spellFamily.CURE"
+    },
+    {
+      "target": "TARGET",
+      "condition": "NOT_STATUS",
+      "cond_arg": "xi.effect.SLOW",
+      "reaction": "MA",
+      "selector": "HIGHEST",
+      "sel_arg": "xi.magic.spellFamily.SLOW"
+    },
+    {
+      "target": "TARGET",
+      "condition": "NOT_SC_AVAILABLE",
+      "cond_arg": "0",
+      "reaction": "MA",
+      "selector": "HIGHEST",
+      "sel_arg": "xi.magic.spellFamily.NONE"
+    }
+  ],
+  "tp_settings": {},
+  "effects": [],
+  "listeners": [],
+  "custom_code": "",
+  "main_job": "",
+  "sub_job": "NONE",
+  "gear": []
+}

@@ -1,0 +1,73 @@
+{
+  "auto_attack": true,
+  "mods": [],
+  "gambits": [
+    {
+      "target": "TARGET",
+      "condition": "NOT_STATUS",
+      "cond_arg": "xi.effect.FLASH",
+      "reaction": "MA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.magic.spell.FLASH"
+    },
+    {
+      "target": "SELF",
+      "condition": "NOT_HAS_TOP_ENMITY",
+      "cond_arg": "0",
+      "reaction": "JA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.ja.PROVOKE"
+    },
+    {
+      "target": "SELF",
+      "condition": "HPP_LT",
+      "cond_arg": "33",
+      "reaction": "JA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.ja.SENTINEL"
+    },
+    {
+      "target": "PARTY",
+      "condition": "HPP_LT",
+      "cond_arg": "33",
+      "reaction": "MA",
+      "selector": "HIGHEST",
+      "sel_arg": "xi.magic.spellFamily.CURE"
+    },
+    {
+      "target": "SELF",
+      "condition": "NOT_STATUS",
+      "cond_arg": "xi.effect.ENLIGHT",
+      "reaction": "MA",
+      "selector": "HIGHEST",
+      "sel_arg": "xi.magic.spellFamily.ENLIGHT"
+    },
+    {
+      "target": "SELF",
+      "condition": "NOT_STATUS",
+      "cond_arg": "xi.effect.PHALANX",
+      "reaction": "MA",
+      "selector": "HIGHEST",
+      "sel_arg": "xi.magic.spellFamily.PHALANX"
+    },
+    {
+      "target": "MASTER",
+      "condition": "NOT_STATUS",
+      "cond_arg": "xi.effect.BERSERK",
+      "reaction": "JA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.ja.BERSERK"
+    }
+  ],
+  "tp_settings": {
+    "trigger": "CLOSER_UNTIL_TP",
+    "select": "HIGHEST",
+    "value": "2500"
+  },
+  "effects": [],
+  "listeners": [],
+  "custom_code": "",
+  "main_job": "",
+  "sub_job": "NONE",
+  "gear": []
+}

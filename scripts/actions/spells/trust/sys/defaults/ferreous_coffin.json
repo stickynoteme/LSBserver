@@ -1,0 +1,146 @@
+{
+  "auto_attack": true,
+  "mods": [
+    {
+      "name": "REFRESH",
+      "value": "2"
+    },
+    {
+      "name": "ENHANCES_CURSNA",
+      "value": "20"
+    }
+  ],
+  "gambits": [
+    {
+      "target": "PARTY",
+      "condition": "STATUS",
+      "cond_arg": "xi.effect.SLOW",
+      "reaction": "MA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.magic.spell.ERASE"
+    },
+    {
+      "target": "PARTY",
+      "condition": "NOT_STATUS",
+      "cond_arg": "xi.effect.HASTE",
+      "reaction": "MA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.magic.spell.HASTE"
+    },
+    {
+      "target": "PARTY",
+      "condition": "STATUS",
+      "cond_arg": "xi.effect.SLEEP_I",
+      "reaction": "MA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.magic.spell.CURE"
+    },
+    {
+      "target": "PARTY",
+      "condition": "STATUS",
+      "cond_arg": "xi.effect.SLEEP_II",
+      "reaction": "MA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.magic.spell.CURE"
+    },
+    {
+      "target": "PARTY",
+      "condition": "HPP_LT",
+      "cond_arg": "75",
+      "reaction": "MA",
+      "selector": "HIGHEST",
+      "sel_arg": "xi.magic.spellFamily.CURE"
+    },
+    {
+      "target": "TOP_ENMITY",
+      "condition": "STATUS",
+      "cond_arg": "xi.effect.PARALYSIS",
+      "reaction": "MA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.magic.spell.PARALYNA"
+    },
+    {
+      "target": "TOP_ENMITY",
+      "condition": "STATUS",
+      "cond_arg": "xi.effect.BLINDNESS",
+      "reaction": "MA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.magic.spell.BLINDNA"
+    },
+    {
+      "target": "TOP_ENMITY",
+      "condition": "STATUS",
+      "cond_arg": "xi.effect.SILENCE",
+      "reaction": "MA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.magic.spell.SILENA"
+    },
+    {
+      "target": "TOP_ENMITY",
+      "condition": "STATUS",
+      "cond_arg": "xi.effect.PETRIFICATION",
+      "reaction": "MA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.magic.spell.STONA"
+    },
+    {
+      "target": "TOP_ENMITY",
+      "condition": "STATUS",
+      "cond_arg": "xi.effect.DISEASE",
+      "reaction": "MA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.magic.spell.VIRUNA"
+    },
+    {
+      "target": "TOP_ENMITY",
+      "condition": "STATUS",
+      "cond_arg": "xi.effect.CURSE_I",
+      "reaction": "MA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.magic.spell.CURSNA"
+    },
+    {
+      "target": "TOP_ENMITY",
+      "condition": "STATUS",
+      "cond_arg": "xi.effect.CURSE_II",
+      "reaction": "MA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.magic.spell.CURSNA"
+    },
+    {
+      "target": "TOP_ENMITY",
+      "condition": "STATUS",
+      "cond_arg": "xi.effect.BANE",
+      "reaction": "MA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.magic.spell.CURSNA"
+    },
+    {
+      "target": "TOP_ENMITY",
+      "condition": "STATUS",
+      "cond_arg": "xi.effect.DOOM",
+      "reaction": "MA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.magic.spell.CURSNA"
+    },
+    {
+      "target": "PARTY_DEAD",
+      "condition": "ALWAYS",
+      "cond_arg": "0",
+      "reaction": "MA",
+      "selector": "HIGHEST",
+      "sel_arg": "xi.magic.spellFamily.RAISE"
+    }
+  ],
+  "tp_settings": {
+    "trigger": "ASAP",
+    "select": "RANDOM",
+    "value": ""
+  },
+  "effects": [],
+  "listeners": [],
+  "custom_code": "",
+  "main_job": "",
+  "sub_job": "NONE",
+  "gear": []
+}

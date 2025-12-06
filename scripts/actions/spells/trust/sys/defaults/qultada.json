@@ -1,0 +1,33 @@
+{
+  "auto_attack": true,
+  "mods": [],
+  "gambits": [
+    {
+      "target": "PARTY",
+      "condition": "NOT_STATUS",
+      "cond_arg": "xi.effect.CORSAIRS_ROLL",
+      "reaction": "JA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.ja.CORSAIRS_ROLL"
+    },
+    {
+      "target": "PARTY",
+      "condition": "NOT_STATUS",
+      "cond_arg": "xi.effect.CHAOS_ROLL",
+      "reaction": "JA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.ja.CHAOS_ROLL"
+    }
+  ],
+  "tp_settings": {
+    "trigger": "OPENER",
+    "select": "RANDOM",
+    "value": ""
+  },
+  "effects": [],
+  "listeners": [],
+  "custom_code": "",
+  "main_job": "",
+  "sub_job": "NONE",
+  "gear": []
+}

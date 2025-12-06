@@ -1,0 +1,105 @@
+{
+  "auto_attack": true,
+  "mods": [],
+  "gambits": [
+    {
+      "target": "SELF",
+      "condition": "NO_SAMBA",
+      "cond_arg": "0",
+      "reaction": "JA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.ja.HASTE_SAMBA"
+    },
+    {
+      "target": "TARGET",
+      "condition": "NOT_STATUS",
+      "cond_arg": "xi.effect.LETHARGIC_DAZE_5",
+      "reaction": "JA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.ja.QUICKSTEP"
+    },
+    {
+      "target": "TARGET",
+      "condition": "READYING_WS",
+      "cond_arg": "0",
+      "reaction": "JA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.ja.VIOLENT_FLOURISH"
+    },
+    {
+      "target": "TARGET",
+      "condition": "READYING_MS",
+      "cond_arg": "0",
+      "reaction": "JA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.ja.VIOLENT_FLOURISH"
+    },
+    {
+      "target": "TARGET",
+      "condition": "READYING_JA",
+      "cond_arg": "0",
+      "reaction": "JA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.ja.VIOLENT_FLOURISH"
+    },
+    {
+      "target": "TARGET",
+      "condition": "CASTING_MA",
+      "cond_arg": "0",
+      "reaction": "JA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.ja.VIOLENT_FLOURISH"
+    },
+    {
+      "target": "TARGET",
+      "condition": "IS_ECOSYSTEM",
+      "cond_arg": "xi.ecosystem.UNDEAD",
+      "reaction": "JA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.ja.HASTE_SAMBA"
+    },
+    {
+      "target": "PARTY",
+      "condition": "HPP_LT",
+      "cond_arg": "50",
+      "reaction": "JA",
+      "selector": "HIGHEST_WALTZ",
+      "sel_arg": "xi.ja.CURING_WALTZ"
+    },
+    {
+      "target": "SELF",
+      "condition": "NO_SAMBA",
+      "cond_arg": "0",
+      "reaction": "JA",
+      "selector": "BEST_SAMBA",
+      "sel_arg": "xi.ja.DRAIN_SAMBA"
+    },
+    {
+      "target": "SELF",
+      "condition": "STATUS_FLAG",
+      "cond_arg": "xi.effectFlag.WALTZABLE",
+      "reaction": "JA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.ja.HEALING_WALTZ"
+    },
+    {
+      "target": "SELF",
+      "condition": "STATUS",
+      "cond_arg": "xi.effect.FINISHING_MOVE_5",
+      "reaction": "JA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.ja.REVERSE_FLOURISH"
+    }
+  ],
+  "tp_settings": {
+    "trigger": "CLOSER_UNTIL_TP",
+    "select": "RANDOM",
+    "value": "2000"
+  },
+  "effects": [],
+  "listeners": [],
+  "custom_code": "",
+  "main_job": "",
+  "sub_job": "NONE",
+  "gear": []
+}

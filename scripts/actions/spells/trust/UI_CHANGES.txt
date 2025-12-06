@@ -1,0 +1,208 @@
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│ Trust Editor                                                          [_][□][X] │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                 │
+│  Select Trust: [curilla.lua           ▼]                                      │
+│                                                                                 │
+│                    ┌────────────────────┐  ┌──────────┐  ┌────────────┐       │
+│                    │ Restore to Default │  │ Clear All│  │ Save Trust │       │
+│                    └────────────────────┘  └──────────┘  └────────────┘       │
+│                           ↑                       ↑              ↑             │
+│                        NEW BUTTON            NEW BUTTON    EXISTING BUTTON     │
+│                                                                                 │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│ General │ Mods │ Gambits (Spells/Abilities) │ TP Settings │ Status Effects │... │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                 │
+│  General Settings                                                               │
+│  ─────────────────                                                              │
+│                                                                                 │
+│  Main Job: [PLD        ▼]     Sub Job: [WAR        ▼]                         │
+│                                                                                 │
+│  ☑ Auto-attack enabled                                                         │
+│                                                                                 │
+│  [Apply Job Template]                                                          │
+│                                                                                 │
+│  ─────────────────────────────────────────────────────────────────────────────  │
+│                                                                                 │
+│  Gear (Pseudo-gear for looks & mods)                                           │
+│  ────────────────────────────────────                                          │
+│                                                                                 │
+│  MAIN:   [12345  ] Ring of the Protector [12345]               [🔍]           │
+│  SUB:    [       ] (none)                                       [🔍]           │
+│  RANGED: [       ] (none)                                       [🔍]           │
+│  ...                                                                           │
+│                                                                                 │
+└─────────────────────────────────────────────────────────────────────────────────┘
+
+
+BUTTON FUNCTIONALITY:
+═══════════════════════════════════════════════════════════════════════════════════
+
+1. "Restore to Default" Button
+   ────────────────────────────
+   
+   When clicked:
+   
+   ┌────────────────────────────────────────────┐
+   │ Restore to Default                     [X] │
+   ├────────────────────────────────────────────┤
+   │                                            │
+   │  This will restore curilla.lua to its      │
+   │  default configuration.                    │
+   │                                            │
+   │  Any unsaved changes will be lost.         │
+   │                                            │
+   │  Continue?                                 │
+   │                                            │
+   │          ┌─────┐          ┌─────┐         │
+   │          │ Yes │          │ No  │         │
+   │          └─────┘          └─────┘         │
+   └────────────────────────────────────────────┘
+   
+   After confirming "Yes":
+   - Form is reset
+   - Default configuration loaded from sys/defaults/curilla.json
+   - User sees default gambits, mods, and settings
+   
+   ┌─────────────────────────────────┐
+   │ Restored                    [X] │
+   ├─────────────────────────────────┤
+   │                                 │
+   │  curilla.lua has been restored  │
+   │  to default configuration.      │
+   │                                 │
+   │            ┌────┐               │
+   │            │ OK │               │
+   │            └────┘               │
+   └─────────────────────────────────┘
+
+
+2. "Clear All" Button
+   ───────────────────
+   
+   When clicked:
+   
+   ┌────────────────────────────────────────────┐
+   │ Clear All                              [X] │
+   ├────────────────────────────────────────────┤
+   │                                            │
+   │  This will clear all values for            │
+   │  curilla.lua.                              │
+   │                                            │
+   │  Any unsaved changes will be lost.         │
+   │                                            │
+   │  Continue?                                 │
+   │                                            │
+   │          ┌─────┐          ┌─────┐         │
+   │          │ Yes │          │ No  │         │
+   │          └─────┘          └─────┘         │
+   └────────────────────────────────────────────┘
+   
+   After confirming "Yes":
+   - All form fields reset to empty/default values
+   - Main Job: (empty)
+   - Sub Job: NONE
+   - No gambits
+   - No mods
+   - No gear
+   - Auto-attack: True (default)
+   
+   ┌─────────────────────────────────┐
+   │ Cleared                     [X] │
+   ├─────────────────────────────────┤
+   │                                 │
+   │  All values for curilla.lua     │
+   │  have been cleared.             │
+   │                                 │
+   │            ┌────┐               │
+   │            │ OK │               │
+   │            └────┘               │
+   └─────────────────────────────────┘
+
+
+USAGE SCENARIOS:
+═══════════════════════════════════════════════════════════════════════════════════
+
+Scenario A: User selects "shantotto.lua" for the first time
+────────────────────────────────────────────────────────────
+1. User opens trust_editor.py
+2. Selects "shantotto.lua" from dropdown
+3. No user file exists in userdata/
+4. Editor automatically loads sys/defaults/shantotto.json
+5. Form displays:
+   - Auto-attack: ☐ (unchecked - caster)
+   - Gambits: 2 magic burst gambits
+   - Mods: HASTE_MAGIC 1000
+6. User can now edit and save customizations
+
+
+Scenario B: User wants to undo their changes
+─────────────────────────────────────────────
+1. User has modified "ayame.lua" extensively
+2. User realizes they want the original config
+3. Clicks "Restore to Default"
+4. Confirms action
+5. Form resets to ayame defaults:
+   - Auto-attack: ☑ (checked - melee)
+   - Gambits: Hasso, Third Eye, Meditate
+   - TP Settings: OPENER with SPECIAL_AYAME
+
+
+Scenario C: User wants blank slate for custom trust
+────────────────────────────────────────────────────
+1. User wants to create a completely custom trust
+2. Selects "kupofried.lua"
+3. Defaults load automatically
+4. User clicks "Clear All"
+5. Confirms action
+6. All fields now empty/default
+7. User builds trust from scratch:
+   - Sets job to BLM/RDM
+   - Adds custom gambits
+   - Adds custom mods
+   - Saves
+
+
+DATA FLOW:
+═══════════════════════════════════════════════════════════════════════════════════
+
+Trust Selection Flow:
+                    
+  [User selects trust]
+           ↓
+  ┌─────────────────────────┐
+  │ Does userdata/X.json    │     YES → Load user data
+  │ exist?                  │─────────────────────────→ [Populate form]
+  └─────────────────────────┘
+           ↓ NO
+  ┌─────────────────────────┐
+  │ Does sys/defaults/X.json│     YES → Load defaults
+  │ exist?                  │─────────────────────────→ [Populate form]
+  └─────────────────────────┘
+           ↓ NO
+      [Empty form]
+
+
+Restore to Default Flow:
+                    
+  [Click "Restore to Default"]
+           ↓
+  [Confirmation dialog] ─── NO → [Cancel]
+           ↓ YES
+  [Load sys/defaults/X.json]
+           ↓
+  [Reset and populate form]
+           ↓
+  [Show success message]
+
+
+Clear All Flow:
+                    
+  [Click "Clear All"]
+           ↓
+  [Confirmation dialog] ─── NO → [Cancel]
+           ↓ YES
+  [Reset form to empty state]
+           ↓
+  [Show success message]

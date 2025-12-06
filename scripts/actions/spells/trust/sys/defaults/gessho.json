@@ -1,0 +1,57 @@
+{
+  "auto_attack": true,
+  "mods": [],
+  "gambits": [
+    {
+      "target": "SELF",
+      "condition": "NOT_STATUS",
+      "cond_arg": "xi.effect.COPY_IMAGE",
+      "reaction": "MA",
+      "selector": "HIGHEST",
+      "sel_arg": "xi.magic.spellFamily.UTSUSEMI"
+    },
+    {
+      "target": "TARGET",
+      "condition": "NOT_STATUS",
+      "cond_arg": "xi.effect.BLINDNESS",
+      "reaction": "MA",
+      "selector": "HIGHEST",
+      "sel_arg": "xi.magic.spellFamily.KURAYAMI"
+    },
+    {
+      "target": "TARGET",
+      "condition": "NOT_STATUS",
+      "cond_arg": "xi.effect.SLOW",
+      "reaction": "MA",
+      "selector": "HIGHEST",
+      "sel_arg": "xi.magic.spellFamily.HOJO"
+    },
+    {
+      "target": "SELF",
+      "condition": "NOT_STATUS",
+      "cond_arg": "xi.effect.YONIN",
+      "reaction": "JA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.ja.YONIN"
+    },
+    {
+      "target": "SELF",
+      "condition": "NOT_HAS_TOP_ENMITY",
+      "cond_arg": "0",
+      "reaction": "JA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.ja.PROVOKE"
+    }
+  ],
+  "tp_settings": {
+    "trigger": "ASAP",
+    "select": "RANDOM",
+    "value": ""
+  },
+  "effects": [],
+  "listeners": [],
+  "custom_code": "",
+  "main_job": "",
+  "sub_job": "NONE",
+  "gear": []
+}

@@ -1,0 +1,16 @@
+{
+  "auto_attack": true,
+  "mods": [],
+  "gambits": [],
+  "tp_settings": {
+    "trigger": "CLOSER_UNTIL_TP",
+    "select": "HIGHEST",
+    "value": "2500"
+  },
+  "effects": [],
+  "listeners": [],
+  "custom_code": "",
+  "main_job": "",
+  "sub_job": "NONE",
+  "gear": []
+}
