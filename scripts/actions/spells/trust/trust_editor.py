@@ -47,12 +47,16 @@ CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 ENUM_DIR = os.path.abspath(os.path.join(CURRENT_DIR, "../../../../scripts/enum"))
 USERDATA_DIR = os.path.join(CURRENT_DIR, "userdata")
 SYS_DIR = os.path.join(CURRENT_DIR, "sys")
+DEFAULTS_DIR = os.path.join(SYS_DIR, "defaults")
 
 if not os.path.exists(USERDATA_DIR):
     os.makedirs(USERDATA_DIR)
 
 if not os.path.exists(SYS_DIR):
     os.makedirs(SYS_DIR)
+
+if not os.path.exists(DEFAULTS_DIR):
+    os.makedirs(DEFAULTS_DIR)
 
 # Equipment slot bitmasks (from xi.slot enum, but as bitmask for item_equipment.slot field)
 SLOT_BITMASK = {
@@ -1067,6 +1071,8 @@ class TrustEditor(tk.Tk):
         self.trust_picker_frame.pack(side=tk.LEFT, padx=5)
 
         ttk.Button(top_frame, text="Save Trust", command=self.save_trust).pack(side=tk.RIGHT, padx=5)
+        ttk.Button(top_frame, text="Clear All", command=self.clear_all).pack(side=tk.RIGHT, padx=5)
+        ttk.Button(top_frame, text="Restore to Default", command=self.restore_to_default).pack(side=tk.RIGHT, padx=5)
         
         # Notebook (Tabs)
         self.notebook = ttk.Notebook(self, padding=5)
@@ -2040,15 +2046,20 @@ class TrustEditor(tk.Tk):
 
         self.reset_form()
 
-        # Load User Data if exists
+        # Try to load User Data first
         json_path = os.path.join(USERDATA_DIR, filename + ".json")
         if os.path.exists(json_path):
             with open(json_path, 'r') as f:
                 data = json.load(f)
                 self.populate_from_data(data)
         else:
-            # No existing user data, start blank (as requested)
-            pass
+            # If no user data, try to load defaults
+            default_path = os.path.join(DEFAULTS_DIR, filename + ".json")
+            if os.path.exists(default_path):
+                with open(default_path, 'r') as f:
+                    data = json.load(f)
+                    self.populate_from_data(data)
+            # else: No existing user data or defaults, start blank
 
     def save_trust(self):
         filename = self.current_trust.get()
@@ -2124,6 +2135,54 @@ class TrustEditor(tk.Tk):
         # Generate Lua
         self.generate_lua(filename, data)
         messagebox.showinfo("Success", f"Saved {filename} and updated Lua file.")
+
+    def restore_to_default(self):
+        """Restore the current trust to its default configuration."""
+        filename = self.current_trust.get()
+        if not filename:
+            messagebox.showwarning("No Trust Selected", "Please select a trust first.")
+            return
+        
+        default_path = os.path.join(DEFAULTS_DIR, filename + ".json")
+        if not os.path.exists(default_path):
+            messagebox.showwarning("No Default Available", f"No default configuration found for {filename}.")
+            return
+        
+        # Confirm action
+        confirm = messagebox.askyesno(
+            "Restore to Default",
+            f"This will restore {filename} to its default configuration.\nAny unsaved changes will be lost.\n\nContinue?"
+        )
+        if not confirm:
+            return
+        
+        # Load default data
+        with open(default_path, 'r') as f:
+            data = json.load(f)
+        
+        # Reset and populate with default data
+        self.reset_form()
+        self.populate_from_data(data)
+        messagebox.showinfo("Restored", f"{filename} has been restored to default configuration.")
+    
+    def clear_all(self):
+        """Clear all values to create a blank trust."""
+        filename = self.current_trust.get()
+        if not filename:
+            messagebox.showwarning("No Trust Selected", "Please select a trust first.")
+            return
+        
+        # Confirm action
+        confirm = messagebox.askyesno(
+            "Clear All",
+            f"This will clear all values for {filename}.\nAny unsaved changes will be lost.\n\nContinue?"
+        )
+        if not confirm:
+            return
+        
+        # Reset form to blank state
+        self.reset_form()
+        messagebox.showinfo("Cleared", f"All values for {filename} have been cleared.")
 
     def generate_lua(self, filename, data):
         name = filename.replace(".lua", "").replace("_", " ").title()
