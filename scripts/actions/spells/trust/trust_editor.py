@@ -2263,7 +2263,8 @@ class TrustEditor(tk.Tk):
                     # Add item mods for all slots
                     for mod_id, val in ITEM_MODS.get(item_id, []):
                         mod_name = MOD_ID_TO_NAME.get(mod_id)
-                        if mod_name:
+                        # Skip EQUIPMENT_ONLY_RACE as it can interfere with trust functionality
+                        if mod_name and mod_name != 'EQUIPMENT_ONLY_RACE':
                             gear_mods_str += f"    mob:addMod(xi.mod.{mod_name}, {fmt_arg(val)}) -- {slot}: {item_name}\n"
                     
                     # Add weapon stats for weapon slots - use slot-specific mods

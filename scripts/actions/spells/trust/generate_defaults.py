@@ -39,7 +39,9 @@ def parse_trust_lua(lua_path):
     for match in re.finditer(mod_pattern, content):
         mod_name = match.group(1)
         value = match.group(2).strip()
-        # Skip dynamic values (expressions with variables)
+        # Skip dynamic values (expressions with variables) and EQUIPMENT_ONLY_RACE
+        if mod_name == 'EQUIPMENT_ONLY_RACE':
+            continue  # Skip this mod as it can interfere with trust functionality
         if not any(x in value for x in ['mob:', 'power', 'level', '/', '*', 'Lvl']):
             data['mods'].append({'name': mod_name, 'value': value})
     
