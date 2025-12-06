@@ -2068,16 +2068,19 @@ class TrustEditor(tk.Tk):
         if not filename: return
 
         self.reset_form()
+        
+        # Strip .lua extension if present to get the base name
+        base_name = filename.replace('.lua', '')
 
         # Try to load user data first
-        json_path = os.path.join(USERDATA_DIR, filename + ".json")
+        json_path = os.path.join(USERDATA_DIR, base_name + ".json")
         if os.path.exists(json_path):
             with open(json_path, 'r') as f:
                 data = json.load(f)
                 self.populate_from_data(data)
         else:
             # If no user data, try to load defaults
-            default_path = os.path.join(DEFAULTS_DIR, filename + ".json")
+            default_path = os.path.join(DEFAULTS_DIR, base_name + ".json")
             if os.path.exists(default_path):
                 with open(default_path, 'r') as f:
                     data = json.load(f)
@@ -2087,6 +2090,9 @@ class TrustEditor(tk.Tk):
     def save_trust(self):
         filename = self.current_trust.get()
         if not filename: return
+        
+        # Strip .lua extension if present to get the base name
+        base_name = filename.replace('.lua', '')
 
         # Collect Data
         data = {
@@ -2151,11 +2157,11 @@ class TrustEditor(tk.Tk):
                 })
 
         # Save JSON
-        json_path = os.path.join(USERDATA_DIR, filename + ".json")
+        json_path = os.path.join(USERDATA_DIR, base_name + ".json")
         with open(json_path, 'w') as f:
             json.dump(data, f, indent=4)
 
-        # Generate Lua
+        # Generate Lua (use original filename with .lua extension)
         self.generate_lua(filename, data)
         messagebox.showinfo("Success", f"Saved {filename} and updated Lua file.")
 
@@ -2166,15 +2172,18 @@ class TrustEditor(tk.Tk):
             messagebox.showwarning("No Trust Selected", "Please select a trust first.")
             return
         
-        default_path = os.path.join(DEFAULTS_DIR, filename + ".json")
+        # Strip .lua extension if present to get the base name
+        base_name = filename.replace('.lua', '')
+        
+        default_path = os.path.join(DEFAULTS_DIR, base_name + ".json")
         if not os.path.exists(default_path):
-            messagebox.showwarning("No Default Available", f"No default configuration found for {filename}.")
+            messagebox.showwarning("No Default Available", f"No default configuration found for {base_name}.lua.")
             return
         
         # Confirm action
         confirm = messagebox.askyesno(
             "Restore to Default",
-            f"This will restore {filename} to its default configuration.\nAny unsaved changes will be lost.\n\nContinue?"
+            f"This will restore {base_name}.lua to its default configuration.\nAny unsaved changes will be lost.\n\nContinue?"
         )
         if not confirm:
             return
@@ -2186,7 +2195,7 @@ class TrustEditor(tk.Tk):
         # Reset and populate with default data
         self.reset_form()
         self.populate_from_data(data)
-        messagebox.showinfo("Restored", f"{filename} has been restored to default configuration.")
+        messagebox.showinfo("Restored", f"{base_name}.lua has been restored to default configuration.")
     
     def clear_all(self):
         """Clear all values to create a blank trust."""
@@ -2195,17 +2204,20 @@ class TrustEditor(tk.Tk):
             messagebox.showwarning("No Trust Selected", "Please select a trust first.")
             return
         
+        # Strip .lua extension if present to get the base name
+        base_name = filename.replace('.lua', '')
+        
         # Confirm action
         confirm = messagebox.askyesno(
             "Clear All",
-            f"This will clear all values for {filename}.\nAny unsaved changes will be lost.\n\nContinue?"
+            f"This will clear all values for {base_name}.lua.\nAny unsaved changes will be lost.\n\nContinue?"
         )
         if not confirm:
             return
         
         # Reset form to blank state
         self.reset_form()
-        messagebox.showinfo("Cleared", f"All values for {filename} have been cleared.")
+        messagebox.showinfo("Cleared", f"All values for {base_name}.lua have been cleared.")
 
     def generate_lua(self, filename, data):
         name = filename.replace(".lua", "").replace("_", " ").title()
