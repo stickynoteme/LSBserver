@@ -494,6 +494,76 @@ TP_SELECT_DESCRIPTIONS = {
     'HELIX_MOB_WEAKNESS': 'Helix for mob weakness.',
 }
 
+LISTENER_EVENTS = [
+    'WEAPONSKILL_USE',
+    'ABILITY_USE',
+    'MAGIC_USE',
+    'MAGIC_STATE_EXIT',
+    'COMBAT_TICK',
+    'TP_TICK',
+    'DEAL_DAMAGE',
+    'TAKE_DAMAGE',
+    'EFFECT_GAIN',
+    'EFFECT_LOSE',
+    'ITEM_USE',
+    'ROAM_TICK',
+]
+
+LISTENER_HELP = {
+    'WEAPONSKILL_USE': "Args: (mob, target, wsid, tp, action). Fires when the trust uses a WS.",
+    'ABILITY_USE': "Args: (mob, target, abilityId, action). Fires on job ability use.",
+    'MAGIC_USE': "Args: (mob, target, spellId, action). Before cast completes.",
+    'MAGIC_STATE_EXIT': "Args: (mob, spellId). On finishing casting state.",
+    'COMBAT_TICK': "Args: (mob). Periodic tick while engaged.",
+    'TP_TICK': "Args: (mob). TP update tick.",
+    'DEAL_DAMAGE': "Args: (mob, target, damage, element). After dealing damage.",
+    'TAKE_DAMAGE': "Args: (mob, attacker, damage, element). After taking damage.",
+    'EFFECT_GAIN': "Args: (mob, effectId). When an effect is gained.",
+    'EFFECT_LOSE': "Args: (mob, effectId). When an effect is lost/removed.",
+    'ITEM_USE': "Args: (mob, target, itemId). When using an item.",
+    'ROAM_TICK': "Args: (mob). Periodic tick while idle/roaming.",
+}
+
+LISTENER_SIGNATURES = {
+    'WEAPONSKILL_USE': "function(mobArg, target, wsid, tp, action)",
+    'ABILITY_USE': "function(mobArg, target, abilityId, action)",
+    'MAGIC_USE': "function(mobArg, target, spellId, action)",
+    'MAGIC_STATE_EXIT': "function(mobArg, spellId)",
+    'COMBAT_TICK': "function(mobArg)",
+    'TP_TICK': "function(mobArg)",
+    'DEAL_DAMAGE': "function(mobArg, target, damage, element)",
+    'TAKE_DAMAGE': "function(mobArg, attacker, damage, element)",
+    'EFFECT_GAIN': "function(mobArg, effectId)",
+    'EFFECT_LOSE': "function(mobArg, effectId)",
+    'ITEM_USE': "function(mobArg, target, itemId)",
+    'ROAM_TICK': "function(mobArg)",
+}
+
+LISTENER_TEMPLATES = {
+    'LOG_EVENT': [
+        "-- Log the event with IDs",
+        "mobArg:messageBasic(xi.msg.basic.NONE)",  # placeholder safe call
+        "printf('[LISTENER][%s] event fired', mobArg:getName())",
+    ],
+    'REAPPLY_BUFF': [
+        "-- Reapply a buff if missing",
+        "if not mobArg:hasStatusEffect(xi.effect.PHALANX) then",
+        "    mobArg:castSpell(xi.magic.spell.PHALANX, mobArg)",
+        "end",
+    ],
+    'CURE_MASTER': [
+        "-- Heal master if low HP",
+        "local master = mobArg:getMaster()",
+        "if master and master:getHPP() < 50 then",
+        "    mobArg:castSpell(xi.magic.spell.CURE_IV, master)",
+        "end",
+    ],
+    'REMOVE_LISTENER': [
+        "-- Example of removing a listener by tag",
+        "mobArg:removeListener('TAG_TO_REMOVE')",
+    ],
+}
+
 class TrustEditor(tk.Tk):
     def __init__(self):
         super().__init__()
@@ -640,6 +710,11 @@ class TrustEditor(tk.Tk):
         self.effects_frame = ttk.Frame(self.notebook)
         self.notebook.add(self.effects_frame, text="Status Effects")
         self.create_effects_tab()
+
+        # -- Listeners --
+        self.listeners_frame = ttk.Frame(self.notebook)
+        self.notebook.add(self.listeners_frame, text="Listeners")
+        self.create_listeners_tab()
 
         # -- Custom Code --
         self.code_frame = ttk.Frame(self.notebook)
@@ -937,6 +1012,140 @@ class TrustEditor(tk.Tk):
 
         self.effect_rows.append((row_frame, e_var, p_e, d_e))
 
+    def create_listeners_tab(self):
+        list_frame = ttk.Frame(self.listeners_frame)
+        list_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+
+        self.listeners_canvas = tk.Canvas(list_frame)
+        self.listeners_scrollbar = ttk.Scrollbar(list_frame, orient="vertical", command=self.listeners_canvas.yview)
+        self.listeners_scrollable_frame = ttk.Frame(self.listeners_canvas)
+
+        self.listeners_scrollable_frame.bind(
+            "<Configure>",
+            lambda e: self.listeners_canvas.configure(scrollregion=self.listeners_canvas.bbox("all"))
+        )
+
+        self.listeners_canvas.create_window((0, 0), window=self.listeners_scrollable_frame, anchor="nw")
+        self.listeners_canvas.configure(yscrollcommand=self.listeners_scrollbar.set)
+
+        self.listeners_canvas.pack(side="left", fill="both", expand=True)
+        self.listeners_scrollbar.pack(side="right", fill="y")
+
+        header_frame = ttk.Frame(self.listeners_frame)
+        header_frame.pack(fill=tk.X, padx=10, pady=(0, 5))
+        ttk.Button(header_frame, text="Add Listener", command=self.add_listener_row).pack(side=tk.LEFT, pady=5)
+
+        help_frame = ttk.LabelFrame(self.listeners_frame, text="Listener Help")
+        help_frame.pack(fill=tk.BOTH, expand=False, padx=10, pady=(0, 10))
+        help_text = (
+            "Listeners attach during onMobSpawn (TrustEditor writes mob:addListener calls).\n"
+            "Event: Pick an event like WEAPONSKILL_USE, TAKE_DAMAGE, COMBAT_TICK.\n"
+            "Tag: Unique id string per listener (used to identify/remove). Auto-updates when you change Event until you edit it manually.\n"
+            "Body: Lua function body; signature depends on event. See right-hand help when picking an event.\n"
+            "Lifecycle: Added on spawn; removed automatically when the mob despawns.\n"
+            "Args: e.g., WEAPONSKILL_USE (mob, target, wsid, tp, action), TAKE_DAMAGE (mob, attacker, damage, element).\n"
+            "Keep code light; avoid expensive loops. Use xi/ai helpers already required in the generated file.\n"
+        )
+        lst_txt = scrolledtext.ScrolledText(help_frame, wrap=tk.WORD, height=6)
+        lst_txt.insert("1.0", help_text)
+        lst_txt.config(state="disabled")
+        lst_txt.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+
+        self.listener_rows = []
+        self.listener_row_counter = 0
+
+    def build_listener_template(self, event_name, template_key=None):
+        signature = LISTENER_SIGNATURES.get(event_name, "function(mobArg, ...)")
+        lines = [
+            f"-- {event_name}",
+            f"-- {LISTENER_HELP.get(event_name, '').strip()}",
+            f"return {signature}",
+            "{",
+        ]
+        chosen = LISTENER_TEMPLATES.get(template_key or "", [])
+        if not chosen:
+            chosen = LISTENER_TEMPLATES.get('LOG_EVENT', [])
+        lines.extend([f"    {l}" for l in chosen])
+        lines.append("}")
+        return "\n".join(lines)
+
+    def listener_event_changed(self, row_data):
+        ev = row_data['event_var'].get()
+        if ev:
+            new_auto_tag = f"{ev}_L{row_data.get('id', 0)}"
+            current_tag = row_data['tag_entry'].get()
+            prev_auto = row_data.get('auto_tag', '')
+            if not current_tag or current_tag == prev_auto:
+                row_data['tag_entry'].delete(0, tk.END)
+                row_data['tag_entry'].insert(0, new_auto_tag)
+            row_data['auto_tag'] = new_auto_tag
+        if ev and not row_data['body_text'].get('1.0', tk.END).strip():
+            row_data['body_text'].insert("1.0", self.build_listener_template(ev))
+        signature = LISTENER_SIGNATURES.get(ev, "")
+        help_line = LISTENER_HELP.get(ev, "")
+        row_data['signature_label'].configure(text=f"{signature}  {help_line}")
+
+    def add_listener_row(self, event_name="", tag="", body=""):
+        row_frame = ttk.Frame(self.listeners_scrollable_frame)
+        row_frame.pack(fill=tk.X, pady=4, anchor="w")
+
+        ttk.Label(row_frame, text="Event:").pack(side=tk.LEFT)
+        event_frame, event_var = self.create_list_picker(row_frame, LISTENER_EVENTS, width=14, textvariable=tk.StringVar(), title="Pick Listener Event", help_category="LISTENER_EVENT")
+        event_var.set(event_name)
+        event_frame.pack(side=tk.LEFT, padx=4)
+
+        ttk.Label(row_frame, text="Tag:").pack(side=tk.LEFT)
+        tag_entry = ttk.Entry(row_frame, width=12)
+        tag_entry.insert(0, tag)
+        tag_entry.pack(side=tk.LEFT, padx=4)
+
+        body_frame = ttk.Frame(self.listeners_scrollable_frame)
+        body_frame.pack(fill=tk.BOTH, expand=True, padx=4, pady=(0, 6))
+        ttk.Label(body_frame, text="Body:").pack(anchor="w")
+        body_text = scrolledtext.ScrolledText(body_frame, height=4)
+        body_text.insert("1.0", body)
+        body_text.pack(fill=tk.BOTH, expand=True)
+
+        sig_label = ttk.Label(body_frame, text="", foreground="#5a5a5a")
+        sig_label.pack(anchor="w", pady=(2, 0))
+
+        btn_frame = ttk.Frame(body_frame)
+        btn_frame.pack(fill=tk.X, pady=(2, 0))
+        ttk.Label(btn_frame, text="Preset:").pack(side=tk.LEFT, padx=(0, 4))
+        preset_var = tk.StringVar()
+        preset_picker, _ = self.create_list_picker(btn_frame, list(LISTENER_TEMPLATES.keys()), textvariable=preset_var, width=12, title="Pick Listener Preset")
+        preset_picker.pack(side=tk.LEFT, padx=(0, 6))
+        ttk.Button(btn_frame, text="Apply", width=6, command=lambda ev=event_var, bd=body_text, pv=preset_var: self.apply_listener_template(ev, bd, pv.get())).pack(side=tk.LEFT)
+        ttk.Button(btn_frame, text="Remove", command=lambda: self.remove_listener_row(row_frame, body_frame, row_data)).pack(side=tk.RIGHT)
+
+        row_data = {
+            'row_frame': row_frame,
+            'event_var': event_var,
+            'tag_entry': tag_entry,
+            'body_text': body_text,
+            'body_frame': body_frame,
+            'signature_label': sig_label,
+            'auto_tag': '',
+            'id': self.listener_row_counter + 1,
+        }
+        self.listener_row_counter += 1
+        event_var.trace_add("write", lambda *args, rd=row_data: self.listener_event_changed(rd))
+        self.listener_rows.append(row_data)
+        self.listener_event_changed(row_data)
+
+    def apply_listener_template(self, event_var, body_text, template_key=None):
+        ev = event_var.get()
+        if not ev:
+            return
+        body_text.delete("1.0", tk.END)
+        body_text.insert("1.0", self.build_listener_template(ev, template_key))
+
+    def remove_listener_row(self, row_frame, body_frame, row_data=None):
+        if row_data and row_data in self.listener_rows:
+            self.listener_rows.remove(row_data)
+        row_frame.destroy()
+        body_frame.destroy()
+
     def remove_effect_row(self, row_frame):
         for i, (frame, _, _, _) in enumerate(self.effect_rows):
             if frame == row_frame:
@@ -1012,6 +1221,9 @@ class TrustEditor(tk.Tk):
         for frame, _, _, _ in list(self.effect_rows):
             self.remove_effect_row(frame)
 
+        for row_data in list(self.listener_rows):
+            self.remove_listener_row(row_data['row_frame'], row_data['body_frame'])
+
         if hasattr(self, "custom_code"):
             self.custom_code.delete('1.0', tk.END)
 
@@ -1021,6 +1233,7 @@ class TrustEditor(tk.Tk):
         tpl.setdefault('mods', [])
         tpl.setdefault('gambits', [])
         tpl.setdefault('effects', [])
+        tpl.setdefault('listeners', [])
         tpl.setdefault('custom_code', '')
         tpl.setdefault('main_job', '')
         tpl.setdefault('sub_job', 'NONE')
@@ -1073,6 +1286,9 @@ class TrustEditor(tk.Tk):
         if addition.get('custom_code'):
             existing = target.get('custom_code', '')
             target['custom_code'] = (existing + "\n" + addition['custom_code']).strip() if existing else addition['custom_code']
+        if addition.get('listeners'):
+            target.setdefault('listeners', [])
+            target['listeners'].extend(copy.deepcopy(addition.get('listeners', [])))
 
     def build_job_template(self, main_job, sub_job):
         base_template = self.ensure_template_defaults({})
@@ -1136,6 +1352,10 @@ class TrustEditor(tk.Tk):
                 desc = TP_SELECT_DESCRIPTIONS.get(k, SELECTOR_DESCRIPTIONS.get(k, ''))
                 arg = SELECTOR_ARG_GUIDE.get(k, 'Usually 0')
                 items.append({'name': f"{k} ({AI_SELECTS[k]})", 'info': f"{k}\nValue: {AI_SELECTS[k]}\nSelector: {desc}\nSel. Arg: {arg}"})
+        elif category == "LISTENER_EVENT":
+            for ev in LISTENER_EVENTS:
+                desc = LISTENER_HELP.get(ev, '')
+                items.append({'name': ev, 'info': f"{ev}\n{desc}\nTag: auto-fills as {ev}_L# and updates when you change the event unless you override it. Used to identify/remove listeners.\nBody: Lua code for the callback (preset buttons add examples)."})
         elif category == "CUSTOM_CODE":
             items.append({'name': "onMobSpawn context", 'info': "Code runs inside spellObject.onMobSpawn(mob). 'mob' is available; use mob:addMod, mob:addGambit, mob:addStatusEffectEx, addListener, etc."})
             items.append({'name': "AI helpers", 'info': "ai.t.*, ai.c.*, ai.r.*, ai.s.*, ai.tp.* are available once you require globals/trust/magic. Follow existing trust scripts for patterns."})
@@ -1171,6 +1391,9 @@ class TrustEditor(tk.Tk):
         for e in data.get('effects', []):
             self.add_effect_row(e.get('effect', ''), e.get('power', ''), e.get('duration', ''))
 
+        for lst in data.get('listeners', []):
+            self.add_listener_row(lst.get('event', ''), lst.get('tag', ''), lst.get('body', ''))
+
         if data.get('custom_code'):
             self.custom_code.insert('1.0', data.get('custom_code', ''))
 
@@ -1187,7 +1410,7 @@ class TrustEditor(tk.Tk):
         if self.custom_code.get('1.0', tk.END).strip():
             return True
 
-        if self.mod_rows or self.gambit_rows or self.effect_rows:
+        if self.mod_rows or self.gambit_rows or self.effect_rows or self.listener_rows:
             return True
 
         return False
@@ -1246,6 +1469,7 @@ class TrustEditor(tk.Tk):
                 'value': self.tp_value_var.get()
             },
             'effects': [],
+            'listeners': [],
             'custom_code': self.custom_code.get('1.0', tk.END).strip()
         }
 
@@ -1270,6 +1494,15 @@ class TrustEditor(tk.Tk):
                     'effect': e_var.get(),
                     'power': p_e.get(),
                     'duration': d_e.get()
+                })
+
+        for row_data in self.listener_rows:
+            ev_var = row_data['event_var']
+            if ev_var.get():
+                data['listeners'].append({
+                    'event': ev_var.get(),
+                    'tag': row_data['tag_entry'].get(),
+                    'body': row_data['body_text'].get('1.0', tk.END).strip()
                 })
 
         # Save JSON
@@ -1320,6 +1553,15 @@ class TrustEditor(tk.Tk):
         if tp_settings.get('trigger'):
             tp_str = f"    mob:setTrustTPSkillSettings(ai.tp.{tp_settings.get('trigger')}, ai.s.{tp_settings.get('select')}, {fmt_arg(tp_settings.get('value'))})\n"
 
+        listeners_str = ""
+        for lst in data.get('listeners', []):
+            if not lst.get('event'):
+                continue
+            tag = lst.get('tag') or f"{lst.get('event')}_LISTENER"
+            body = lst.get('body', '').strip() or "-- TODO: add listener logic"
+            indented_body = "\n".join(f"        {line}" if line.strip() else "" for line in body.splitlines())
+            listeners_str += f"    mob:addListener('{lst.get('event')}', '{tag}', function(mobArg, target, param1, param2, action)\n{indented_body}\n    end)\n\n"
+
         lua_content = f"""-----------------------------------
 -- Trust: {name}
 -- Custom Trust Generated by TrustEditor
@@ -1345,6 +1587,7 @@ spellObject.onMobSpawn = function(mob)
 {effects_str}
 {gambits_str}
 {tp_str}
+{listeners_str}\
     -- Custom Code
     {data['custom_code']}
 end
