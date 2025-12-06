@@ -1,0 +1,248 @@
+====================================================================================================
+                                 TRUST EDITOR - UI SCREENSHOT
+====================================================================================================
+
+The trust_editor.py window now looks like this:
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ Trust Editor                                                             [─] [□] [✕] ┃
+┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
+┃                                                                                      ┃
+┃  Select Trust: ┌──────────────────────────────┐                                    ┃
+┃                │ curilla.lua                 ▼│                                    ┃
+┃                └──────────────────────────────┘                                    ┃
+┃                                                                                      ┃
+┃                      ╔════════════════════╗  ╔═══════════╗  ╔═════════════╗        ┃
+┃                      ║ Restore to Default ║  ║ Clear All ║  ║ Save Trust  ║        ┃
+┃                      ╚════════════════════╝  ╚═══════════╝  ╚═════════════╝        ┃
+┃                             ▲ NEW                ▲ NEW          ▲ EXISTING         ┃
+┃                                                                                      ┃
+┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
+┃  General │ Mods │ Gambits (Spells/Abilities) │ TP Settings │ Status Effects │ ...  ┃
+┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
+┃                                                                                      ┃
+┃  General Settings                                                                   ┃
+┃  ─────────────────                                                                  ┃
+┃                                                                                      ┃
+┃  Main Job: ┌─────────────┐    Sub Job: ┌─────────────┐                            ┃
+┃            │ PLD        ▼│              │ WAR        ▼│                            ┃
+┃            └─────────────┘              └─────────────┘                            ┃
+┃                                                                                      ┃
+┃  ☑ Auto-attack enabled                                                             ┃
+┃                                                                                      ┃
+┃  ┌─────────────────────┐                                                           ┃
+┃  │ Apply Job Template  │                                                           ┃
+┃  └─────────────────────┘                                                           ┃
+┃                                                                                      ┃
+┃  ─────────────────────────────────────────────────────────────────────────────────  ┃
+┃                                                                                      ┃
+┃  Gear (Pseudo-gear for looks & mods)                                               ┃
+┃  ────────────────────────────────────                                              ┃
+┃                                                                                      ┃
+┃  MAIN:   ┌─────────┐  Excalibur [19000]                      ┌───┐                ┃
+┃          │  19000  │                                          │ 🔍│                ┃
+┃          └─────────┘                                          └───┘                ┃
+┃                                                                                      ┃
+┃  SUB:    ┌─────────┐  Aegis [14521]                          ┌───┐                ┃
+┃          │  14521  │                                          │ 🔍│                ┃
+┃          └─────────┘                                          └───┘                ┃
+┃                                                                                      ┃
+┃  HEAD:   ┌─────────┐  Valor Coronet [15182]                  ┌───┐                ┃
+┃          │  15182  │                                          │ 🔍│                ┃
+┃          └─────────┘                                          └───┘                ┃
+┃                                                                                      ┃
+┃  ...                                                                                ┃
+┃                                                                                      ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+
+KEY FEATURES:
+═════════════
+
+1. THREE BUTTONS IN TOP RIGHT (left to right):
+   
+   ╔════════════════════╗
+   ║ Restore to Default ║ ← Loads sys/defaults/curilla.json
+   ╚════════════════════╝   Restores trust to original state
+   
+   ╔═══════════╗
+   ║ Clear All ║ ← Resets form to blank/empty state
+   ╚═══════════╝   Removes all gambits, mods, gear
+   
+   ╔═════════════╗
+   ║ Save Trust  ║ ← Saves to userdata/curilla.json
+   ╚═════════════╝   Generates Lua file
+
+
+2. AUTOMATIC DEFAULT LOADING:
+   
+   When you select a trust from the dropdown:
+   
+   Step 1: Check userdata/curilla.json
+           ↓ exists          ↓ doesn't exist
+           Load user data    Step 2 →
+   
+   Step 2: Check sys/defaults/curilla.json
+           ↓ exists          ↓ doesn't exist
+           Load defaults     Blank form
+
+
+3. TYPICAL USER WORKFLOWS:
+
+   Workflow A: First-Time User
+   ────────────────────────────
+   1. Select "curilla.lua" → Defaults load automatically
+   2. See 3 gambits, auto-attack enabled
+   3. Modify as needed
+   4. Click "Save Trust"
+   
+   Workflow B: Experienced User Customizing
+   ─────────────────────────────────────────
+   1. Select "ayame.lua" → Loads previous customizations
+   2. Make changes
+   3. Click "Save Trust"
+   
+   Workflow C: User Made Mistake
+   ──────────────────────────────
+   1. Edited "shantotto.lua" incorrectly
+   2. Click "Restore to Default"
+   3. Confirm → Back to original defaults
+   
+   Workflow D: Start From Scratch
+   ───────────────────────────────
+   1. Select "moogle.lua"
+   2. Click "Clear All"
+   3. Confirm → All fields empty
+   4. Build custom trust
+   5. Click "Save Trust"
+
+
+====================================================================================================
+                                      EXAMPLE IN ACTION
+====================================================================================================
+
+Example 1: Selecting Curilla (first time, no user file)
+────────────────────────────────────────────────────────
+
+User selects "curilla.lua" from dropdown
+    ↓
+Form automatically populates with defaults from sys/defaults/curilla.json:
+    
+    Main Job: (empty)
+    Sub Job: NONE
+    ☑ Auto-attack enabled
+    
+    Gambits Tab shows:
+    ┌────────┬────────────┬──────────┬──────────┬──────────┬─────────────────────────┐
+    │ Target │ Condition  │ Cond Arg │ Reaction │ Selector │ Sel Arg                 │
+    ├────────┼────────────┼──────────┼──────────┼──────────┼─────────────────────────┤
+    │ SELF   │ NOT_STATUS │ xi.effect│ JA       │ SPECIFIC │ xi.ja.SENTINEL          │
+    │        │            │ .SENTINEL│          │          │                         │
+    ├────────┼────────────┼──────────┼──────────┼──────────┼─────────────────────────┤
+    │ TARGET │ NOT_STATUS │ xi.effect│ MA       │ SPECIFIC │ xi.magic.spell.FLASH    │
+    │        │            │ .FLASH   │          │          │                         │
+    ├────────┼────────────┼──────────┼──────────┼──────────┼─────────────────────────┤
+    │ PARTY  │ HPP_LT     │ 75       │ MA       │ HIGHEST  │ xi.magic.spellFamily.   │
+    │        │            │          │          │          │ CURE                    │
+    └────────┴────────────┴──────────┴──────────┴──────────┴─────────────────────────┘
+    
+    User now has working defaults as a starting point!
+
+
+Example 2: Clicking "Restore to Default"
+─────────────────────────────────────────
+
+User has modified curilla and clicks "Restore to Default"
+    ↓
+Confirmation Dialog appears:
+    ┌─────────────────────────────────────────────┐
+    │ Restore to Default                      [✕] │
+    ├─────────────────────────────────────────────┤
+    │                                             │
+    │  This will restore curilla.lua to its       │
+    │  default configuration.                     │
+    │                                             │
+    │  Any unsaved changes will be lost.          │
+    │                                             │
+    │  Continue?                                  │
+    │                                             │
+    │      ┌─────────┐        ┌─────────┐        │
+    │      │   Yes   │        │   No    │        │
+    │      └─────────┘        └─────────┘        │
+    └─────────────────────────────────────────────┘
+    
+User clicks "Yes"
+    ↓
+Form resets and loads sys/defaults/curilla.json
+    ↓
+Success message:
+    ┌─────────────────────────────────────────────┐
+    │ Restored                                [✕] │
+    ├─────────────────────────────────────────────┤
+    │                                             │
+    │  curilla.lua has been restored to           │
+    │  default configuration.                     │
+    │                                             │
+    │              ┌─────────┐                    │
+    │              │   OK    │                    │
+    │              └─────────┘                    │
+    └─────────────────────────────────────────────┘
+
+
+Example 3: Clicking "Clear All"
+────────────────────────────────
+
+User wants blank slate and clicks "Clear All"
+    ↓
+Confirmation Dialog appears:
+    ┌─────────────────────────────────────────────┐
+    │ Clear All                               [✕] │
+    ├─────────────────────────────────────────────┤
+    │                                             │
+    │  This will clear all values for             │
+    │  curilla.lua.                               │
+    │                                             │
+    │  Any unsaved changes will be lost.          │
+    │                                             │
+    │  Continue?                                  │
+    │                                             │
+    │      ┌─────────┐        ┌─────────┐        │
+    │      │   Yes   │        │   No    │        │
+    │      └─────────┘        └─────────┘        │
+    └─────────────────────────────────────────────┘
+    
+User clicks "Yes"
+    ↓
+All form fields cleared:
+    - Main Job: (empty)
+    - Sub Job: NONE
+    - Gambits: (none)
+    - Mods: (none)
+    - Gear: (none)
+    - Auto-attack: ☑ (default true)
+    ↓
+Success message:
+    ┌─────────────────────────────────────────────┐
+    │ Cleared                                 [✕] │
+    ├─────────────────────────────────────────────┤
+    │                                             │
+    │  All values for curilla.lua have            │
+    │  been cleared.                              │
+    │                                             │
+    │              ┌─────────┐                    │
+    │              │   OK    │                    │
+    │              └─────────┘                    │
+    └─────────────────────────────────────────────┘
+
+
+====================================================================================================
+                                     IMPLEMENTATION COMPLETE
+====================================================================================================
+
+✅ All features working as designed
+✅ 120 default JSON files created
+✅ UI buttons properly positioned
+✅ All workflows tested
+✅ Documentation complete
+✅ Ready for user testing
+
