@@ -56,9 +56,10 @@ def test_curilla_defaults():
     with open(path, 'r') as f:
         data = json.load(f)
     
-    # Curilla should have gambits
-    if len(data['gambits']) != 3:
-        print(f"❌ FAIL: curilla.json should have 3 gambits, has {len(data['gambits'])}")
+    # Curilla should have 3 gambits (Sentinel, Flash, and Cure party)
+    EXPECTED_CURILLA_GAMBITS = 3
+    if len(data['gambits']) != EXPECTED_CURILLA_GAMBITS:
+        print(f"❌ FAIL: curilla.json should have {EXPECTED_CURILLA_GAMBITS} gambits, has {len(data['gambits'])}")
         return False
     
     # Check first gambit

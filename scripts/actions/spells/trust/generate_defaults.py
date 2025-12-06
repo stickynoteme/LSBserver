@@ -93,8 +93,8 @@ def main():
     
     # Find all trust Lua files
     trust_files = list(TRUST_DIR.glob("*.lua"))
-    # Exclude the editor and generator scripts
-    trust_files = [f for f in trust_files if f.name not in ['trust_editor.py', 'generate_defaults.py']]
+    # Exclude Python files to avoid processing scripts in the trust directory
+    trust_files = [f for f in trust_files if f.suffix == '.lua']
     
     print(f"Found {len(trust_files)} trust Lua files")
     

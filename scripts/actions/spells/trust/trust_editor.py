@@ -2046,7 +2046,7 @@ class TrustEditor(tk.Tk):
 
         self.reset_form()
 
-        # Try to load User Data first
+        # Try to load user data first
         json_path = os.path.join(USERDATA_DIR, filename + ".json")
         if os.path.exists(json_path):
             with open(json_path, 'r') as f:
@@ -2059,7 +2059,7 @@ class TrustEditor(tk.Tk):
                 with open(default_path, 'r') as f:
                     data = json.load(f)
                     self.populate_from_data(data)
-            # else: No existing user data or defaults, start blank
+            # No existing user data or defaults found, start with blank form
 
     def save_trust(self):
         filename = self.current_trust.get()
