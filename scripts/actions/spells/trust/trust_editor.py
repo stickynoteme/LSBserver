@@ -362,6 +362,108 @@ SUB_JOB_EXTRAS = {
     },
 }
 
+TARGET_DESCRIPTIONS = {
+    'SELF': 'The trust itself.',
+    'PARTY': 'All party members.',
+    'TARGET': 'Current combat target.',
+    'MASTER': 'The summoning player.',
+    'TANK': 'Party member with top enmity.',
+    'MELEE': 'Frontline DD allies.',
+    'RANGED': 'Ranged allies.',
+    'CASTER': 'Casters in party.',
+    'TOP_ENMITY': 'Entity with highest enmity.',
+    'CURILLA': 'Curilla only (special).',
+    'PARTY_DEAD': 'Party members who are KO’d.',
+    'PARTY_MULTI': 'Multiple party targets.',
+}
+
+CONDITION_DESCRIPTIONS = {
+    'ALWAYS': 'Always true; use to spam on cooldown.',
+    'HPP_LT': 'Target HP% < arg (0-100).',
+    'HPP_GTE': 'Target HP% >= arg (0-100).',
+    'MPP_LT': 'Target MP% < arg.',
+    'TP_LT': 'Target TP < arg.',
+    'TP_GTE': 'Target TP >= arg.',
+    'STATUS': 'Has xi.effect.* equal to arg.',
+    'NOT_STATUS': 'Does NOT have xi.effect.* arg.',
+    'STATUS_FLAG': 'Has xi.effectFlag.* bitfield arg.',
+    'HAS_TOP_ENMITY': 'Target currently tanks.',
+    'NOT_HAS_TOP_ENMITY': 'Target does not tank.',
+    'SC_AVAILABLE': 'Skillchain is possible. Arg ignored.',
+    'NOT_SC_AVAILABLE': 'No SC available. Arg ignored.',
+    'MB_AVAILABLE': 'Magic burst window. Arg ignored.',
+    'READYING_WS': 'Target readies WS. Arg ignored.',
+    'READYING_MS': 'Target readies mob skill.',
+    'READYING_JA': 'Target readies job ability.',
+    'CASTING_MA': 'Target casting magic.',
+    'RANDOM': 'Random chance; arg is percent (0-100).',
+    'NO_SAMBA': 'No Samba effect active.',
+    'NO_STORM': 'No Storm effect active.',
+    'PT_HAS_TANK': 'Party has a tank.',
+    'NOT_PT_HAS_TANK': 'Party lacks a tank.',
+    'IS_ECOSYSTEM': 'Mob ecosystem matches arg id.',
+    'HP_MISSING': 'HP missing >= arg.',
+}
+
+CONDITION_ARG_GUIDE = {
+    'HPP_LT': 'Percent 0-100',
+    'HPP_GTE': 'Percent 0-100',
+    'MPP_LT': 'Percent 0-100',
+    'TP_LT': 'TP amount (e.g. 1000)',
+    'TP_GTE': 'TP amount (e.g. 1000)',
+    'STATUS': 'xi.effect.* ({} options)'.format(len(EFFECTS)),
+    'NOT_STATUS': 'xi.effect.* ({} options)'.format(len(EFFECTS)),
+    'STATUS_FLAG': 'xi.effectFlag.* ({} options)'.format(len(EFFECT_FLAGS)),
+    'RANDOM': 'Percent 0-100',
+    'IS_ECOSYSTEM': 'Ecosystem id',
+    'HP_MISSING': 'HP amount missing',
+}
+
+REACTION_DESCRIPTIONS = {
+    'ATTACK': 'Melee attack target.',
+    'RATTACK': 'Ranged attack.',
+    'MA': 'Cast magic action.',
+    'JA': 'Use job ability.',
+    'WS': 'Use weaponskill.',
+    'MS': 'Use mob skill.',
+}
+
+SELECTOR_DESCRIPTIONS = {
+    'HIGHEST': 'Pick highest-rated option / target.',
+    'LOWEST': 'Pick lowest-rated option / target.',
+    'SPECIFIC': 'Use explicit Sel. Arg constant.',
+    'RANDOM': 'Choose randomly.',
+    'MB_ELEMENT': 'Pick burst element based on SC.',
+    'SPECIAL_AYAME': 'Ayame WS logic.',
+    'BEST_AGAINST_TARGET': 'Best element vs target.',
+    'BEST_SAMBA': 'Best Samba for party.',
+    'HIGHEST_WALTZ': 'Best Waltz available.',
+    'ENTRUSTED': 'Entrust behavior (GEO).',
+    'BEST_INDI': 'Best Indi spell.',
+    'STORM_DAY': 'Storm for day.',
+    'HELIX_DAY': 'Helix for day.',
+    'EN_MOB_WEAKNESS': 'En-spell for mob weakness.',
+    'STORM_MOB_WEAKNESS': 'Storm for mob weakness.',
+    'HELIX_MOB_WEAKNESS': 'Helix for mob weakness.',
+}
+
+SELECTOR_ARG_GUIDE = {
+    'HIGHEST': 'Usually 0',
+    'LOWEST': 'Usually 0',
+    'SPECIFIC': 'Explicit constant (xi.magic.spell.*, xi.ja.*, xi.ws.*, etc.)',
+    'MB_ELEMENT': '0 or xi.magic.spellFamily.*',
+    'BEST_AGAINST_TARGET': '0 or xi.magic.spellFamily.*',
+    'BEST_SAMBA': '0',
+    'HIGHEST_WALTZ': '0',
+    'ENTRUSTED': '0',
+    'BEST_INDI': 'xi.magic.spellFamily.INDI_*',
+    'STORM_DAY': '0 or xi.magic.spellFamily.STORM',
+    'HELIX_DAY': '0 or xi.magic.spellFamily.HELIX',
+    'EN_MOB_WEAKNESS': '0',
+    'STORM_MOB_WEAKNESS': '0',
+    'HELIX_MOB_WEAKNESS': '0',
+}
+
 class TrustEditor(tk.Tk):
     def __init__(self):
         super().__init__()
@@ -369,6 +471,7 @@ class TrustEditor(tk.Tk):
         self.geometry("1100x700")
         self.style = ttk.Style()
         self.style.configure("Icon.TButton", padding=0)
+        self.style.configure("HelpHeader.TLabel", foreground="#2a7ae2", font=("TkDefaultFont", 10, "underline"))
 
         self.trust_files = self.get_trust_files()
         self.current_trust = tk.StringVar()
@@ -485,6 +588,63 @@ class TrustEditor(tk.Tk):
         self.notebook.add(self.code_frame, text="Custom Code")
         self.create_code_tab()
 
+    def create_help_label(self, parent, text, category, width=None):
+        lbl = ttk.Label(parent, text=text, style="HelpHeader.TLabel", width=width)
+        lbl.bind("<Button-1>", lambda e: self.open_help_window(category))
+        lbl.bind("<Enter>", lambda e: lbl.configure(cursor="hand2"))
+        lbl.bind("<Leave>", lambda e: lbl.configure(cursor=""))
+        return lbl
+
+    def open_help_window(self, category):
+        help_items = self.get_help_items(category)
+        dialog = tk.Toplevel(self)
+        dialog.title(f"{category} Help")
+        dialog.geometry("700x500")
+        dialog.grab_set()
+
+        search_var = tk.StringVar()
+        ttk.Label(dialog, text="Filter:").pack(anchor="w", padx=8, pady=(8, 2))
+        search_entry = ttk.Entry(dialog, textvariable=search_var)
+        search_entry.pack(fill=tk.X, padx=8)
+
+        content_frame = ttk.Frame(dialog)
+        content_frame.pack(fill=tk.BOTH, expand=True, padx=8, pady=8)
+
+        listbox = tk.Listbox(content_frame, width=30, exportselection=False)
+        listbox.pack(side=tk.LEFT, fill=tk.Y)
+
+        scrollbar = ttk.Scrollbar(content_frame, orient=tk.VERTICAL, command=listbox.yview)
+        scrollbar.pack(side=tk.LEFT, fill=tk.Y)
+        listbox.configure(yscrollcommand=scrollbar.set)
+
+        detail = scrolledtext.ScrolledText(content_frame, wrap=tk.WORD)
+        detail.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(8, 0))
+
+        def refresh(filter_text=""):
+            listbox.delete(0, tk.END)
+            filtered = [item for item in help_items if filter_text.lower() in item['name'].lower()]
+            for item in filtered:
+                listbox.insert(tk.END, item['name'])
+            listbox._items = filtered
+            if filtered:
+                listbox.selection_set(0)
+                show_detail(0)
+
+        def show_detail(index):
+            items = getattr(listbox, "_items", help_items)
+            if 0 <= index < len(items):
+                detail.delete("1.0", tk.END)
+                detail.insert(tk.END, items[index]['info'])
+
+        def on_select(event=None):
+            if listbox.curselection():
+                show_detail(listbox.curselection()[0])
+
+        search_var.trace_add("write", lambda *args: refresh(search_var.get()))
+        listbox.bind("<<ListboxSelect>>", on_select)
+        refresh()
+        search_entry.focus_set()
+
     def create_general_tab(self):
         self.main_job_var = tk.StringVar()
         self.sub_job_var = tk.StringVar(value="NONE")
@@ -560,12 +720,12 @@ class TrustEditor(tk.Tk):
         # Headers
         header_frame = ttk.Frame(self.gambits_frame)
         header_frame.pack(fill=tk.X, padx=10, pady=5)
-        ttk.Label(header_frame, text="Target", width=15).pack(side=tk.LEFT)
-        ttk.Label(header_frame, text="Condition", width=20).pack(side=tk.LEFT)
-        ttk.Label(header_frame, text="Cond. Arg", width=10).pack(side=tk.LEFT)
-        ttk.Label(header_frame, text="Reaction", width=15).pack(side=tk.LEFT)
-        ttk.Label(header_frame, text="Selector", width=20).pack(side=tk.LEFT)
-        ttk.Label(header_frame, text="Sel. Arg (Spell/Family/ID)", width=30).pack(side=tk.LEFT)
+        self.create_help_label(header_frame, "Target", "TARGET", width=15).pack(side=tk.LEFT)
+        self.create_help_label(header_frame, "Condition", "CONDITION", width=20).pack(side=tk.LEFT)
+        self.create_help_label(header_frame, "Cond. Arg", "COND_ARG", width=10).pack(side=tk.LEFT)
+        self.create_help_label(header_frame, "Reaction", "REACTION", width=15).pack(side=tk.LEFT)
+        self.create_help_label(header_frame, "Selector", "SELECTOR", width=20).pack(side=tk.LEFT)
+        self.create_help_label(header_frame, "Sel. Arg (Spell/Family/ID)", "SEL_ARG", width=30).pack(side=tk.LEFT)
 
         # List
         self.gambits_list_frame = ttk.Frame(self.gambits_frame)
@@ -622,7 +782,7 @@ class TrustEditor(tk.Tk):
         self.tp_value_var = tk.StringVar()
 
         f = ttk.Frame(self.tp_frame)
-        f.pack(pady=20)
+        f.pack(fill=tk.BOTH, expand=True, pady=10, padx=10)
 
         ttk.Label(f, text="Trigger:").grid(row=0, column=0, padx=5, pady=5)
         trigger_picker, _ = self.create_list_picker(f, SORTED_AI_TP_TRIGGERS, textvariable=self.tp_trigger_var, width=14, title="Pick TP Trigger")
@@ -634,6 +794,30 @@ class TrustEditor(tk.Tk):
 
         ttk.Label(f, text="Value (e.g. 1000):").grid(row=2, column=0, padx=5, pady=5)
         ttk.Entry(f, textvariable=self.tp_value_var).grid(row=2, column=1, padx=5, pady=5)
+
+        help_frame = ttk.LabelFrame(f, text="TP Settings Help")
+        help_frame.grid(row=0, column=2, rowspan=3, padx=10, pady=5, sticky="nsew")
+        help_text = (
+            "Trigger (when to spend TP):\n"
+            " - ASAP: Spend TP immediately when ready.\n"
+            " - RANDOM: Random timing; ignores Value.\n"
+            " - OPENER: Use early to start chains.\n"
+            " - CLOSER: Hold TP to close chains.\n"
+            " - CLOSER_UNTIL_TP: Close chains until TP exceeds Value.\n\n"
+            "Selector (what to use):\n"
+            " - HIGHEST/LOWEST: Choose strongest or weakest WS.\n"
+            " - RANDOM: Random WS.\n"
+            " - SPECIFIC: Use the exact Sel. Arg constant (xi.ws.* or JA/MA id).\n"
+            " - SPECIAL_AYAME/BEST_*: Job-specific smart selection.\n\n"
+            "Value meaning:\n"
+            " - TP threshold (e.g. 1000/1250/1500/3000).\n"
+            " - Some triggers ignore Value (ASAP/OPENER/RANDOM).\n"
+            " - CLOSER_UNTIL_TP stops closing chains once TP >= Value.\n"
+        )
+        txt = scrolledtext.ScrolledText(help_frame, wrap=tk.WORD, height=12)
+        txt.insert("1.0", help_text)
+        txt.config(state="disabled")
+        txt.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
 
     def create_effects_tab(self):
         # Simplified: Effect, Power, Duration
@@ -655,7 +839,22 @@ class TrustEditor(tk.Tk):
         self.effects_canvas.pack(side="left", fill="both", expand=True)
         self.effects_scrollbar.pack(side="right", fill="y")
 
-        ttk.Button(self.effects_frame, text="Add Effect", command=self.add_effect_row).pack(pady=5)
+        header_frame = ttk.Frame(self.effects_frame)
+        header_frame.pack(fill=tk.X, padx=10, pady=(0, 5))
+        ttk.Button(header_frame, text="Add Effect", command=self.add_effect_row).pack(side=tk.LEFT, pady=5)
+        help_frame = ttk.LabelFrame(self.effects_frame, text="Status Effect Help")
+        help_frame.pack(fill=tk.BOTH, expand=False, padx=10, pady=(0, 10))
+        help_text = (
+            "Effect: Choose xi.effect.* to apply. This is both the effect id and icon.\n"
+            "Power: Magnitude (stat bonus, % haste, resist, etc.). Check effect implementation for expected scale.\n"
+            "Duration: Seconds the effect lasts; 0 may mean instant or default duration depending on effect.\n"
+            "Stacking: Re-applying the same effect overwrites previous power/duration in templates.\n"
+            "Examples: xi.effect.HASTE power=1500 (~15%), xi.effect.PHALANX power=20, xi.effect.ENLIGHT power=15.\n"
+        )
+        eff_txt = scrolledtext.ScrolledText(help_frame, wrap=tk.WORD, height=6)
+        eff_txt.insert("1.0", help_text)
+        eff_txt.config(state="disabled")
+        eff_txt.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
         self.effect_rows = []
 
     def add_effect_row(self, eff="", p="", d=""):
@@ -787,6 +986,42 @@ class TrustEditor(tk.Tk):
         base_template['main_job'] = main_job
         base_template['sub_job'] = sub_job or 'NONE'
         return base_template
+
+    def get_help_items(self, category):
+        items = []
+        if category == "TARGET":
+            for k in SORTED_AI_TARGETS:
+                desc = TARGET_DESCRIPTIONS.get(k, '')
+                items.append({'name': f"{k} ({AI_TARGETS[k]})", 'info': f"{k}\nValue: {AI_TARGETS[k]}\n{desc}"})
+        elif category == "CONDITION":
+            for k in SORTED_AI_CONDITIONS:
+                desc = CONDITION_DESCRIPTIONS.get(k, '')
+                arg = CONDITION_ARG_GUIDE.get(k, 'Usually 0 / unused')
+                items.append({'name': f"{k} ({AI_CONDITIONS[k]})", 'info': f"{k}\nValue: {AI_CONDITIONS[k]}\nCondition: {desc}\nArg: {arg}"})
+        elif category == "COND_ARG":
+            items.append({'name': "STATUS", 'info': f"Use xi.effect.* constants ({len(EFFECTS)} available). Examples: xi.effect.POISON, xi.effect.PHALANX."})
+            items.append({'name': "STATUS_FLAG", 'info': f"Use xi.effectFlag.* constants ({len(EFFECT_FLAGS)} available). Examples: xi.effectFlag.ERASABLE, xi.effectFlag.DISPELABLE."})
+            items.append({'name': "HPP/MPP/TP thresholds", 'info': "Numeric values: percent for HP/MP, raw TP for TP_LT/TP_GTE, missing HP for HP_MISSING."})
+            items.append({'name': "RANDOM", 'info': "Percent chance 0-100."})
+            items.append({'name': "Spell/Family constants", 'info': f"Selectors often take xi.magic.spell.* or xi.magic.spellFamily.* (spells: {len(MAGIC_SPELLS)}, families: {len(MAGIC_FAMILIES)})."})
+            items.append({'name': "JA/WS constants", 'info': "Use xi.ja.*, xi.ws.*, or similar ids when reaction is JA/WS and selector is SPECIFIC."})
+        elif category == "REACTION":
+            for k in SORTED_AI_REACTIONS:
+                desc = REACTION_DESCRIPTIONS.get(k, '')
+                items.append({'name': f"{k} ({AI_REACTIONS[k]})", 'info': f"{k}\nValue: {AI_REACTIONS[k]}\nAction: {desc}"})
+        elif category == "SELECTOR":
+            for k in SORTED_AI_SELECTS:
+                desc = SELECTOR_DESCRIPTIONS.get(k, '')
+                arg = SELECTOR_ARG_GUIDE.get(k, 'Usually 0')
+                items.append({'name': f"{k} ({AI_SELECTS[k]})", 'info': f"{k}\nValue: {AI_SELECTS[k]}\nSelector: {desc}\nSel. Arg: {arg}"})
+        elif category == "SEL_ARG":
+            items.append({'name': "SPECIFIC", 'info': "Provide explicit constant: xi.magic.spell.*, xi.magic.spellFamily.*, xi.ja.*, xi.ws.*, or numeric id as required by the reaction."})
+            items.append({'name': "Families", 'info': f"xi.magic.spellFamily.* ({len(MAGIC_FAMILIES)} options). Examples: CURE, HASTE, DIA, PARALYZE."})
+            items.append({'name': "Spells", 'info': f"xi.magic.spell.* ({len(MAGIC_SPELLS)} options). Examples: xi.magic.spell.CURE_IV, xi.magic.spell.FLASH."})
+            items.append({'name': "Effects", 'info': f"xi.effect.* ({len(EFFECTS)} options). Often used with STATUS/NOT_STATUS conditions."})
+            items.append({'name': "Effect Flags", 'info': f"xi.effectFlag.* ({len(EFFECT_FLAGS)} options). Use with STATUS_FLAG condition; ERASABLE, DISPELABLE, etc."})
+            items.append({'name': "Default zero", 'info': "Selectors like HIGHEST/LOWEST/MB_ELEMENT/BEST_SAMBA typically accept 0 when no explicit override is needed."})
+        return items
 
     def populate_from_data(self, data):
         data = self.ensure_template_defaults(data)
