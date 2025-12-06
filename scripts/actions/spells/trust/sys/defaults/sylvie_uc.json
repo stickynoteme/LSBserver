@@ -1,0 +1,122 @@
+{
+  "auto_attack": false,
+  "mods": [
+    {
+      "name": "INDI_DURATION",
+      "value": "180"
+    },
+    {
+      "name": "REGAIN",
+      "value": "50"
+    },
+    {
+      "name": "GEOMANCY_BONUS",
+      "value": "3"
+    }
+  ],
+  "gambits": [
+    {
+      "target": "PARTY",
+      "condition": "HPP_LT",
+      "cond_arg": "25",
+      "reaction": "MA",
+      "selector": "HIGHEST",
+      "sel_arg": "xi.magic.spellFamily.CURE"
+    },
+    {
+      "target": "PARTY",
+      "condition": "STATUS",
+      "cond_arg": "xi.effect.SLEEP_I",
+      "reaction": "MA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.magic.spell.CURE"
+    },
+    {
+      "target": "PARTY",
+      "condition": "STATUS",
+      "cond_arg": "xi.effect.SLEEP_II",
+      "reaction": "MA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.magic.spell.CURE"
+    },
+    {
+      "target": "PARTY",
+      "condition": "HPP_LT",
+      "cond_arg": "75",
+      "reaction": "MA",
+      "selector": "HIGHEST",
+      "sel_arg": "xi.magic.spellFamily.CURE"
+    },
+    {
+      "target": "MASTER",
+      "condition": "STATUS_FLAG",
+      "cond_arg": "xi.effectFlag.ERASABLE",
+      "reaction": "MA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.magic.spell.ERASE"
+    },
+    {
+      "target": "PARTY",
+      "condition": "STATUS_FLAG",
+      "cond_arg": "xi.effectFlag.ERASABLE",
+      "reaction": "MA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.magic.spell.ERASE"
+    },
+    {
+      "target": "SELF",
+      "condition": "STATUS_FLAG",
+      "cond_arg": "xi.effectFlag.ERASABLE",
+      "reaction": "MA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.magic.spell.ERASE"
+    },
+    {
+      "target": "SELF",
+      "condition": "NOT_STATUS",
+      "cond_arg": "xi.effect.COLURE_ACTIVE",
+      "reaction": "MA",
+      "selector": "BEST_INDI",
+      "sel_arg": "xi.magic.spellFamily.NONE"
+    },
+    {
+      "target": "SELF",
+      "condition": "NOT_STATUS",
+      "cond_arg": "xi.effect.ENTRUST",
+      "reaction": "JA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.jobAbility.ENTRUST"
+    },
+    {
+      "target": "SELF",
+      "condition": "STATUS",
+      "cond_arg": "xi.effect.ENTRUST",
+      "reaction": "MA",
+      "selector": "ENTRUSTED",
+      "sel_arg": "xi.magic.spellFamily.INDI_BUFF"
+    },
+    {
+      "target": "MASTER",
+      "condition": "NOT_STATUS",
+      "cond_arg": "xi.effect.HASTE",
+      "reaction": "MA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.magic.spell.HASTE"
+    },
+    {
+      "target": "MELEE",
+      "condition": "NOT_STATUS",
+      "cond_arg": "xi.effect.HASTE",
+      "reaction": "MA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.magic.spell.HASTE"
+    }
+  ],
+  "tp_settings": {},
+  "effects": [],
+  "listeners": [],
+  "custom_code": "",
+  "main_job": "",
+  "sub_job": "NONE",
+  "gear": []
+}

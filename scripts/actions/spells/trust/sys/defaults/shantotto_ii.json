@@ -1,0 +1,46 @@
+{
+  "auto_attack": true,
+  "mods": [
+    {
+      "name": "HASTE_MAGIC",
+      "value": "1000"
+    },
+    {
+      "name": "MAGIC_DAMAGE",
+      "value": "spellDamage"
+    },
+    {
+      "name": "ACC",
+      "value": "1000"
+    }
+  ],
+  "gambits": [
+    {
+      "target": "TARGET",
+      "condition": "MB_AVAILABLE",
+      "cond_arg": "0",
+      "reaction": "MA",
+      "selector": "MB_ELEMENT",
+      "sel_arg": "xi.magic.spellFamily.NONE"
+    },
+    {
+      "target": "TARGET",
+      "condition": "NOT_SC_AVAILABLE",
+      "cond_arg": "0",
+      "reaction": "MA",
+      "selector": "HIGHEST",
+      "sel_arg": "xi.magic.spellFamily.NONE"
+    }
+  ],
+  "tp_settings": {
+    "trigger": "CLOSER_UNTIL_TP",
+    "select": "HIGHEST",
+    "value": "2500"
+  },
+  "effects": [],
+  "listeners": [],
+  "custom_code": "",
+  "main_job": "",
+  "sub_job": "NONE",
+  "gear": []
+}

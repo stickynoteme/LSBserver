@@ -1,0 +1,69 @@
+{
+  "auto_attack": true,
+  "mods": [],
+  "gambits": [
+    {
+      "target": "SELF",
+      "condition": "PT_HAS_TANK",
+      "cond_arg": "0",
+      "reaction": "JA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.ja.BERSERK"
+    },
+    {
+      "target": "SELF",
+      "condition": "PT_HAS_TANK",
+      "cond_arg": "0",
+      "reaction": "JA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.ja.AGGRESSOR"
+    },
+    {
+      "target": "TANK",
+      "condition": "HPP_LT",
+      "cond_arg": "50",
+      "reaction": "JA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.ja.PROVOKE"
+    },
+    {
+      "target": "TARGET",
+      "condition": "NOT_PT_HAS_TANK",
+      "cond_arg": "0",
+      "reaction": "JA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.ja.PROVOKE"
+    },
+    {
+      "target": "SELF",
+      "condition": "NOT_PT_HAS_TANK",
+      "cond_arg": "0",
+      "reaction": "JA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.ja.DEFENDER"
+    },
+    {
+      "target": "SELF",
+      "condition": "NOT_PT_HAS_TANK",
+      "cond_arg": "0",
+      "reaction": "JA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.ja.RETALIATION"
+    },
+    {
+      "target": "MASTER",
+      "condition": "HPP_LT",
+      "cond_arg": "50",
+      "reaction": "JA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.ja.PROVOKE"
+    }
+  ],
+  "tp_settings": {},
+  "effects": [],
+  "listeners": [],
+  "custom_code": "",
+  "main_job": "",
+  "sub_job": "NONE",
+  "gear": []
+}

@@ -1,0 +1,49 @@
+{
+  "auto_attack": true,
+  "mods": [],
+  "gambits": [
+    {
+      "target": "TARGET",
+      "condition": "READYING_WS",
+      "cond_arg": "0",
+      "reaction": "WS",
+      "selector": "SPECIFIC",
+      "sel_arg": "kGrapeshot"
+    },
+    {
+      "target": "TARGET",
+      "condition": "READYING_MS",
+      "cond_arg": "0",
+      "reaction": "WS",
+      "selector": "SPECIFIC",
+      "sel_arg": "kGrapeshot"
+    },
+    {
+      "target": "TARGET",
+      "condition": "READYING_JA",
+      "cond_arg": "0",
+      "reaction": "WS",
+      "selector": "SPECIFIC",
+      "sel_arg": "kGrapeshot"
+    },
+    {
+      "target": "TARGET",
+      "condition": "CASTING_MA",
+      "cond_arg": "0",
+      "reaction": "WS",
+      "selector": "SPECIFIC",
+      "sel_arg": "kGrapeshot"
+    }
+  ],
+  "tp_settings": {
+    "trigger": "ASAP",
+    "select": "RANDOM",
+    "value": ""
+  },
+  "effects": [],
+  "listeners": [],
+  "custom_code": "",
+  "main_job": "",
+  "sub_job": "NONE",
+  "gear": []
+}

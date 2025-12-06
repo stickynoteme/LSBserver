@@ -266,6 +266,6 @@ sanity_checks_summary.md
 changed-files.txt
 clang_tidy_summary.md
 
-# Trust Editor cache files
-scripts/actions/spells/trust/sys/
+# Trust Editor cache files (exclude slot cache but include defaults)
+scripts/actions/spells/trust/sys/slot_*.json
 scripts/actions/spells/trust/userdata/

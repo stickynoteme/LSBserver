@@ -1,0 +1,57 @@
+{
+  "auto_attack": true,
+  "mods": [],
+  "gambits": [
+    {
+      "target": "SELF",
+      "condition": "HPP_LT",
+      "cond_arg": "35",
+      "reaction": "MS",
+      "selector": "SPECIFIC",
+      "sel_arg": "psychoAnima"
+    },
+    {
+      "target": "TARGET",
+      "condition": "CASTING_MA",
+      "cond_arg": "35",
+      "reaction": "MS",
+      "selector": "SPECIFIC",
+      "sel_arg": "3540"
+    },
+    {
+      "target": "PARTY",
+      "condition": "HPP_LT",
+      "cond_arg": "25",
+      "reaction": "MA",
+      "selector": "HIGHEST",
+      "sel_arg": "xi.magic.spellFamily.CURAGA"
+    },
+    {
+      "target": "PARTY",
+      "condition": "STATUS",
+      "cond_arg": "xi.effect.SLEEP_I",
+      "reaction": "MA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.magic.spell.CURAGA"
+    },
+    {
+      "target": "PARTY",
+      "condition": "STATUS",
+      "cond_arg": "xi.effect.SLEEP_II",
+      "reaction": "MA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.magic.spell.CURAGA"
+    }
+  ],
+  "tp_settings": {
+    "trigger": "ASAP",
+    "select": "RANDOM",
+    "value": ""
+  },
+  "effects": [],
+  "listeners": [],
+  "custom_code": "",
+  "main_job": "",
+  "sub_job": "NONE",
+  "gear": []
+}

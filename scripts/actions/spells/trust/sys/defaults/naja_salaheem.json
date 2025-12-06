@@ -1,0 +1,41 @@
+{
+  "auto_attack": true,
+  "mods": [],
+  "gambits": [
+    {
+      "target": "SELF",
+      "condition": "ALWAYS",
+      "cond_arg": "0",
+      "reaction": "JA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.ja.FOCUS"
+    },
+    {
+      "target": "SELF",
+      "condition": "ALWAYS",
+      "cond_arg": "0",
+      "reaction": "JA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.ja.DODGE"
+    },
+    {
+      "target": "SELF",
+      "condition": "HAS_TOP_ENMITY",
+      "cond_arg": "0",
+      "reaction": "JA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.ja.COUNTERSTANCE"
+    }
+  ],
+  "tp_settings": {
+    "trigger": "ASAP",
+    "select": "RANDOM",
+    "value": ""
+  },
+  "effects": [],
+  "listeners": [],
+  "custom_code": "",
+  "main_job": "",
+  "sub_job": "NONE",
+  "gear": []
+}

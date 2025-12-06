@@ -1,0 +1,101 @@
+{
+  "auto_attack": true,
+  "mods": [],
+  "gambits": [
+    {
+      "target": "SELF",
+      "condition": "NOT_STATUS",
+      "cond_arg": "xi.effect.ADDENDUM_BLACK",
+      "reaction": "JA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.ja.DARK_ARTS"
+    },
+    {
+      "target": "SELF",
+      "condition": "NOT_STATUS",
+      "cond_arg": "xi.effect.ADDENDUM_BLACK",
+      "reaction": "JA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.ja.ADDENDUM_BLACK"
+    },
+    {
+      "target": "TARGET",
+      "condition": "READYING_WS",
+      "cond_arg": "0",
+      "reaction": "MA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.magic.spell.STUN"
+    },
+    {
+      "target": "TARGET",
+      "condition": "READYING_MS",
+      "cond_arg": "0",
+      "reaction": "MA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.magic.spell.STUN"
+    },
+    {
+      "target": "TARGET",
+      "condition": "READYING_JA",
+      "cond_arg": "0",
+      "reaction": "MA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.magic.spell.STUN"
+    },
+    {
+      "target": "TARGET",
+      "condition": "CASTING_MA",
+      "cond_arg": "0",
+      "reaction": "MA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.magic.spell.STUN"
+    },
+    {
+      "target": "SELF",
+      "condition": "NO_STORM",
+      "cond_arg": "0",
+      "reaction": "MA",
+      "selector": "STORM_DAY",
+      "sel_arg": "0"
+    },
+    {
+      "target": "TARGET",
+      "condition": "NOT_STATUS",
+      "cond_arg": "xi.effect.HELIX",
+      "reaction": "MA",
+      "selector": "HELIX_DAY",
+      "sel_arg": "0"
+    },
+    {
+      "target": "TANK",
+      "condition": "HPP_LT",
+      "cond_arg": "50",
+      "reaction": "MA",
+      "selector": "HIGHEST",
+      "sel_arg": "xi.magic.spellFamily.CURE"
+    },
+    {
+      "target": "PARTY",
+      "condition": "HPP_LT",
+      "cond_arg": "33",
+      "reaction": "MA",
+      "selector": "HIGHEST",
+      "sel_arg": "xi.magic.spellFamily.CURE"
+    },
+    {
+      "target": "TARGET",
+      "condition": "NOT_SC_AVAILABLE",
+      "cond_arg": "0",
+      "reaction": "MA",
+      "selector": "HIGHEST",
+      "sel_arg": "xi.magic.spellFamily.NONE"
+    }
+  ],
+  "tp_settings": {},
+  "effects": [],
+  "listeners": [],
+  "custom_code": "",
+  "main_job": "",
+  "sub_job": "NONE",
+  "gear": []
+}
