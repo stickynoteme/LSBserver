@@ -177,10 +177,10 @@ def parse_lua_enum(file_path, enum_name):
 
     with open(file_path, "r") as f:
         content = f.read()
-        # Simple regex to find KEY = VALUE
-        # Looks for patterns inside the enum table definition if possible,
-        # but for simplicity assuming standard "KEY = VALUE," format
-        matches = re.findall(r"(\w+)\s*=\s*(0x[0-9A-Fa-f]+|\d+)", content)
+        # Regex to find KEY = VALUE where KEY is a valid Lua identifier
+        # (must start with a letter or underscore, not a digit)
+        # This prevents matching patterns like "1 = 1" in comments
+        matches = re.findall(r"([A-Za-z_]\w*)\s*=\s*(0x[0-9A-Fa-f]+|\d+)", content)
         for key, value in matches:
             # basic filtering to avoid false positives if any
             if key != "xi":
@@ -1665,28 +1665,68 @@ LISTENER_SIGNATURES = {
 }
 
 LISTENER_TEMPLATES = {
-    "LOG_EVENT": [
-        "-- Log the event with IDs",
-        "mobArg:messageBasic(xi.msg.basic.NONE)",  # placeholder safe call
-        "printf('[LISTENER][%s] event fired', mobArg:getName())",
-    ],
-    "REAPPLY_BUFF": [
-        "-- Reapply a buff if missing",
-        "if not mobArg:hasStatusEffect(xi.effect.PHALANX) then",
-        "    mobArg:castSpell(xi.magic.spell.PHALANX, mobArg)",
-        "end",
-    ],
-    "CURE_MASTER": [
-        "-- Heal master if low HP",
-        "local master = mobArg:getMaster()",
-        "if master and master:getHPP() < 50 then",
-        "    mobArg:castSpell(xi.magic.spell.CURE_IV, master)",
-        "end",
-    ],
-    "REMOVE_LISTENER": [
-        "-- Example of removing a listener by tag",
-        "mobArg:removeListener('TAG_TO_REMOVE')",
-    ],
+    "LOG_EVENT": {
+        "event": "COMBAT_TICK",
+        "tag": "LOG_TICK",
+        "body": [
+            "-- Log the event with IDs",
+            "mobArg:messageBasic(xi.msg.basic.NONE)",  # placeholder safe call
+            "printf('[LISTENER][%s] event fired', mobArg:getName())",
+        ],
+    },
+    "AUTO_ENGAGE_DEFENSIVE": {
+        "event": "ROAM_TICK",
+        "tag": "AUTO_ENGAGE",
+        "body": [
+            "-- Engage if master takes damage and we are idle",
+            "if not mobArg:getBattleTarget() then",
+            "    local master = mobArg:getMaster()",
+            "    if master and master:getBattleTarget() then",
+            "        mobArg:engage(master:getBattleTarget())",
+            "    end",
+            "end",
+        ],
+    },
+    "SELF_SC": {
+        "event": "WEAPONSKILL_USE",
+        "tag": "SELF_SC",
+        "body": [
+            "-- Attempt to self-skillchain",
+            "-- Requires WEAPONSKILL_USE event",
+            "if mobArg:getTP() >= 1000 then",
+            "    -- Check if we just used a WS that opens for another",
+            "    -- This is complex logic, usually better handled by core AI",
+            "    -- But simple example: if we used Fast Blade, use Burning Blade",
+            "    if wsid == 3 then -- Fast Blade",
+            "         mobArg:useMobAbility(4) -- Burning Blade",
+            "    end",
+            "end",
+        ],
+    },
+    "MAGIC_BURST": {
+        "event": "MAGIC_STATE_EXIT",
+        "tag": "MB_CHECK",
+        "body": [
+            "-- Try to magic burst on skillchains",
+            "-- Requires MAGIC_STATE_EXIT or similar timing",
+            "local target = mobArg:getBattleTarget()",
+            "if target and target:isSkillchainActive() then",
+            "    -- Cast appropriate element",
+            "    -- mobArg:castSpell(xi.magic.spell.FIRE_V, target)",
+            "end",
+        ],
+    },
+    "SUPPORT_JOB_ABILITY": {
+        "event": "COMBAT_TICK",
+        "tag": "SUPPORT_JA",
+        "body": [
+            "-- Use a support JA when available",
+            "-- Requires COMBAT_TICK or ROAM_TICK",
+            "if not mobArg:hasStatusEffect(xi.effect.DIVINE_SEAL) and mobArg:getRecast(xi.recast.ABILITY, xi.ja.DIVINE_SEAL) == 0 then",
+            "    mobArg:useJobAbility(xi.ja.DIVINE_SEAL, mobArg)",
+            "end",
+        ],
+    },
 }
 
 
@@ -1709,22 +1749,116 @@ class TrustEditor(tk.Tk):
         self.current_trust.trace_add("write", self.on_trust_selected)
 
         self.create_widgets()
+        self.load_sql_data()
+
+    def load_sql_data(self):
+        self.ja_job_map = {}
+        self.ws_job_map = {}
+
+        # Paths
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        sql_dir = os.path.join(base_dir, "../../../../sql")
+
+        # Load Abilities
+        try:
+            p = os.path.join(sql_dir, "abilities.sql")
+            if os.path.exists(p):
+                with open(p, "r", encoding="utf-8", errors="ignore") as f:
+                    content = f.read()
+                    matches = re.findall(
+                        r"INSERT INTO `abilities` VALUES \((\d+),'([^']+)',(\d+),",
+                        content,
+                    )
+                    for _, name, job_id in matches:
+                        key = f"xi.ja.{name.upper()}"
+                        self.ja_job_map[key] = int(job_id)
+        except Exception as e:
+            print(f"Error loading abilities.sql: {e}")
+
+        # Load Weapon Skills
+        try:
+            p = os.path.join(sql_dir, "weapon_skills.sql")
+            if os.path.exists(p):
+                with open(p, "r", encoding="utf-8", errors="ignore") as f:
+                    content = f.read()
+                    matches = re.findall(
+                        r"INSERT INTO `weapon_skills` VALUES \((\d+),'([^']+)',0x([0-9A-Fa-f]+),",
+                        content,
+                    )
+                    for _, name, hex_str in matches:
+                        key = f"xi.ws.{name.upper()}"
+                        jobs = []
+                        # Hex string is 2 chars per byte
+                        for i in range(0, len(hex_str), 2):
+                            if i // 2 >= 22:
+                                break
+                            byte_val = int(hex_str[i : i + 2], 16)
+                            if byte_val > 0:
+                                jobs.append((i // 2) + 1)
+                        self.ws_job_map[key] = jobs
+        except Exception as e:
+            print(f"Error loading weapon_skills.sql: {e}")
+
+        # Load Spells
+        self.spell_type_map = {}
+        try:
+            p = os.path.join(sql_dir, "spells.sql")
+            if os.path.exists(p):
+                with open(p, "r", encoding="utf-8", errors="ignore") as f:
+                    content = f.read()
+                    # INSERT INTO `spells` VALUES (spellId, 'name', magicType, ...
+                    # magicType is 3rd column
+                    matches = re.findall(
+                        r"INSERT INTO `spells` VALUES \((\d+),'([^']+)',(\d+),", content
+                    )
+                    for _, name, mtype in matches:
+                        key = f"xi.magic.spell.{name.upper()}"
+                        self.spell_type_map[key] = int(mtype)
+        except Exception as e:
+            print(f"Error loading spells.sql: {e}")
 
     def open_filter_list_dialog(
         self,
         values,
         target_var,
-        title="Select",
+        title="Select Item",
         width=40,
         height=12,
         help_category=None,
         job_var=None,  # Added for job filtering
         filter_by_job=False,  # Added for job filtering
         filter_by_weapon=False,  # Added for weapon filtering
+        selector_var=None,
     ):
         dialog = tk.Toplevel(self)
         dialog.title(title)
+        dialog.geometry("500x500")
+
+        # Make transient and modal-like
+        dialog.transient(self)
         dialog.grab_set()
+
+        # Position at mouse
+        x = self.winfo_pointerx()
+        y = self.winfo_pointery()
+        dialog.geometry(f"+{x}+{y}")
+
+        # Close on Escape
+        dialog.bind("<Escape>", lambda e: dialog.destroy())
+
+        # Dynamic filtering based on selector_var
+        if selector_var:
+            selector_val = selector_var.get()
+            if selector_val == "Magic":
+                # Filter for spells (xi.magic.spell.*)
+                values = [v for v in values if "xi.magic.spell." in v]
+            elif selector_val == "JobAbility":
+                # Filter for JAs (xi.ja." in v or "xi.ability." in v)
+                values = [v for v in values if "xi.ja." in v]
+            elif selector_val == "WeaponSkill":
+                # Filter for WSs (xi.ws.*)
+                values = [v for v in values if "xi.ws." in v]
+            # Add more specific filters if needed (e.g. Item -> items?)
 
         search_var = tk.StringVar()
         ttk.Label(dialog, text="Filter:").pack(anchor="w", padx=8, pady=(8, 2))
@@ -1734,7 +1868,10 @@ class TrustEditor(tk.Tk):
         # Job Filter (Optional)
         # If filter_by_job is True, job_var will be passed in.
         # If not, we create a dummy one to avoid errors in refresh.
-        local_job_var = tk.StringVar(value="All")
+        # Job Filter (Optional)
+        # If filter_by_job is True, job_var will be passed in.
+        # If not, we create a dummy one to avoid errors in refresh.
+        local_job_var = tk.StringVar(value=job_var.get() if job_var else "All")
         if filter_by_job:
             filter_frame = ttk.Frame(dialog)
             filter_frame.pack(fill=tk.X, padx=8, pady=(8, 0))
@@ -1775,7 +1912,51 @@ class TrustEditor(tk.Tk):
             )
             weapon_combo.pack(side=tk.LEFT, padx=5)
             # Use local_weapon_var for filtering logic
-            weapon_var = local_weapon_var
+        # Magic Type Filter (Optional)
+        local_magic_type_var = tk.StringVar(value="All")
+        if selector_var and selector_var.get() == "Magic":
+            # If filter_frame doesn't exist yet, create it
+            if not filter_by_job and not filter_by_weapon:
+                filter_frame = ttk.Frame(dialog)
+                filter_frame.pack(fill=tk.X, padx=8, pady=(8, 0))
+            elif "filter_frame" not in locals():
+                # It might have been created inside if blocks, but we need reference
+                # Actually, if filter_by_job is True, filter_frame is created.
+                # If not, we need to find it or create it.
+                # Simplest way: check if we have a filter_frame variable in scope?
+                # Python scoping is function-level, so if it was created in if block, it exists.
+                # But if filter_by_job was False, it might not exist.
+                pass
+
+            # Ensure filter_frame exists
+            if "filter_frame" not in locals():
+                filter_frame = ttk.Frame(dialog)
+                filter_frame.pack(fill=tk.X, padx=8, pady=(8, 0))
+
+            ttk.Label(filter_frame, text="Type:").pack(side=tk.LEFT, padx=(10, 0))
+            magic_types = [
+                "All",
+                "WhiteMagic",
+                "BlackMagic",
+                "Summoner",
+                "Ninjutsu",
+                "Bard",
+                "BlueMagic",
+                "Geomancy",
+            ]
+            magic_combo = ttk.Combobox(
+                filter_frame,
+                textvariable=local_magic_type_var,
+                values=magic_types,
+                state="readonly",
+                width=12,
+            )
+            magic_combo.pack(side=tk.LEFT, padx=5)
+
+            # Add trace to refresh
+            local_magic_type_var.trace_add(
+                "write", lambda *args: refresh(search_var.get())
+            )
 
         list_frame = ttk.Frame(dialog)
         list_frame.pack(fill=tk.BOTH, expand=True, padx=8, pady=8)
@@ -1792,7 +1973,11 @@ class TrustEditor(tk.Tk):
         scrollbar.pack(side=tk.LEFT, fill=tk.Y)
 
         detail = None
-        help_items = self.get_help_items(help_category) if help_category else []
+        # Hide help for SEL_ARG as requested
+        if help_category == "SEL_ARG":
+            help_items = []
+        else:
+            help_items = self.get_help_items(help_category) if help_category else []
 
         if help_items:
             detail = scrolledtext.ScrolledText(list_frame, wrap=tk.WORD, width=50)
@@ -1827,9 +2012,11 @@ class TrustEditor(tk.Tk):
 
         def refresh(filter_text=""):
             listbox.delete(0, tk.END)
-            selected_job = job_var.get() if filter_by_job and job_var else "All"
-            selected_weapon = (
-                weapon_var.get() if filter_by_weapon and weapon_var else "All"
+            selected_job = local_job_var.get() if filter_by_job else "All"
+            selected_magic_type = (
+                local_magic_type_var.get()
+                if selector_var and selector_var.get() == "Magic"
+                else "All"
             )
 
             filtered = []
@@ -1846,9 +2033,56 @@ class TrustEditor(tk.Tk):
                                 if not can_equip(selected_job, equip.get("jobs", 0)):
                                     continue
                         else:
-                            pass
-                    except Exception as e:
+                            # Try to filter JAs/WSs if they are constants
+                            if v.startswith("xi.ja."):
+                                if hasattr(self, "ja_job_map"):
+                                    req_job = self.ja_job_map.get(v)
+                                    # req_job is a single job ID from abilities.sql
+                                    if req_job and req_job > 0:
+                                        sel_job_id = JOBS.get(selected_job, 0)
+                                        # 0 means All/None, so if selected_job is valid
+                                        if sel_job_id > 0:
+                                            # Some abilities might be shared? In SQL it looks like single job column.
+                                            # But wait, some abilities are general?
+                                            # If req_job is the job ID, we check equality.
+                                            if sel_job_id != req_job:
+                                                continue
+                            elif v.startswith("xi.ws."):
+                                if hasattr(self, "ws_job_map"):
+                                    allowed_jobs = self.ws_job_map.get(v, [])
+                                    if allowed_jobs:
+                                        sel_job_id = JOBS.get(selected_job, 0)
+                                        if (
+                                            sel_job_id > 0
+                                            and sel_job_id not in allowed_jobs
+                                        ):
+                                            continue
+                    except Exception:
                         pass
+
+                # Magic Type filtering
+                if selected_magic_type != "All" and v.startswith("xi.magic.spell."):
+                    if hasattr(self, "spell_type_map"):
+                        s_type = self.spell_type_map.get(v)
+                        # Map SQL magic type to our dropdown values
+                        # SQL magic types: 1=White, 2=Black, 3=Summon, 4=Ninja, 5=Bard, 6=Blue, 7=Geo?
+                        # Need to verify these values.
+                        # Let's assume I'll map them correctly in load_sql_data.
+                        if s_type:
+                            if selected_magic_type == "WhiteMagic" and s_type != 1:
+                                continue
+                            if selected_magic_type == "BlackMagic" and s_type != 2:
+                                continue
+                            if selected_magic_type == "Summoner" and s_type != 3:
+                                continue
+                            if selected_magic_type == "Ninjutsu" and s_type != 4:
+                                continue
+                            if selected_magic_type == "Bard" and s_type != 5:
+                                continue
+                            if selected_magic_type == "BlueMagic" and s_type != 6:
+                                continue
+                            if selected_magic_type == "Geomancy" and s_type != 7:
+                                continue  # Check this ID
 
                 # Weapon filtering logic
                 if filter_by_weapon and selected_weapon != "All":
@@ -1910,81 +2144,74 @@ class TrustEditor(tk.Tk):
         values,
         textvariable=None,
         width=20,
-        title="Select",
+        title="Pick Item",
         help_category=None,
-        job_var=None,  # Added for job filtering
-        filter_by_job=False,  # Added for job filtering
-        filter_by_weapon=False,  # Added for weapon filtering
+        job_var=None,
+        filter_by_job=False,
+        filter_by_weapon=False,
+        selector_var=None,
     ):
-        var = textvariable or tk.StringVar()
         frame = ttk.Frame(parent)
-        display = ttk.Label(
-            frame, textvariable=var, width=width, relief="sunken", anchor="w"
-        )
-        display.pack(side=tk.LEFT, padx=(0, 1))
+        if textvariable is None:
+            textvariable = tk.StringVar()
+        entry = ttk.Entry(frame, textvariable=textvariable, width=width)
+        entry.pack(side=tk.LEFT, fill=tk.X, expand=True)
 
-        def open_dialog():
-            self.open_filter_list_dialog(
+        btn = ttk.Button(
+            frame,
+            text="...",
+            width=1,
+            command=lambda: self.open_filter_list_dialog(
                 values,
-                var,
+                textvariable,
                 title=title,
                 help_category=help_category,
                 job_var=job_var,
                 filter_by_job=filter_by_job,
                 filter_by_weapon=filter_by_weapon,
-            )
-
-        btn = tk.Button(
-            frame,
-            text="🔍",
-            width=1,
-            height=1,
-            padx=0,
-            pady=0,
-            borderwidth=0,
-            highlightthickness=0,
-            relief="flat",
-            font=("TkDefaultFont", 8),
-            command=open_dialog,
+                selector_var=selector_var,
+            ),
         )
-        btn.pack(side=tk.LEFT, padx=0, pady=0)
-        return frame, var
+        btn.pack(side=tk.LEFT)
+        return frame, textvariable
 
     def create_gear_rows(self, parent):
-        """Create gear selection rows for all equipment slots, organized in two columns."""
-        # Split slots into two columns for better layout
-        left_slots = [
+        """Create gear selection rows for all equipment slots, organized in a single column."""
+        all_slots = [
             "main",
             "sub",
             "ranged",
             "ammo",
             "head",
+            "neck",
+            "ear1",
+            "ear2",
             "body",
             "hands",
+            "ring1",
+            "ring2",
+            "back",
+            "waist",
             "legs",
             "feet",
         ]
-        right_slots = ["neck", "waist", "ear1", "ear2", "ring1", "ring2", "back"]
 
-        # Create two frames for left and right columns
-        left_frame = ttk.Frame(parent)
-        left_frame.grid(row=1, column=0, sticky="nw", padx=5)
-
-        right_frame = ttk.Frame(parent)
-        right_frame.grid(row=1, column=1, sticky="nw", padx=5)
+        # Create a single frame for all slots
+        gear_frame = ttk.Frame(parent)
+        gear_frame.grid(row=1, column=0, sticky="nw", padx=5)
 
         def add_slot_row(frame, slot, row_num):
             slot_label = (
                 slot.upper().replace("1", " 1").replace("2", " 2")
             )  # "EAR1" -> "EAR 1"
-            ttk.Label(frame, text=slot_label + ":").grid(
-                row=row_num, column=0, padx=5, pady=3, sticky="w"
+            ttk.Label(frame, text=slot_label + ":", width=6).grid(
+                row=row_num, column=0, padx=2, pady=2, sticky="w"
             )
             id_var = tk.StringVar()
             name_var = tk.StringVar()
 
-            entry = ttk.Entry(frame, textvariable=id_var, width=8)
-            entry.grid(row=row_num, column=1, padx=3, pady=3, sticky="w")
+            entry = ttk.Entry(frame, textvariable=id_var, width=6)
+            entry.grid(row=row_num, column=1, padx=2, pady=2, sticky="w")
 
             # Bind id_var changes to update name and trigger stats refresh
             id_var.trace_add(
@@ -1995,9 +2222,9 @@ class TrustEditor(tk.Tk):
             )
 
             name_label = ttk.Label(
-                frame, textvariable=name_var, width=25, relief="sunken", anchor="w"
+                frame, textvariable=name_var, width=20, relief="sunken", anchor="w"
             )
-            name_label.grid(row=row_num, column=2, padx=3, pady=3, sticky="w")
+            name_label.grid(row=row_num, column=2, padx=2, pady=2, sticky="w")
 
             # Determine if this is a weapon slot for filtering
             is_weapon_slot = slot in ["main", "sub", "ranged"]
@@ -2020,13 +2247,9 @@ class TrustEditor(tk.Tk):
                 {"slot": slot, "id_var": id_var, "name_var": name_var}
             )
 
-        # Add left column slots
-        for i, slot in enumerate(left_slots):
-            add_slot_row(left_frame, slot, i)
-
-        # Add right column slots
-        for i, slot in enumerate(right_slots):
-            add_slot_row(right_frame, slot, i)
+        # Add all slots in a single column
+        for i, slot in enumerate(all_slots):
+            add_slot_row(gear_frame, slot, i)
 
     def on_gear_id_changed(self, id_var, name_var, slot):
         """Called when a gear ID is manually changed - update name and stats."""
@@ -2057,7 +2280,16 @@ class TrustEditor(tk.Tk):
         dialog = tk.Toplevel(self)
         dialog.title(f"Select {slot.upper()}")
         dialog.geometry("550x500")
+        dialog.transient(self)
         dialog.grab_set()
+
+        # Position at mouse cursor
+        x = self.winfo_pointerx()
+        y = self.winfo_pointery()
+        dialog.geometry(f"+{x}+{y}")
+
+        # Close on Esc
+        dialog.bind("<Escape>", lambda e: dialog.destroy())
 
         # Get slot-specific items (lazy loaded)
         slot_items = get_slot_item_lists().get(slot, [])
@@ -2399,43 +2631,43 @@ class TrustEditor(tk.Tk):
         general_scrollbar.pack(side="right", fill="y")
 
         preset_frame = ttk.LabelFrame(
-            general_scrollable, text="Player-like Preset", padding=10
+            general_scrollable, text="Player-like Preset", padding=5
         )
-        preset_frame.pack(fill=tk.X, padx=10, pady=10)
+        preset_frame.pack(fill=tk.X, padx=10, pady=5)
 
-        ttk.Label(preset_frame, text="Main Job").grid(
-            row=0, column=0, padx=5, pady=5, sticky="w"
-        )
+        # Row 1: Main Job, Sub Job, Auto Attack
+        ttk.Label(preset_frame, text="Main:").pack(side=tk.LEFT, padx=(5, 2))
         self.main_job_picker, _ = self.create_list_picker(
             preset_frame,
             MAIN_JOB_CHOICES,
             textvariable=self.main_job_var,
-            width=10,
+            width=5,
             title="Pick Main Job",
         )
-        self.main_job_picker.grid(row=0, column=1, padx=5, pady=5, sticky="w")
+        self.main_job_picker.pack(side=tk.LEFT, padx=(0, 10))
 
-        ttk.Label(preset_frame, text="Sub Job").grid(
-            row=0, column=2, padx=5, pady=5, sticky="w"
-        )
+        ttk.Label(preset_frame, text="Sub:").pack(side=tk.LEFT, padx=(5, 2))
         self.sub_job_picker, _ = self.create_list_picker(
             preset_frame,
             SUBJOB_CHOICES,
             textvariable=self.sub_job_var,
-            width=10,
+            width=5,
             title="Pick Sub Job",
         )
-        self.sub_job_picker.grid(row=0, column=3, padx=5, pady=5, sticky="w")
-
-        ttk.Button(
-            preset_frame, text="Apply Job Template", command=self.apply_job_template
-        ).grid(row=1, column=0, columnspan=4, pady=5, sticky="w")
+        self.sub_job_picker.pack(side=tk.LEFT, padx=(0, 10))
 
         ttk.Checkbutton(
-            general_scrollable,
-            text="Auto Attack Enabled",
+            preset_frame,
+            text="Auto Attack",
             variable=self.auto_attack_var,
-        ).pack(pady=10, anchor="w", padx=10)
+        ).pack(side=tk.LEFT, padx=10)
+
+        ttk.Button(
+            preset_frame,
+            text="Apply Template",
+            command=self.apply_job_template,
+            width=15,
+        ).pack(side=tk.RIGHT, padx=5)
 
         # Main content frame with gear and stats side by side
         content_frame = ttk.Frame(general_scrollable)
@@ -2504,9 +2736,9 @@ class TrustEditor(tk.Tk):
                 val_label = ttk.Label(
                     self.stats_display_frame,
                     text="0",
-                    width=6,
+                    width=8,
                     relief="sunken",
-                    anchor="e",
+                    anchor="w",
                 )
                 val_label.grid(row=row, column=col + 1, sticky="w", padx=2)
                 self.stat_labels[stat] = val_label
@@ -2536,8 +2768,8 @@ class TrustEditor(tk.Tk):
     def refresh_stats_preview(self):
         """Calculate and display combined stats from base + gear mods."""
         # Start with base stats
-        stats = dict(BASE_STATS_LV99)
-        gear_mods_summary = []
+        base_stats = dict(BASE_STATS_LV99)
+        gear_stats = {}
 
         # Map mod names to stat names for display
         mod_to_stat = {
@@ -2562,6 +2794,12 @@ class TrustEditor(tk.Tk):
             "MAIN_DMG_RATING": "ATT",
         }
 
+        # Initialize gear stats
+        for k in base_stats:
+            gear_stats[k] = 0
+
+        gear_mods_summary = []
+
         # Collect mods from equipped gear
         for row in self.gear_rows:
             item_id_str = row["id_var"].get().strip()
@@ -2585,8 +2823,8 @@ class TrustEditor(tk.Tk):
                     # Apply to stats if mappable
                     if mod_name in mod_to_stat:
                         stat_key = mod_to_stat[mod_name]
-                        if stat_key in stats:
-                            stats[stat_key] += val
+                        if stat_key in gear_stats:
+                            gear_stats[stat_key] += val
 
                 if slot_mods:
                     gear_mods_summary.append(f"[{slot.upper()}] {item_name}:")
@@ -2598,17 +2836,17 @@ class TrustEditor(tk.Tk):
                 w = ITEM_WEAPONS[item_id]
                 dmg = w.get("dmg", 0)
                 delay = w.get("delay", 0)
-                if not any(
-                    f"[{slot.upper()}]" in line for line in gear_mods_summary[-5:]
-                ):
-                    gear_mods_summary.append(f"[{slot.upper()}] {item_name}:")
-                gear_mods_summary.append(
-                    f"  Weapon DMG: {dmg} (uses {slot.upper()}_DMG_RATING)"
-                )
-                if slot != "sub":  # Sub weapons don't have separate delay
-                    gear_mods_summary.append(f"  Weapon Delay: {delay}")
-                # Note: Weapon DMG contributes to damage calculation, not directly to ATT stat
-                # This is a simplified approximation for preview purposes only
+
+                if slot == "main":
+                    gear_mods_summary.append(
+                        f"[{slot.upper()}] {item_name}: DMG:{dmg} Delay:{delay}"
+                    )
+                    # WEAPON_BONUS is not a stat in base_stats, but we can track it if we want
+                    # For now, just showing it in summary is enough
+                else:
+                    gear_mods_summary.append(
+                        f"[{slot.upper()}] {item_name}: DMG:{dmg} Delay:{delay}"
+                    )
 
         # Also add manual mods from the Mods tab
         if hasattr(self, "mod_rows"):
@@ -2621,8 +2859,8 @@ class TrustEditor(tk.Tk):
                         manual_mods.append(f"{mod_name}: {val:+d}")
                         if mod_name in mod_to_stat:
                             stat_key = mod_to_stat[mod_name]
-                            if stat_key in stats:
-                                stats[stat_key] += val
+                            if stat_key in gear_stats:
+                                gear_stats[stat_key] += val
                     except ValueError:
                         pass
 
@@ -2632,9 +2870,16 @@ class TrustEditor(tk.Tk):
                     gear_mods_summary.append(f"  {m}")
 
         # Update stat labels
-        for stat_name, label in self.stat_labels.items():
-            val = stats.get(stat_name, 0)
-            label.config(text=str(val))
+        for stat, label in self.stat_labels.items():
+            base = base_stats.get(stat, 0)
+            gear = gear_stats.get(stat, 0)
+
+            if gear != 0:
+                text = f"{base}+{gear}"
+            else:
+                text = f"{base}"
+
+            label.config(text=text, foreground="")
 
         # Update gear mods text
         self.gear_mods_text.config(state="normal")
@@ -2694,7 +2939,7 @@ class TrustEditor(tk.Tk):
         mod_frame.pack(side=tk.LEFT, padx=5)
 
         ttk.Label(row_frame, text="Value:").pack(side=tk.LEFT)
-        val_entry = ttk.Entry(row_frame, width=8)
+        val_entry = ttk.Entry(row_frame, width=5)
         val_entry.insert(0, str(value))
         val_entry.pack(side=tk.LEFT, padx=5)
 
@@ -2823,6 +3068,7 @@ class TrustEditor(tk.Tk):
             textvariable=tk.StringVar(),
             title="Pick Selector Arg",
             help_category="SEL_ARG",
+            selector_var=s_var,
         )
         s_arg_var.set(s_arg)
         s_arg_frame.pack(side=tk.LEFT, padx=2)
@@ -3048,25 +3294,43 @@ class TrustEditor(tk.Tk):
             f"return {signature}",
             "{",
         ]
-        chosen = LISTENER_TEMPLATES.get(template_key or "", [])
-        if not chosen:
-            chosen = LISTENER_TEMPLATES.get("LOG_EVENT", [])
-        lines.extend([f"    {l}" for l in chosen])
+        chosen_data = LISTENER_TEMPLATES.get(template_key or "", {})
+        # If template_key is provided but not found, or if it's empty, fallback to LOG_EVENT
+        if not chosen_data and not template_key:
+            chosen_data = LISTENER_TEMPLATES.get("LOG_EVENT", {})
+
+        # Handle new dict structure or old list structure (backward compat if needed, though we replaced all)
+        if isinstance(chosen_data, dict):
+            chosen_body = chosen_data.get("body", [])
+        else:
+            chosen_body = chosen_data  # Should be list
+
+        lines.extend([f"    {l}" for l in chosen_body])
         lines.append("}")
         return "\n".join(lines)
 
     def listener_event_changed(self, row_data):
         ev = row_data["event_var"].get()
         if ev:
-            new_auto_tag = f"{ev}_L{row_data.get('id', 0)}"
+            # Only update tag if it's empty or matches previous auto-tag
             current_tag = row_data["tag_entry"].get()
             prev_auto = row_data.get("auto_tag", "")
             if not current_tag or current_tag == prev_auto:
+                new_auto_tag = f"{ev}_L{row_data.get('id', 0)}"
                 row_data["tag_entry"].delete(0, tk.END)
                 row_data["tag_entry"].insert(0, new_auto_tag)
-            row_data["auto_tag"] = new_auto_tag
+                row_data["auto_tag"] = new_auto_tag
+
+        # Only insert template if body is empty
         if ev and not row_data["body_text"].get("1.0", tk.END).strip():
+            # Default template for event? We don't have per-event defaults, just generic LOG_EVENT
+            # So maybe just leave it empty or insert a basic skeleton?
+            # For now, let's not force a template on event change unless user picks one.
+            # But the previous code did:
+            # row_data["body_text"].insert("1.0", self.build_listener_template(ev))
+            # Let's keep it but use a simple default if no key provided
             row_data["body_text"].insert("1.0", self.build_listener_template(ev))
+
         signature = LISTENER_SIGNATURES.get(ev, "")
         help_line = LISTENER_HELP.get(ev, "")
         row_data["signature_label"].configure(text=f"{signature}  {help_line}")
@@ -3118,8 +3382,8 @@ class TrustEditor(tk.Tk):
             btn_frame,
             text="Apply",
             width=6,
-            command=lambda ev=event_var, bd=body_text, pv=preset_var: self.apply_listener_template(
-                ev, bd, pv.get()
+            command=lambda ev=event_var, bd=body_text, pv=preset_var, te=tag_entry: self.apply_listener_template(
+                ev, bd, te, pv.get()
             ),
         ).pack(side=tk.LEFT)
         ttk.Button(
@@ -3145,10 +3409,26 @@ class TrustEditor(tk.Tk):
         self.listener_rows.append(row_data)
         self.listener_event_changed(row_data)
 
-    def apply_listener_template(self, event_var, body_text, template_key=None):
-        ev = event_var.get()
-        if not ev:
+    def apply_listener_template(
+        self, event_var, body_text, tag_entry, template_key=None
+    ):
+        # Get template data
+        tpl = LISTENER_TEMPLATES.get(template_key)
+        if not tpl:
             return
+
+        # Update Event if present in template
+        if "event" in tpl:
+            event_var.set(tpl["event"])
+
+        # Update Tag if present (we might want to append ID to make it unique, or just set it)
+        # The user can edit it later.
+        if "tag" in tpl:
+            tag_entry.delete(0, tk.END)
+            tag_entry.insert(0, tpl["tag"])
+
+        ev = event_var.get()
+        # if not ev: return  -- Removed to allow applying template without event
         body_text.delete("1.0", tk.END)
         body_text.insert("1.0", self.build_listener_template(ev, template_key))
 
@@ -3192,7 +3472,16 @@ class TrustEditor(tk.Tk):
         dialog = tk.Toplevel(self)
         dialog.title("Custom Code Help")
         dialog.geometry("700x400")
+        dialog.transient(self)
         dialog.grab_set()
+
+        # Position at mouse cursor
+        x = self.winfo_pointerx()
+        y = self.winfo_pointery()
+        dialog.geometry(f"+{x}+{y}")
+
+        # Close on Esc
+        dialog.bind("<Escape>", lambda e: dialog.destroy())
 
         content_frame = ttk.Frame(dialog)
         content_frame.pack(fill=tk.BOTH, expand=True, padx=8, pady=8)
@@ -3781,6 +4070,16 @@ class TrustEditor(tk.Tk):
         with open(json_path, "w") as f:
             json.dump(data, f, indent=4)
 
+        # Check for subjob
+        sub_job = self.sub_job_var.get()
+        if not sub_job or sub_job == "NONE":
+            confirm = messagebox.askyesno(
+                "Missing Subjob",
+                "This trust has no subjob selected. This may cause issues with certain behaviors.\n\nDo you want to continue saving?",
+            )
+            if not confirm:
+                return
+
         # Generate Lua (use original filename with .lua extension)
         self.generate_lua(filename, data)
         messagebox.showinfo("Success", f"Saved {filename} and updated Lua file.")
@@ -3877,123 +4176,117 @@ class TrustEditor(tk.Tk):
             )
             job_change_str += f"    mob:changeJob(xi.job.{main_job})\n"
             if sub_job and sub_job != "NONE":
-                job_change_str += f"    mob:changeSJob(xi.job.{sub_job})\n"
+                job_change_str += f"    mob:changesJob(xi.job.{sub_job})\n"
 
             # Set spell list if available
             if main_job in JOB_SPELL_LISTS:
                 job_change_str += f"    mob:setSpellList({JOB_SPELL_LISTS[main_job]})\n"
 
-        mods_str = ""
-        if data["mods"]:
-            mods_str += "\n"  # Blank line before
+        # Aggregate mods
+        mod_totals = {}
+
+        # 1. Add manual mods
         for m in data["mods"]:
-            mods_str += f"    mob:addMod(xi.mod.{m['name']}, {fmt_arg(m['value'])})\n"
+            name = m["name"]
+            try:
+                val = int(m["value"])
+                mod_totals[name] = mod_totals.get(name, 0) + val
+            except ValueError:
+                pass
 
-        effects_str = ""
-        if data["effects"]:
-            effects_str += "\n"  # Blank line before
-        for e in data["effects"]:
-            # addStatusEffectEx(effect, icon, power, tick, duration, ...)
-            # Simplification: using same ID for icon
-            effects_str += f"    mob:addStatusEffectEx(xi.effect.{e['effect']}, xi.effect.{e['effect']}, {fmt_arg(e['power'])}, 0, {fmt_arg(e['duration'])})\n"
+        # 2. Add gear mods
+        weapon_bonus = 0
 
-        gear_setlook = ""
-        gear_mods_str = ""
         if data.get("gear"):
-            # Slots that affect visual appearance
-            visual_slots = [
-                "main",
-                "sub",
-                "ranged",
-                "ammo",
-                "head",
-                "body",
-                "hands",
-                "legs",
-                "feet",
-            ]
-            look_parts = []
             for g in data["gear"]:
                 slot = g.get("slot")
                 item_id = g.get("item_id")
-                item_name = g.get("name", ITEM_NAMES.get(item_id, ""))
-                # Get equipment info for MId
-                equip_info = ITEM_EQUIPMENT.get(item_id, {})
-                mid = equip_info.get("mid", 0)  # Default to 0 if not found
 
-                # Ensure mid is an int
-                try:
-                    mid = int(mid)
-                except (ValueError, TypeError):
-                    mid = 0
+                if not item_id:
+                    continue
 
-                if slot and item_id:
-                    # Sanitize item name for comment
-                    safe_item_name = item_name.replace("\n", " ").replace("\r", "")
+                # Add item mods
+                for mod_id, val in ITEM_MODS.get(item_id, []):
+                    mod_name = MOD_ID_TO_NAME.get(mod_id)
+                    if mod_name and mod_name not in EXCLUDED_MODS:
+                        mod_totals[mod_name] = mod_totals.get(mod_name, 0) + val
 
-                    # Generate setModelId for visual slots
-                    if slot in slot_lua_enum and mid > 0:
-                        gear_setlook += f"    mob:setModelId({mid}, {slot_lua_enum[slot]}) -- {safe_item_name}\n"
+                # Add weapon stats
+                if item_id in ITEM_WEAPONS and slot in ["main", "sub", "ranged"]:
+                    w = ITEM_WEAPONS[item_id]
+                    dmg = w.get("dmg", 0)
+                    delay = w.get("delay", 0)
 
-                    # Add item mods for all slots
-                    for mod_id, val in ITEM_MODS.get(item_id, []):
-                        mod_name = MOD_ID_TO_NAME.get(mod_id)
-                        # Skip excluded mods that can interfere with trust functionality
-                        if mod_name and mod_name not in EXCLUDED_MODS:
-                            gear_mods_str += f"    mob:addMod(xi.mod.{mod_name}, {fmt_arg(val)}) -- {slot}: {item_name}\n"
+                    base_delay = JOB_BASE_DELAY.get(main_job, 4000)
+                    item_delay_ms = int(delay * 1000 / 60)
+                    delay_offset = item_delay_ms - base_delay
 
-                    # Add weapon stats for weapon slots - use slot-specific mods
-                    if item_id in ITEM_WEAPONS and slot in ["main", "sub", "ranged"]:
-                        w = ITEM_WEAPONS[item_id]
-                        dmg = w.get("dmg", 0)
-                        delay = w.get("delay", 0)
+                    if slot == "main":
+                        # Use WEAPON_BONUS for main hand damage
+                        weapon_bonus = dmg
+                        mod_totals["DELAY"] = mod_totals.get("DELAY", 0) + delay_offset
+                    elif slot == "sub":
+                        mod_totals["SUB_DMG_RATING"] = (
+                            mod_totals.get("SUB_DMG_RATING", 0) + dmg
+                        )
+                    elif slot == "ranged":
+                        mod_totals["RANGED_DMG_RATING"] = (
+                            mod_totals.get("RANGED_DMG_RATING", 0) + dmg
+                        )
+                        mod_totals["RANGED_DELAY"] = (
+                            mod_totals.get("RANGED_DELAY", 0) + delay_offset
+                        )
 
-                        # Calculate delay offset based on job base delay
-                        # Default base is 4000, unless job specifies 8000
-                        base_delay = JOB_BASE_DELAY.get(main_job, 4000)
-                        # We want final delay to be 'delay'.
-                        # final = base + mod. So mod = final - base.
-                        # However, item_weapon delay is in delay units (e.g. 240).
-                        # base_delay is in ms (e.g. 4000).
-                        # We need to convert units?
-                        # Actually, let's assume the user wants the delay from the item.
-                        # If we assume 1 delay unit ~= 16.6ms.
-                        # But changeJob sets delay in ms.
-                        # If we use addMod(DELAY, val), it adds to the delay.
-                        # If we want to force the delay, we need to offset the base.
-                        # But we don't know if the core converts the mod value.
-                        # Assuming mod value is added directly to the delay variable in core.
-                        # If core delay variable is in ms, we need to provide ms.
-                        # item_weapon delay is in units. 240 units = 4000ms.
-                        # So we should convert item delay to ms first?
-                        # 240 * 1000 / 60 = 4000.
-                        # So item_delay_ms = delay * 1000 / 60.
-                        # mod_val = item_delay_ms - base_delay.
+        # 3. Add magic skills and MP for mage jobs
+        mage_jobs = [
+            "WHM",
+            "BLM",
+            "RDM",
+            "PLD",
+            "DRK",
+            "BRD",
+            "NIN",
+            "SMN",
+            "BLU",
+            "SCH",
+            "GEO",
+            "RUN",
+        ]
+        if main_job in mage_jobs:
+            # mod_totals["MP"] = mod_totals.get("MP", 0) + 1000  # Ensure base MP - Removed per user request
+            mod_totals["HEALING"] = mod_totals.get("HEALING", 0) + 424
+            mod_totals["DIVINE"] = mod_totals.get("DIVINE", 0) + 424
+            mod_totals["ENHANCE"] = mod_totals.get("ENHANCE", 0) + 424
+            mod_totals["ENFEEBLE"] = mod_totals.get("ENFEEBLE", 0) + 424
+            mod_totals["ELEM"] = mod_totals.get("ELEM", 0) + 424
+            mod_totals["DARK"] = mod_totals.get("DARK", 0) + 424
+            mod_totals["SUMMONING"] = mod_totals.get("SUMMONING", 0) + 424
+            mod_totals["NINJUTSU"] = mod_totals.get("NINJUTSU", 0) + 424
+            mod_totals["SINGING"] = mod_totals.get("SINGING", 0) + 424
+            mod_totals["STRING"] = mod_totals.get("STRING", 0) + 424
+            mod_totals["WIND"] = mod_totals.get("WIND", 0) + 424
+            mod_totals["BLUE"] = mod_totals.get("BLUE", 0) + 424
+            mod_totals["GEOMANCY_SKILL"] = mod_totals.get("GEOMANCY_SKILL", 0) + 424
+            mod_totals["HANDBELL_SKILL"] = mod_totals.get("HANDBELL_SKILL", 0) + 424
 
-                        item_delay_ms = int(delay * 1000 / 60)
-                        delay_offset = item_delay_ms - base_delay
+        # Generate output strings
+        gear_mods_str = ""
+        if weapon_bonus > 0:
+            gear_mods_str += (
+                f"    mob:setMobMod(xi.mobMod.WEAPON_BONUS, {weapon_bonus})\n"
+            )
 
-                        gear_mods_str += f"    -- {slot}: {item_name} weapon stats (DMG: {dmg}, Delay: {delay} -> {item_delay_ms}ms)\n"
+        for name, val in mod_totals.items():
+            if val != 0:
+                gear_mods_str += f"    mob:addMod(xi.mod.{name}, {val})\n"
 
-                        if slot == "main":
-                            gear_mods_str += f"    mob:addMod(xi.mod.MAIN_DMG_RATING, {fmt_arg(dmg)}) -- main weapon dmg\n"
-                            gear_mods_str += f"    mob:addMod(xi.mod.DELAY, {fmt_arg(delay_offset)}) -- main weapon delay offset\n"
-                        elif slot == "sub":
-                            gear_mods_str += f"    mob:addMod(xi.mod.SUB_DMG_RATING, {fmt_arg(dmg)}) -- sub weapon dmg\n"
-                            # Note: Sub weapon delay typically doesn't apply separately
-                        elif slot == "ranged":
-                            gear_mods_str += f"    mob:addMod(xi.mod.RANGED_DMG_RATING, {fmt_arg(dmg)}) -- ranged weapon dmg\n"
-                            gear_mods_str += f"    mob:addMod(xi.mod.RANGED_DELAY, {fmt_arg(delay_offset)}) -- ranged weapon delay offset\n"
+        gear_setlook = ""  # Visuals removed
 
-            if look_parts:
-                gear_setlook = "\n"  # Blank line before
-                gear_setlook += "    -- Faux Gear Look\n"
-                gear_setlook += "    mob:setLook({ " + ", ".join(look_parts) + " })\n"
+        if gear_setlook:
+            gear_setlook = "\n    -- Visuals (setModelId)\n" + gear_setlook
 
-            if gear_mods_str:
-                gear_mods_str = (
-                    "\n    -- Gear Mods (from item_mods.sql)\n" + gear_mods_str
-                )
+        if gear_mods_str:
+            gear_mods_str = "\n    -- Gear Mods (from item_mods.sql)\n" + gear_mods_str
 
         gambits_str = ""
         for g in data["gambits"]:
@@ -4026,7 +4319,7 @@ class TrustEditor(tk.Tk):
 local spellObject = {{}}
 
 spellObject.onMagicCastingCheck = function(caster, target, spell)
-    return xi.trust.canCast(caster, spell)
+    return 0
 end
 
 spellObject.onSpellCast = function(caster, target, spell)
@@ -4036,9 +4329,7 @@ end
 spellObject.onMobSpawn = function(mob)
     mob:setAutoAttackEnabled({str(data['auto_attack']).lower()})\
 {job_change_str}\
-{mods_str}\
-{effects_str}\
-{gear_setlook}{gear_mods_str}\
+{gear_mods_str}\
 {gambits_str}\
 {tp_str}\
 {listeners_str}

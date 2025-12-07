@@ -13,7 +13,7 @@ require('scripts/enum/skill')
 local spellObject = {}
 
 spellObject.onMagicCastingCheck = function(caster, target, spell)
-    return xi.trust.canCast(caster, spell)
+    return 0
 end
 
 spellObject.onSpellCast = function(caster, target, spell)
@@ -30,16 +30,19 @@ spellObject.onMobSpawn = function(mob)
     mob:addMod(xi.mod.MATT, 35)
     mob:addMod(xi.mod.MACC, 30)
     mob:addMod(xi.mod.FASTCAST, 20)
+    mob:addMod(xi.mod.ELEM, 424)
+    mob:addMod(xi.mod.DARK, 424)
+    mob:addMod(xi.mod.ENHANCE, 424)
+    mob:addMod(xi.mod.ENFEEBLE, 424)
 
     -- Visuals (setModelId)
-    mob:setModelId(291, xi.slot.MAIN) -- onion_staff
+    -- mob:setModelId(291, xi.slot.MAIN) -- onion_staff
     mob:addGambit(ai.t.TARGET, { ai.c.HPP_GTE, 80 }, { ai.r.MA, ai.s.SPECIFIC, xi.magic.spell.SLEEP_II })
     mob:addGambit(ai.t.TARGET, { ai.c.MB_AVAILABLE, 0 }, { ai.r.MA, ai.s.MB_ELEMENT, xi.magic.spellFamily.NONE })
     mob:addGambit(ai.t.TARGET, { ai.c.NOT_SC_AVAILABLE, 0 }, { ai.r.MA, ai.s.BEST_AGAINST_TARGET, 0 })
     mob:addGambit(ai.t.TARGET, { ai.c.ALWAYS, 0 }, { ai.r.MA, ai.s.HIGHEST, xi.magic.spellFamily.FIRE })
 
     -- Custom Code
-    
 end
 
 spellObject.onMobDespawn = function(mob)
