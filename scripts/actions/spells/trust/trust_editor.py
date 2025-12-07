@@ -200,6 +200,8 @@ JOB_ABILITIES = parse_lua_enum(
 WEAPONSKILLS = parse_lua_enum(
     os.path.join(ENUM_DIR, "weaponskill.lua"), "xi.weaponskill"
 )
+SKILLS = parse_lua_enum(os.path.join(ENUM_DIR, "skill.lua"), "xi.skill")
+SKILL_ID_TO_NAME = {v: k for k, v in SKILLS.items()}
 
 # Reverse mod lookup for SQL-driven gear mods
 MOD_ID_TO_NAME = {v: k for k, v in MODS.items()}
@@ -238,12 +240,18 @@ def parse_item_weapon():
     if not file_path.exists():
         return weapons
     content = file_path.read_text(errors="ignore")
+    # Format: (itemId,'name',skill,subskill,ilvl_skill,ilvl_parry,ilvl_macc,dmgType,hit,delay,dmg,unlock_points)
+    # Handle escaped quotes in name: '((?:[^']|'')*)'
     for match in re.findall(
-        r"\((\d+),'[^']*',\s*\d+,\s*\d+,\s*\d+,\s*\d+,\s*\d+,\s*\d+,\s*\d+,\s*(\d+),\s*(\d+)\)",
+        r"\((\d+),'((?:[^']|'')*)',\s*(\d+),\s*\d+,\s*\d+,\s*\d+,\s*\d+,\s*\d+,\s*\d+,\s*(\d+),\s*(\d+),\s*\d+\)",
         content,
     ):
-        item_id, delay, dmg = match
-        weapons[int(item_id)] = {"delay": int(delay), "dmg": int(dmg)}
+        item_id = int(match[0])
+        # name = match[1] # Not used here but captured
+        skill = int(match[2])
+        delay = int(match[3])
+        dmg = int(match[4])
+        weapons[item_id] = {"skill": skill, "delay": delay, "dmg": dmg}
     return weapons
 
 
@@ -255,15 +263,15 @@ def parse_item_equipment():
         return equipment
     content = file_path.read_text(errors="ignore")
     # Format: (itemId,'name',level,ilevel,jobs,MId,shieldSize,scriptType,slot,rslot,rslotlook,su_level)
-    # Handle escaped quotes in name: '((?:[^']|'')*)'
     for match in re.findall(
-        r"VALUES\s*\((\d+),'((?:[^']|'')*)',(\d+),(\d+),(\d+),(\d+),(\d+),(\d+),(\d+),(\d+),(\d+),(\d+)\)",
+        r"VALUES\s*\((\d+),'([^']*)',(\d+),(\d+),(\d+),(\d+),(\d+),(\d+),(\d+),(\d+),(\d+),(\d+)\)",
         content,
     ):
         item_id = int(match[0])
-        name = match[1].replace("''", "'")  # Unescape quotes
+        name = match[1]
         level = int(match[2])
         ilevel = int(match[3])
+        jobs = int(match[4])  # Job bitmask
         mid = int(match[5])  # Model ID
         slot_bitmask = int(match[8])
         equipment[item_id] = {
@@ -272,6 +280,7 @@ def parse_item_equipment():
             "ilevel": ilevel,
             "mid": mid,
             "slot": slot_bitmask,
+            "jobs": jobs,
         }
     return equipment
 
@@ -534,25 +543,23 @@ JOB_ROLE_MAP = {
 }
 
 # Default spell lists for jobs (based on mob_spell_lists.sql)
-# Verified IDs: WHM=1, BLM=2, RDM=3, PLD=4, DRK=5, BRD=6, NIN=7, BLU=8, SMN=30
 JOB_SPELL_LISTS = {
-    "WHM": 1,
-    "BLM": 2,
-    "RDM": 3,
-    "PLD": 4,
-    "DRK": 5,
-    "BRD": 6,
-    "NIN": 7,
-    "BLU": 8,
-    "SMN": 30,
-    "GEO": 2,  # Fallback to BLM
-    "SCH": 3,  # Fallback to RDM
-    "RUN": 4,  # Fallback to PLD
+    "WHM": 1,  # Beastmen_WHM
+    "BLM": 2,  # Beastmen_BLM
+    "RDM": 3,  # Beastmen_RDM
+    "PLD": 4,  # Beastmen_PLD
+    "DRK": 5,  # Beastmen_DRK
+    "BRD": 6,  # Beastmen_BRD
+    "NIN": 7,  # Beastmen_NIN
+    "BLU": 8,  # Beastmen_BLU
+    "SMN": 30,  # Yagudo_SMN
+    "GEO": 2,  # Fallback to BLM? Or custom.
+    "SCH": 3,  # Fallback to RDM?
+    "RUN": 4,  # Fallback to PLD?
 }
 
 # Base delay set by changeJob in lua_baseentity.cpp
 # Used to calculate the delay mod offset
-# C++: MNK, PUP, RUN, SAM, DRK, DRG, SMN = 8000. Others = 4000.
 JOB_BASE_DELAY = {
     "MNK": 8000,
     "PUP": 8000,
@@ -1711,6 +1718,9 @@ class TrustEditor(tk.Tk):
         width=40,
         height=12,
         help_category=None,
+        job_var=None,  # Added for job filtering
+        filter_by_job=False,  # Added for job filtering
+        filter_by_weapon=False,  # Added for weapon filtering
     ):
         dialog = tk.Toplevel(self)
         dialog.title(title)
@@ -1720,6 +1730,52 @@ class TrustEditor(tk.Tk):
         ttk.Label(dialog, text="Filter:").pack(anchor="w", padx=8, pady=(8, 2))
         search_entry = ttk.Entry(dialog, textvariable=search_var, width=width)
         search_entry.pack(fill=tk.X, padx=8)
+
+        # Job Filter (Optional)
+        # If filter_by_job is True, job_var will be passed in.
+        # If not, we create a dummy one to avoid errors in refresh.
+        local_job_var = tk.StringVar(value="All")
+        if filter_by_job:
+            filter_frame = ttk.Frame(dialog)
+            filter_frame.pack(fill=tk.X, padx=8, pady=(8, 0))
+            ttk.Label(filter_frame, text="Job:").pack(side=tk.LEFT)
+            jobs = ["All"] + sorted(list(JOB_TEMPLATES.keys()))
+            job_combo = ttk.Combobox(
+                filter_frame,
+                textvariable=local_job_var,
+                values=jobs,
+                state="readonly",
+                width=10,
+            )
+            job_combo.pack(side=tk.LEFT, padx=5)
+            # Use the passed job_var if available, otherwise use local_job_var
+            job_var = job_var if job_var else local_job_var
+
+        # Weapon Filter (Optional)
+        local_weapon_var = tk.StringVar(value="All")
+        if filter_by_weapon:
+            # If filter_frame doesn't exist yet (no job filter), create it
+            if not filter_by_job:
+                filter_frame = ttk.Frame(dialog)
+                filter_frame.pack(fill=tk.X, padx=8, pady=(8, 0))
+
+            ttk.Label(filter_frame, text="Weapon:").pack(side=tk.LEFT, padx=(10, 0))
+            # Get list of combat skills (id 1-12, 25-26 usually)
+            # Filter SKILLS to only include relevant weapon skills
+            weapon_skills = [
+                k for k, v in SKILLS.items() if (1 <= v <= 12) or (25 <= v <= 26)
+            ]
+            weapon_skills = ["All"] + sorted(weapon_skills)
+            weapon_combo = ttk.Combobox(
+                filter_frame,
+                textvariable=local_weapon_var,
+                values=weapon_skills,
+                state="readonly",
+                width=15,
+            )
+            weapon_combo.pack(side=tk.LEFT, padx=5)
+            # Use local_weapon_var for filtering logic
+            weapon_var = local_weapon_var
 
         list_frame = ttk.Frame(dialog)
         list_frame.pack(fill=tk.BOTH, expand=True, padx=8, pady=8)
@@ -1755,9 +1811,69 @@ class TrustEditor(tk.Tk):
             detail.insert("1.0", info or sel)
             detail.config(state="disabled")
 
+        # Helper to check job bitmask
+        def can_equip(job_name, item_jobs_mask):
+            if job_name == "All" or not item_jobs_mask:
+                return True
+            # Map job name to ID (1-based index usually matching bit position)
+            # WAR=1, MNK=2, etc. bit 0 is usually unused or ALL?
+            # Actually, bit 0 = WAR, bit 1 = MNK? Or 1-based?
+            # Let's use the xi.job enum values if available, or a standard mapping.
+            # Standard: WAR=1 (1<<0), MNK=2 (1<<1), etc.
+            job_id = JOBS.get(job_name, 0)
+            if job_id > 0:
+                return (item_jobs_mask & (1 << (job_id - 1))) != 0
+            return True
+
         def refresh(filter_text=""):
             listbox.delete(0, tk.END)
-            filtered = [v for v in values if filter_text.lower() in v.lower()]
+            selected_job = job_var.get() if filter_by_job and job_var else "All"
+            selected_weapon = (
+                weapon_var.get() if filter_by_weapon and weapon_var else "All"
+            )
+
+            filtered = []
+            for v in values:
+                # Job filtering logic
+                if filter_by_job and selected_job != "All":
+                    try:
+                        # Extract item ID from string (e.g. "Item Name (iLv119) [12345]")
+                        item_id_match = re.search(r"\[(\d+)\]$", v)
+                        if item_id_match:
+                            item_id = int(item_id_match.group(1))
+                            equip = ITEM_EQUIPMENT.get(item_id)
+                            if equip:
+                                if not can_equip(selected_job, equip.get("jobs", 0)):
+                                    continue
+                        else:
+                            pass
+                    except Exception as e:
+                        pass
+
+                # Weapon filtering logic
+                if filter_by_weapon and selected_weapon != "All":
+                    try:
+                        item_id_match = re.search(r"\[(\d+)\]$", v)
+                        if item_id_match:
+                            item_id = int(item_id_match.group(1))
+                            weapon = ITEM_WEAPONS.get(item_id)
+                            if weapon:
+                                skill_id = weapon.get("skill", 0)
+                                skill_name = SKILL_ID_TO_NAME.get(skill_id, "NONE")
+                                if skill_name != selected_weapon:
+                                    continue
+                            else:
+                                # Not a weapon, exclude if filtering by weapon type?
+                                # Or keep if it's "All"? But we are not "All".
+                                # If filtering by "Sword", non-weapons should probably be hidden.
+                                continue
+                        else:
+                            pass
+                    except Exception as e:
+                        pass
+
+                if filter_text.lower() in v.lower():
+                    filtered.append(v)
             listbox._items = filtered
             for item in filtered:
                 listbox.insert(tk.END, item)
@@ -1780,6 +1896,11 @@ class TrustEditor(tk.Tk):
         listbox.bind("<Double-Button-1>", choose)
         listbox.bind("<<ListboxSelect>>", on_select)
         search_var.trace_add("write", lambda *args: refresh(search_var.get()))
+        if filter_by_job:
+            local_job_var.trace_add("write", lambda *args: refresh(search_var.get()))
+        if filter_by_weapon:
+            local_weapon_var.trace_add("write", lambda *args: refresh(search_var.get()))
+
         refresh()
         search_entry.focus_set()
 
@@ -1791,6 +1912,9 @@ class TrustEditor(tk.Tk):
         width=20,
         title="Select",
         help_category=None,
+        job_var=None,  # Added for job filtering
+        filter_by_job=False,  # Added for job filtering
+        filter_by_weapon=False,  # Added for weapon filtering
     ):
         var = textvariable or tk.StringVar()
         frame = ttk.Frame(parent)
@@ -1798,7 +1922,19 @@ class TrustEditor(tk.Tk):
             frame, textvariable=var, width=width, relief="sunken", anchor="w"
         )
         display.pack(side=tk.LEFT, padx=(0, 1))
-        tk.Button(
+
+        def open_dialog():
+            self.open_filter_list_dialog(
+                values,
+                var,
+                title=title,
+                help_category=help_category,
+                job_var=job_var,
+                filter_by_job=filter_by_job,
+                filter_by_weapon=filter_by_weapon,
+            )
+
+        btn = tk.Button(
             frame,
             text="🔍",
             width=1,
@@ -1809,10 +1945,9 @@ class TrustEditor(tk.Tk):
             highlightthickness=0,
             relief="flat",
             font=("TkDefaultFont", 8),
-            command=lambda: self.open_filter_list_dialog(
-                values, var, title=title, help_category=help_category
-            ),
-        ).pack(side=tk.LEFT, padx=0, pady=0)
+            command=open_dialog,
+        )
+        btn.pack(side=tk.LEFT, padx=0, pady=0)
         return frame, var
 
     def create_gear_rows(self, parent):
@@ -1864,6 +1999,9 @@ class TrustEditor(tk.Tk):
             )
             name_label.grid(row=row_num, column=2, padx=3, pady=3, sticky="w")
 
+            # Determine if this is a weapon slot for filtering
+            is_weapon_slot = slot in ["main", "sub", "ranged"]
+
             tk.Button(
                 frame,
                 text="🔍",
@@ -1873,8 +2011,8 @@ class TrustEditor(tk.Tk):
                 pady=0,
                 borderwidth=0,
                 highlightthickness=0,
-                command=lambda s=slot, iv=id_var, nv=name_var: self.pick_gear_item(
-                    s, iv, nv
+                command=lambda s=slot, iv=id_var, nv=name_var, iws=is_weapon_slot: self.pick_gear_item(
+                    s, iv, nv, filter_by_weapon=iws
                 ),
             ).grid(row=row_num, column=3, padx=2, pady=2)
 
@@ -1914,7 +2052,7 @@ class TrustEditor(tk.Tk):
         if hasattr(self, "refresh_stats_preview"):
             self.refresh_stats_preview()
 
-    def pick_gear_item(self, slot, id_var, name_var):
+    def pick_gear_item(self, slot, id_var, name_var, filter_by_weapon=False):
         """Open a dialog to pick gear from slot-filtered item list."""
         dialog = tk.Toplevel(self)
         dialog.title(f"Select {slot.upper()}")
@@ -1923,11 +2061,44 @@ class TrustEditor(tk.Tk):
 
         # Get slot-specific items (lazy loaded)
         slot_items = get_slot_item_lists().get(slot, [])
+        # Convert to display strings for the listbox
+        display_items = [item["display"] for item in slot_items]
 
         search_var = tk.StringVar()
         ttk.Label(dialog, text="Filter:").pack(anchor="w", padx=8, pady=(8, 2))
         search_entry = ttk.Entry(dialog, textvariable=search_var)
         search_entry.pack(fill=tk.X, padx=8)
+
+        # Job Filter (Optional)
+        job_filter_frame = ttk.Frame(dialog)
+        job_filter_frame.pack(fill=tk.X, padx=8, pady=(8, 0))
+        ttk.Label(job_filter_frame, text="Job:").pack(side=tk.LEFT)
+        jobs = ["All"] + sorted(list(JOB_TEMPLATES.keys()))
+        job_combo = ttk.Combobox(
+            job_filter_frame,
+            textvariable=self.main_job_var,
+            values=jobs,
+            state="readonly",
+            width=10,
+        )
+        job_combo.pack(side=tk.LEFT, padx=5)
+
+        # Weapon Filter (Optional)
+        weapon_filter_var = tk.StringVar(value="All")
+        if filter_by_weapon:
+            ttk.Label(job_filter_frame, text="Weapon:").pack(side=tk.LEFT, padx=(10, 0))
+            weapon_skills = [
+                k for k, v in SKILLS.items() if (1 <= v <= 12) or (25 <= v <= 26)
+            ]
+            weapon_skills = ["All"] + sorted(weapon_skills)
+            weapon_combo = ttk.Combobox(
+                job_filter_frame,
+                textvariable=weapon_filter_var,
+                values=weapon_skills,
+                state="readonly",
+                width=15,
+            )
+            weapon_combo.pack(side=tk.LEFT, padx=5)
 
         # Info label
         ttk.Label(
@@ -1967,6 +2138,9 @@ class TrustEditor(tk.Tk):
                 w = ITEM_WEAPONS[item_id]
                 lines.append(f"Weapon DMG: {w.get('dmg', 0)}")
                 lines.append(f"Weapon Delay: {w.get('delay', 0)}")
+                skill_id = w.get("skill", 0)
+                skill_name = SKILL_ID_TO_NAME.get(skill_id, "NONE")
+                lines.append(f"Weapon Skill: {skill_name}")
 
             # Show mods
             if item_id in ITEM_MODS:
@@ -1981,11 +2155,39 @@ class TrustEditor(tk.Tk):
         def refresh():
             term = search_var.get().lower()
             listbox.delete(0, tk.END)
-            filtered = [
-                item
-                for item in slot_items
-                if term in item["display"].lower() or term in item["name"].lower()
-            ]
+            filtered = []
+
+            # Apply job filter if a main job is selected
+            selected_main_job = self.main_job_var.get()
+            selected_weapon_filter = (
+                weapon_filter_var.get() if filter_by_weapon else "All"
+            )
+
+            for item in slot_items:
+                # Job filtering
+                if selected_main_job != "All":
+                    if not self.can_equip(
+                        selected_main_job,
+                        ITEM_EQUIPMENT.get(item["id"], {}).get("jobs", 0),
+                    ):
+                        continue
+                # Weapon filtering
+                if filter_by_weapon and selected_weapon_filter != "All":
+                    weapon_data = ITEM_WEAPONS.get(item["id"])
+                    # print(f"DEBUG: Item {item['id']} ({item['name']}) - Weapon Data: {weapon_data}")
+                    if weapon_data:
+                        skill_id = weapon_data.get("skill", 0)
+                        skill_name = SKILL_ID_TO_NAME.get(skill_id, "NONE")
+                        # print(f"DEBUG: Skill ID: {skill_id}, Name: {skill_name}, Filter: {selected_weapon_filter}")
+                        if skill_name != selected_weapon_filter:
+                            continue
+                    else:  # If it's not a weapon, and we're filtering by weapon type, exclude it
+                        continue
+
+                # Text filtering
+                if term in item["display"].lower() or term in item["name"].lower():
+                    filtered.append(item)
+
             listbox._items = filtered
             for item in filtered:
                 listbox.insert(tk.END, item["display"])
@@ -2028,6 +2230,13 @@ class TrustEditor(tk.Tk):
         listbox.bind("<Double-Button-1>", choose)
         listbox.bind("<<ListboxSelect>>", on_select)
         search_var.trace_add("write", lambda *args: refresh())
+        self.main_job_var.trace_add(
+            "write", lambda *args: refresh()
+        )  # Trigger refresh when main job changes
+        if filter_by_weapon:
+            weapon_filter_var.trace_add(
+                "write", lambda *args: refresh()
+            )  # Trigger refresh when weapon filter changes
         search_entry.focus_set()
 
     def get_trust_files(self):
@@ -3141,6 +3350,21 @@ class TrustEditor(tk.Tk):
         base_template["sub_job"] = sub_job or "NONE"
         return base_template
 
+    def can_equip(self, job_name, item_jobs_mask):
+        """
+        Helper to check if an item can be equipped by a given job based on its job bitmask.
+        job_name: String, e.g., "WAR", "PLD"
+        item_jobs_mask: Integer bitmask from item_equipment.jobs
+        """
+        if not job_name or job_name == "All" or not item_jobs_mask:
+            return True  # No job specified, or item has no job restrictions
+
+        job_id = JOBS.get(job_name, 0)
+        if job_id > 0:
+            # Job bitmasks are 1-indexed, so WAR (ID 1) is bit 0, MNK (ID 2) is bit 1, etc.
+            return (item_jobs_mask & (1 << (job_id - 1))) != 0
+        return False  # Job name not found in JOBS enum
+
     def get_help_items(self, category):
         items = []
         if category == "TARGET":
@@ -3642,30 +3866,6 @@ class TrustEditor(tk.Tk):
                     return val
                 return val  # Fallback
 
-        # Determine if we need to add MP mod for casters
-        # If the user hasn't manually added MP, and it's a caster job, give them some MP.
-        main_job = data.get("main_job", "")
-        sub_job = data.get("sub_job", "NONE")
-
-        has_mp_mod = any(m["name"] == "MP" for m in data["mods"])
-        caster_jobs = [
-            "WHM",
-            "BLM",
-            "RDM",
-            "PLD",
-            "DRK",
-            "SMN",
-            "BLU",
-            "GEO",
-            "SCH",
-            "RUN",
-        ]
-
-        # We will inject MP mod in the mods_str generation if needed
-        inject_mp = (
-            main_job in caster_jobs or sub_job in caster_jobs
-        ) and not has_mp_mod
-
         # Generate job change call if main_job is specified
         job_change_str = ""
         main_job = data.get("main_job", "")
@@ -3684,14 +3884,8 @@ class TrustEditor(tk.Tk):
                 job_change_str += f"    mob:setSpellList({JOB_SPELL_LISTS[main_job]})\n"
 
         mods_str = ""
-        if data["mods"] or inject_mp:
+        if data["mods"]:
             mods_str += "\n"  # Blank line before
-
-        if inject_mp:
-            mods_str += (
-                f"    mob:addMod(xi.mod.MP, 1000) -- Default MP for caster job\n"
-            )
-
         for m in data["mods"]:
             mods_str += f"    mob:addMod(xi.mod.{m['name']}, {fmt_arg(m['value'])})\n"
 
@@ -3707,66 +3901,94 @@ class TrustEditor(tk.Tk):
         gear_mods_str = ""
         if data.get("gear"):
             # Slots that affect visual appearance
-            # Slot mapping for Lua enums
-            slot_lua_enum = {
-                "main": "xi.slot.MAIN",
-                "sub": "xi.slot.SUB",
-                "ranged": "xi.slot.RANGED",
-                "head": "xi.slot.HEAD",
-                "body": "xi.slot.BODY",
-                "hands": "xi.slot.HANDS",
-                "legs": "xi.slot.LEGS",
-                "feet": "xi.slot.FEET",
-            }
+            visual_slots = [
+                "main",
+                "sub",
+                "ranged",
+                "ammo",
+                "head",
+                "body",
+                "hands",
+                "legs",
+                "feet",
+            ]
+            look_parts = []
+            for g in data["gear"]:
+                slot = g.get("slot")
+                item_id = g.get("item_id")
+                item_name = g.get("name", ITEM_NAMES.get(item_id, ""))
+                # Get equipment info for MId
+                equip_info = ITEM_EQUIPMENT.get(item_id, {})
+                mid = equip_info.get("mid", 0)  # Default to 0 if not found
 
-            if data.get("gear"):
-                gear_setlook = "\n    -- Visuals (setModelId)\n"
-                for g in data["gear"]:
-                    slot = g.get("slot")
-                    item_id = g.get("item_id")
-                    item_name = g.get("name", ITEM_NAMES.get(item_id, ""))
+                # Ensure mid is an int
+                try:
+                    mid = int(mid)
+                except (ValueError, TypeError):
+                    mid = 0
 
-                    # Get equipment info for MId
-                    equip_info = ITEM_EQUIPMENT.get(item_id, {})
-                    mid = equip_info.get("mid", item_id)  # Fallback to item_id
+                if slot and item_id:
+                    # Sanitize item name for comment
+                    safe_item_name = item_name.replace("\n", " ").replace("\r", "")
 
-                    if slot and item_id:
-                        # Generate setModelId for visual slots
-                        if slot in slot_lua_enum:
-                            gear_setlook += f"    mob:setModelId({mid}, {slot_lua_enum[slot]}) -- {item_name}\n"
+                    # Generate setModelId for visual slots
+                    if slot in slot_lua_enum and mid > 0:
+                        gear_setlook += f"    mob:setModelId({mid}, {slot_lua_enum[slot]}) -- {safe_item_name}\n"
 
-                        # Add item mods for all slots
-                        for mod_id, val in ITEM_MODS.get(item_id, []):
-                            mod_name = MOD_ID_TO_NAME.get(mod_id)
-                            if mod_name and mod_name not in EXCLUDED_MODS:
-                                gear_mods_str += f"    mob:addMod(xi.mod.{mod_name}, {fmt_arg(val)}) -- {slot}: {item_name}\n"
+                    # Add item mods for all slots
+                    for mod_id, val in ITEM_MODS.get(item_id, []):
+                        mod_name = MOD_ID_TO_NAME.get(mod_id)
+                        # Skip excluded mods that can interfere with trust functionality
+                        if mod_name and mod_name not in EXCLUDED_MODS:
+                            gear_mods_str += f"    mob:addMod(xi.mod.{mod_name}, {fmt_arg(val)}) -- {slot}: {item_name}\n"
 
-                        # Add weapon stats for weapon slots
-                        if item_id in ITEM_WEAPONS and slot in [
-                            "main",
-                            "sub",
-                            "ranged",
-                        ]:
-                            w = ITEM_WEAPONS[item_id]
-                            dmg = w.get("dmg", 0)
-                            delay = w.get("delay", 0)
+                    # Add weapon stats for weapon slots - use slot-specific mods
+                    if item_id in ITEM_WEAPONS and slot in ["main", "sub", "ranged"]:
+                        w = ITEM_WEAPONS[item_id]
+                        dmg = w.get("dmg", 0)
+                        delay = w.get("delay", 0)
 
-                            # Calculate delay offset (convert weapon delay to ms: delay * 1000 / 60)
-                            # Base delay is typically 4000ms or 8000ms depending on job
-                            base_delay = JOB_BASE_DELAY.get(main_job, 4000)
-                            item_delay_ms = int(delay * 1000 / 60)
-                            delay_offset = item_delay_ms - base_delay
+                        # Calculate delay offset based on job base delay
+                        # Default base is 4000, unless job specifies 8000
+                        base_delay = JOB_BASE_DELAY.get(main_job, 4000)
+                        # We want final delay to be 'delay'.
+                        # final = base + mod. So mod = final - base.
+                        # However, item_weapon delay is in delay units (e.g. 240).
+                        # base_delay is in ms (e.g. 4000).
+                        # We need to convert units?
+                        # Actually, let's assume the user wants the delay from the item.
+                        # If we assume 1 delay unit ~= 16.6ms.
+                        # But changeJob sets delay in ms.
+                        # If we use addMod(DELAY, val), it adds to the delay.
+                        # If we want to force the delay, we need to offset the base.
+                        # But we don't know if the core converts the mod value.
+                        # Assuming mod value is added directly to the delay variable in core.
+                        # If core delay variable is in ms, we need to provide ms.
+                        # item_weapon delay is in units. 240 units = 4000ms.
+                        # So we should convert item delay to ms first?
+                        # 240 * 1000 / 60 = 4000.
+                        # So item_delay_ms = delay * 1000 / 60.
+                        # mod_val = item_delay_ms - base_delay.
 
-                            gear_mods_str += f"    -- {slot}: {item_name} weapon stats (DMG: {dmg}, Delay: {delay} -> {item_delay_ms}ms)\n"
+                        item_delay_ms = int(delay * 1000 / 60)
+                        delay_offset = item_delay_ms - base_delay
 
-                            if slot == "main":
-                                gear_mods_str += f"    mob:addMod(xi.mod.MAIN_DMG_RATING, {fmt_arg(dmg)})\n"
-                                gear_mods_str += f"    mob:addMod(xi.mod.DELAY, {fmt_arg(delay_offset)})\n"
-                            elif slot == "sub":
-                                gear_mods_str += f"    mob:addMod(xi.mod.SUB_DMG_RATING, {fmt_arg(dmg)})\n"
-                            elif slot == "ranged":
-                                gear_mods_str += f"    mob:addMod(xi.mod.RANGED_DMG_RATING, {fmt_arg(dmg)})\n"
-                                gear_mods_str += f"    mob:addMod(xi.mod.RANGED_DELAY, {fmt_arg(delay_offset)})\n"
+                        gear_mods_str += f"    -- {slot}: {item_name} weapon stats (DMG: {dmg}, Delay: {delay} -> {item_delay_ms}ms)\n"
+
+                        if slot == "main":
+                            gear_mods_str += f"    mob:addMod(xi.mod.MAIN_DMG_RATING, {fmt_arg(dmg)}) -- main weapon dmg\n"
+                            gear_mods_str += f"    mob:addMod(xi.mod.DELAY, {fmt_arg(delay_offset)}) -- main weapon delay offset\n"
+                        elif slot == "sub":
+                            gear_mods_str += f"    mob:addMod(xi.mod.SUB_DMG_RATING, {fmt_arg(dmg)}) -- sub weapon dmg\n"
+                            # Note: Sub weapon delay typically doesn't apply separately
+                        elif slot == "ranged":
+                            gear_mods_str += f"    mob:addMod(xi.mod.RANGED_DMG_RATING, {fmt_arg(dmg)}) -- ranged weapon dmg\n"
+                            gear_mods_str += f"    mob:addMod(xi.mod.RANGED_DELAY, {fmt_arg(delay_offset)}) -- ranged weapon delay offset\n"
+
+            if look_parts:
+                gear_setlook = "\n"  # Blank line before
+                gear_setlook += "    -- Faux Gear Look\n"
+                gear_setlook += "    mob:setLook({ " + ", ".join(look_parts) + " })\n"
 
             if gear_mods_str:
                 gear_mods_str = (
@@ -3800,11 +4022,6 @@ class TrustEditor(tk.Tk):
         lua_content = f"""-----------------------------------
 -- Trust: {name}
 {job_line}-----------------------------------
-require('scripts/globals/trust')
-require('scripts/enum/slot')
-require('scripts/enum/magic')
-require('scripts/enum/mod')
-
 ---@type TSpellTrust
 local spellObject = {{}}
 
