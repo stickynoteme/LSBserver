@@ -2923,7 +2923,7 @@ class TrustEditor(tk.Tk):
                 return
             
             # Sanitize filename
-            safe_name = re.sub(r'[^a-zA-Z0-9_\-]', '_', name)
+            safe_name = re.sub(r'[^a-zA-Z0-9_-]', '_', name)
             gear_set_path = os.path.join(gear_sets_dir, f"{safe_name}.json")
             
             # Check if exists
@@ -3790,9 +3790,14 @@ class TrustEditor(tk.Tk):
                                     break
                             
                             if not exists:
-                                # Determine if dynamic (contains expressions)
-                                is_dynamic = any(op in mod_value for op in ["*", "/", "+", "-", "mob:", "math."])
-                                self.add_mod_row(mod_name, mod_value, dynamic=is_dynamic)
+                                # Determine if dynamic (contains expressions or function calls)
+                                # Look for operators, function calls, or method calls
+                                is_dynamic = (
+                                    any(op in mod_value for op in ["mob:", "math.", "target:"]) or
+                                    re.search(r'[*/%]', mod_value) or  # multiplication, division, modulo
+                                    re.search(r'\b\w+\(', mod_value)  # function calls
+                                )
+                                self.add_mod_row(mod_name, mod_value, locked=False, dynamic=is_dynamic)
                                 added_count += 1
                 
                 dialog.destroy()
