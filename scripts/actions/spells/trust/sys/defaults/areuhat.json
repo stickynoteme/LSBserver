@@ -17,6 +17,23 @@
       "reaction": "JA",
       "selector": "SPECIFIC",
       "sel_arg": "xi.ja.BERSERK"
+    },
+    {
+      "target": "PARTY",
+      "condition": "OR",
+      "or_conditions": [
+        {
+          "condition": "NOT_STATUS",
+          "cond_arg": "xi.effect.WARCRY"
+        },
+        {
+          "condition": "NOT_STATUS",
+          "cond_arg": "xi.effect.BLOOD_RAGE"
+        }
+      ],
+      "reaction": "JA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.ja.BLOOD_RAGE"
     }
   ],
   "tp_settings": {

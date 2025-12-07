@@ -18,21 +18,37 @@ EXCLUDED_MODS = {'EQUIPMENT_ONLY_RACE'}
 def extract_local_variables(content):
     """Extract local variable assignments from Lua content."""
     variables = {}
-    # Match patterns like: local kGrapeshot = 3198 or local healingMoveCooldown = math.random(3, 4)
-    local_pattern = r'local\s+(\w+)\s*=\s*(\d+)'
-    for match in re.finditer(local_pattern, content):
+    # Match patterns like: local kGrapeshot = 3198
+    simple_pattern = r'local\s+(\w+)\s*=\s*(\d+)\s*$'
+    for match in re.finditer(simple_pattern, content, re.MULTILINE):
         var_name = match.group(1)
         var_value = match.group(2)
-        variables[var_name] = var_value
+        variables[var_name] = {'value': var_value, 'is_expression': False}
+
+    # Match expression patterns like: local power = mob:getMainLvl() / 10
+    expr_pattern = r'local\s+(\w+)\s*=\s*([^\n]+mob:[^\n]+)'
+    for match in re.finditer(expr_pattern, content):
+        var_name = match.group(1)
+        var_expr = match.group(2).strip()
+        variables[var_name] = {'value': var_expr, 'is_expression': True}
+
     return variables
 
 
 def resolve_variable(value, variables):
-    """Resolve a variable reference to its value if possible."""
+    """Resolve a variable reference to its value if possible.
+    Returns (resolved_value, is_dynamic) tuple.
+    """
     value = value.strip()
     if value in variables:
-        return variables[value]
-    return value
+        var_info = variables[value]
+        if var_info['is_expression']:
+            # This is a dynamic expression - return the expression
+            return (var_info['value'], True)
+        else:
+            # Simple numeric value
+            return (var_info['value'], False)
+    return (value, False)
 
 
 def remove_lua_comments(content):
@@ -93,15 +109,36 @@ def parse_trust_lua(lua_path):
     for match in re.finditer(mod_pattern, content):
         mod_name = match.group(1)
         value = match.group(2).strip()
-        # Skip excluded mods and dynamic values (expressions with variables)
+        # Skip excluded mods
         if mod_name in EXCLUDED_MODS:
             continue  # Skip mods that can interfere with trust functionality
-        if not any(x in value for x in ['mob:', 'power', 'level', '/', '*', 'Lvl']):
-            # Resolve variable references
-            resolved_value = resolve_variable(value, local_vars)
-            data['mods'].append({'name': mod_name, 'value': resolved_value})
 
-    # Parse gambits: mob:addGambit(ai.t.TARGET, { ai.c.HPP_LT, 25 }, { ai.r.MA, ai.s.HIGHEST, xi.magic.spellFamily.CURE })
+        # Check if the value itself is a dynamic expression
+        is_direct_dynamic = any(x in value for x in ['mob:', '/', '*', 'getMainLvl', 'getMaster'])
+
+        if is_direct_dynamic:
+            # Direct dynamic expression in the mod call
+            data['mods'].append({
+                'name': mod_name,
+                'value': value,
+                'dynamic': True
+            })
+        elif value in local_vars:
+            # Value references a local variable
+            resolved_value, is_dynamic = resolve_variable(value, local_vars)
+            if is_dynamic:
+                data['mods'].append({
+                    'name': mod_name,
+                    'value': resolved_value,
+                    'dynamic': True
+                })
+            else:
+                data['mods'].append({'name': mod_name, 'value': resolved_value})
+        else:
+            # Static value
+            data['mods'].append({'name': mod_name, 'value': value})
+
+    # Parse standard gambits: mob:addGambit(ai.t.TARGET, { ai.c.HPP_LT, 25 }, { ai.r.MA, ai.s.HIGHEST, xi.magic.spellFamily.CURE })
     # Also handles optional cooldown parameter at the end (variable name or number)
     gambit_pattern = r'mob:addGambit\(ai\.t\.(\w+),\s*\{\s*ai\.c\.(\w+),\s*([^}]+)\}\s*,\s*\{\s*ai\.r\.(\w+),\s*ai\.s\.(\w+),\s*([^}]+)\}\s*(?:,\s*[\w]+)?\)'
     for match in re.finditer(gambit_pattern, content):
@@ -113,7 +150,7 @@ def parse_trust_lua(lua_path):
         sel_arg = match.group(6).strip()
 
         # Resolve variable references in selector argument
-        resolved_sel_arg = resolve_variable(sel_arg, local_vars)
+        resolved_sel_arg, _ = resolve_variable(sel_arg, local_vars)
 
         data['gambits'].append({
             'target': target,
@@ -123,6 +160,36 @@ def parse_trust_lua(lua_path):
             'selector': selector,
             'sel_arg': resolved_sel_arg
         })
+
+    # Parse OR condition gambits: mob:addGambit(ai.t.PARTY, { ai.l.OR(...) }, { ai.r.MA, ai.s.SPECIFIC, ... })
+    # These use ai.l.OR() with multiple conditions
+    or_gambit_pattern = r'mob:addGambit\(ai\.t\.(\w+),\s*\{\s*ai\.l\.OR\(([^)]+(?:\{[^}]+\}[^)]*)+)\)\s*\}\s*,\s*\{\s*ai\.r\.(\w+),\s*ai\.s\.(\w+),\s*([^}]+)\}\s*(?:,\s*[\w]+)?\)'
+    for match in re.finditer(or_gambit_pattern, content, re.DOTALL):
+        target = match.group(1)
+        or_conditions_raw = match.group(2)
+        reaction = match.group(3)
+        selector = match.group(4)
+        sel_arg = match.group(5).strip()
+
+        # Parse the individual OR conditions: { ai.c.STATUS, xi.effect.SLEEP_I }
+        or_cond_pattern = r'\{\s*ai\.c\.(\w+),\s*([^}]+)\}'
+        or_conditions = []
+        for or_match in re.finditer(or_cond_pattern, or_conditions_raw):
+            or_conditions.append({
+                'condition': or_match.group(1),
+                'cond_arg': or_match.group(2).strip()
+            })
+
+        if or_conditions:
+            resolved_sel_arg, _ = resolve_variable(sel_arg, local_vars)
+            data['gambits'].append({
+                'target': target,
+                'condition': 'OR',
+                'or_conditions': or_conditions,
+                'reaction': reaction,
+                'selector': selector,
+                'sel_arg': resolved_sel_arg
+            })
     
     # Parse TP settings: mob:setTrustTPSkillSettings(ai.tp.OPENER, ai.s.HIGHEST, 1000)
     tp_pattern = r'mob:setTrustTPSkillSettings\(ai\.tp\.(\w+),\s*ai\.s\.(\w+)(?:,\s*([^)]+))?\)'

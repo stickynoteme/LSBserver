@@ -1,6 +1,12 @@
 {
   "auto_attack": true,
-  "mods": [],
+  "mods": [
+    {
+      "name": "MACC",
+      "value": "mob:getMainLvl() / 10",
+      "dynamic": true
+    }
+  ],
   "gambits": [
     {
       "target": "TARGET",

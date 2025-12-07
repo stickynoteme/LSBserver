@@ -2,6 +2,14 @@
   "auto_attack": true,
   "mods": [
     {
+      "name": "MATT",
+      "value": "power"
+    },
+    {
+      "name": "MACC",
+      "value": "power"
+    },
+    {
       "name": "HASTE_MAGIC",
       "value": "1000"
     },

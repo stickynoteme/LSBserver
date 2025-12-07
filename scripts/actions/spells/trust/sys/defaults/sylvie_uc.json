@@ -2,6 +2,11 @@
   "auto_attack": false,
   "mods": [
     {
+      "name": "GEOMANCY_SKILL",
+      "value": "8 * mob:getMainLvl(",
+      "dynamic": true
+    },
+    {
       "name": "INDI_DURATION",
       "value": "180"
     },

@@ -57,6 +57,52 @@
       "reaction": "JA",
       "selector": "SPECIFIC",
       "sel_arg": "xi.ja.BERSERK"
+    },
+    {
+      "target": "PARTY",
+      "condition": "OR",
+      "or_conditions": [
+        {
+          "condition": "STATUS",
+          "cond_arg": "xi.effect.SLEEP_I"
+        },
+        {
+          "condition": "STATUS",
+          "cond_arg": "xi.effect.SLEEP_II"
+        },
+        {
+          "condition": "STATUS",
+          "cond_arg": "xi.effect.LULLABY"
+        }
+      ],
+      "reaction": "MA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.magic.spell.CURE"
+    },
+    {
+      "target": "TARGET",
+      "condition": "OR",
+      "or_conditions": [
+        {
+          "condition": "CASTING_MA",
+          "cond_arg": "0"
+        },
+        {
+          "condition": "READYING_JA",
+          "cond_arg": "0"
+        },
+        {
+          "condition": "READYING_MS",
+          "cond_arg": "0"
+        },
+        {
+          "condition": "READYING_WS",
+          "cond_arg": "0"
+        }
+      ],
+      "reaction": "JA",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.ja.SHIELD_BASH"
     }
   ],
   "tp_settings": {

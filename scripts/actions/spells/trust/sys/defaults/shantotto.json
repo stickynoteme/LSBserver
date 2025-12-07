@@ -2,6 +2,16 @@
   "auto_attack": false,
   "mods": [
     {
+      "name": "MATT",
+      "value": "mob:getMainLvl() / 10",
+      "dynamic": true
+    },
+    {
+      "name": "MACC",
+      "value": "mob:getMainLvl() / 10",
+      "dynamic": true
+    },
+    {
       "name": "HASTE_MAGIC",
       "value": "1000"
     }

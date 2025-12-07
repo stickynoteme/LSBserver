@@ -2938,7 +2938,7 @@ class TrustEditor(tk.Tk):
 
         self.mod_rows = []
 
-    def add_mod_row(self, mod_name="", value="", locked=False):
+    def add_mod_row(self, mod_name="", value="", locked=False, dynamic=False):
         row_frame = ttk.Frame(self.mods_scrollable_frame)
         row_frame.pack(fill=tk.X, pady=2)
 
@@ -2954,6 +2954,17 @@ class TrustEditor(tk.Tk):
         )
         lock_btn.pack(side=tk.LEFT, padx=(2, 5))
 
+        # Dynamic checkbox for level-based mods
+        dynamic_var = tk.BooleanVar(value=dynamic)
+        dynamic_btn = ttk.Checkbutton(
+            row_frame,
+            text="⚡",  # Dynamic/expression indicator
+            variable=dynamic_var,
+            style="Toolbutton",
+            width=2,
+        )
+        dynamic_btn.pack(side=tk.LEFT, padx=(0, 5))
+
         ttk.Label(row_frame, text="Mod:").pack(side=tk.LEFT)
         mod_frame, mod_var = self.create_list_picker(
             row_frame,
@@ -2966,7 +2977,9 @@ class TrustEditor(tk.Tk):
         mod_frame.pack(side=tk.LEFT, padx=5)
 
         ttk.Label(row_frame, text="Value:").pack(side=tk.LEFT)
-        val_entry = ttk.Entry(row_frame, width=5)
+        # Use wider entry for dynamic mods (expressions can be long)
+        val_width = 30 if dynamic else 8
+        val_entry = ttk.Entry(row_frame, width=val_width)
         val_entry.insert(0, str(value))
         val_entry.pack(side=tk.LEFT, padx=5)
 
@@ -2976,7 +2989,7 @@ class TrustEditor(tk.Tk):
             text="📄",  # Copy icon substitute
             width=2,
             command=lambda: self.add_mod_row(
-                mod_var.get(), val_entry.get(), locked_var.get()
+                mod_var.get(), val_entry.get(), locked_var.get(), dynamic_var.get()
             ),
         )
         dup_btn.pack(side=tk.LEFT, padx=2)
@@ -2986,11 +2999,11 @@ class TrustEditor(tk.Tk):
         )
         del_btn.pack(side=tk.LEFT, padx=2)
 
-        self.mod_rows.append((row_frame, mod_var, val_entry, locked_var))
+        self.mod_rows.append((row_frame, mod_var, val_entry, locked_var, dynamic_var))
 
     def remove_mod_row(self, row_frame):
-        for i, (frame, _, _, _) in enumerate(self.mod_rows):
-            if frame == row_frame:
+        for i, row_data in enumerate(self.mod_rows):
+            if row_data[0] == row_frame:
                 self.mod_rows.pop(i)
                 break
         row_frame.destroy()
@@ -3050,7 +3063,7 @@ class TrustEditor(tk.Tk):
         ).pack(pady=5)
         self.gambit_rows = []
 
-    def add_gambit_row(self, t="", c="", c_arg="", r="", s="", s_arg="", locked=False):
+    def add_gambit_row(self, t="", c="", c_arg="", r="", s="", s_arg="", locked=False, or_conditions=None):
         row_frame = ttk.Frame(self.gambits_scrollable_frame)
         row_frame.pack(fill=tk.X, pady=2)
 
@@ -3060,6 +3073,9 @@ class TrustEditor(tk.Tk):
             row_frame, text="🔒", variable=locked_var, style="Toolbutton", width=2
         )
         lock_btn.pack(side=tk.LEFT, padx=(2, 5))
+
+        # Store OR conditions if provided (for display and Lua generation)
+        or_conditions_var = or_conditions if or_conditions else None
 
         t_frame, t_var = self.create_list_picker(
             row_frame,
@@ -3144,7 +3160,7 @@ class TrustEditor(tk.Tk):
         del_btn.pack(side=tk.LEFT, padx=2)
 
         self.gambit_rows.append(
-            (row_frame, t_var, c_var, c_arg_e, r_var, s_var, s_arg_var, locked_var)
+            (row_frame, t_var, c_var, c_arg_e, r_var, s_var, s_arg_var, locked_var, or_conditions_var)
         )
 
     def remove_gambit_row(self, row_frame):
@@ -3911,7 +3927,7 @@ class TrustEditor(tk.Tk):
                 row["name_var"].set(display_name)
 
         for m in data.get("mods", []):
-            self.add_mod_row(m.get("name", ""), m.get("value", ""))
+            self.add_mod_row(m.get("name", ""), m.get("value", ""), dynamic=m.get("dynamic", False))
 
         for g in data.get("gambits", []):
             self.add_gambit_row(
@@ -3921,6 +3937,7 @@ class TrustEditor(tk.Tk):
                 g.get("reaction", ""),
                 g.get("selector", ""),
                 g.get("sel_arg", ""),
+                or_conditions=g.get("or_conditions"),
             )
 
         tp = data.get("tp_settings", {})
@@ -4045,23 +4062,16 @@ class TrustEditor(tk.Tk):
         # Try to load user data first
         json_path = os.path.join(USERDATA_DIR, base_name + ".json")
         if os.path.exists(json_path):
-            print(f"[DEBUG] Loading userdata: {json_path}")
             with open(json_path, "r") as f:
                 data = json.load(f)
-                print(f"[DEBUG] Loaded data: gambits={len(data.get('gambits', []))}, mods={len(data.get('mods', []))}")
                 self.populate_from_data(data)
         else:
             # If no user data, try to load defaults
             default_path = os.path.join(DEFAULTS_DIR, base_name + ".json")
-            print(f"[DEBUG] Looking for defaults: {default_path}")
-            print(f"[DEBUG] Exists: {os.path.exists(default_path)}")
             if os.path.exists(default_path):
                 with open(default_path, "r") as f:
                     data = json.load(f)
-                    print(f"[DEBUG] Loaded data: gambits={len(data.get('gambits', []))}, mods={len(data.get('mods', []))}")
                     self.populate_from_data(data)
-            else:
-                print(f"[DEBUG] No defaults found for {base_name}")
             # No existing user data or defaults found, start with blank form
 
     def save_trust(self):
@@ -4090,9 +4100,13 @@ class TrustEditor(tk.Tk):
             "custom_code": self.custom_code.get("1.0", tk.END).strip(),
         }
 
-        for _, name_var, val_e in self.mod_rows:
+        for row_data in self.mod_rows:
+            _, name_var, val_e, _, dynamic_var = row_data
             if name_var.get():
-                data["mods"].append({"name": name_var.get(), "value": val_e.get()})
+                mod_entry = {"name": name_var.get(), "value": val_e.get()}
+                if dynamic_var.get():
+                    mod_entry["dynamic"] = True
+                data["mods"].append(mod_entry)
 
         for row in self.gear_rows:
             if row["id_var"].get():
@@ -4108,18 +4122,20 @@ class TrustEditor(tk.Tk):
                     }
                 )
 
-        for _, t_var, c_var, c_arg_e, r_var, s_var, s_arg_var in self.gambit_rows:
+        for row_data in self.gambit_rows:
+            _, t_var, c_var, c_arg_e, r_var, s_var, s_arg_var, _, or_conditions = row_data
             if t_var.get():
-                data["gambits"].append(
-                    {
-                        "target": t_var.get(),
-                        "condition": c_var.get(),
-                        "cond_arg": c_arg_e.get(),
-                        "reaction": r_var.get(),
-                        "selector": s_var.get(),
-                        "sel_arg": s_arg_var.get(),
-                    }
-                )
+                gambit_entry = {
+                    "target": t_var.get(),
+                    "condition": c_var.get(),
+                    "cond_arg": c_arg_e.get(),
+                    "reaction": r_var.get(),
+                    "selector": s_var.get(),
+                    "sel_arg": s_arg_var.get(),
+                }
+                if or_conditions:
+                    gambit_entry["or_conditions"] = or_conditions
+                data["gambits"].append(gambit_entry)
 
         for _, e_var, p_e, d_e in self.effect_rows:
             if e_var.get():
@@ -4257,15 +4273,20 @@ class TrustEditor(tk.Tk):
 
         # Aggregate mods
         mod_totals = {}
+        dynamic_mods = []  # List of (name, expression) for dynamic/level-based mods
 
         # 1. Add manual mods
         for m in data["mods"]:
             name = m["name"]
-            try:
-                val = int(m["value"])
-                mod_totals[name] = mod_totals.get(name, 0) + val
-            except ValueError:
-                pass
+            if m.get("dynamic"):
+                # Dynamic mod - store expression to output as-is
+                dynamic_mods.append((name, m["value"]))
+            else:
+                try:
+                    val = int(m["value"])
+                    mod_totals[name] = mod_totals.get(name, 0) + val
+                except ValueError:
+                    pass
 
         # 2. Add gear mods
         weapon_bonus = 0
@@ -4353,6 +4374,13 @@ class TrustEditor(tk.Tk):
             if val != 0:
                 gear_mods_str += f"    mob:addMod(xi.mod.{name}, {val})\n"
 
+        # Add dynamic/level-based mods
+        dynamic_mods_str = ""
+        if dynamic_mods:
+            dynamic_mods_str = "\n    -- Dynamic/Level-based Mods\n"
+            for name, expr in dynamic_mods:
+                dynamic_mods_str += f"    mob:addMod(xi.mod.{name}, {expr})\n"
+
         gear_setlook = ""  # Visuals removed
 
         if gear_setlook:
@@ -4363,11 +4391,21 @@ class TrustEditor(tk.Tk):
 
         gambits_str = ""
         for g in data["gambits"]:
-            # mob:addGambit(ai.t.TARGET, { ai.c.HPP_LT, 25 }, { ai.r.MA, ai.s.HIGHEST, xi.magic.spellFamily.CURE })
             t = f"ai.t.{g['target']}"
-            c = f"{{ ai.c.{g['condition']}, {fmt_arg(g['cond_arg'])} }}"
             r = f"{{ ai.r.{g['reaction']}, ai.s.{g['selector']}, {fmt_arg(g['sel_arg'])} }}"
-            gambits_str += f"    mob:addGambit({t}, {c}, {r})\n"
+
+            if g.get("or_conditions"):
+                # OR gambit: mob:addGambit(ai.t.PARTY, { ai.l.OR(...) }, { ai.r.MA, ... })
+                or_parts = []
+                for oc in g["or_conditions"]:
+                    or_parts.append(f"{{ ai.c.{oc['condition']}, {fmt_arg(oc['cond_arg'])} }}")
+                or_str = ",\n                                ".join(or_parts)
+                c = f"{{ ai.l.OR(\n                                {or_str})\n                                }}"
+                gambits_str += f"    mob:addGambit({t}, {c}, {r})\n"
+            else:
+                # Standard gambit: mob:addGambit(ai.t.TARGET, { ai.c.HPP_LT, 25 }, { ai.r.MA, ai.s.HIGHEST, ... })
+                c = f"{{ ai.c.{g['condition']}, {fmt_arg(g['cond_arg'])} }}"
+                gambits_str += f"    mob:addGambit({t}, {c}, {r})\n"
 
         tp_str = ""
         tp_settings = data.get("tp_settings", {})
@@ -4402,6 +4440,7 @@ end
 spellObject.onMobSpawn = function(mob)
     mob:setAutoAttackEnabled({str(data['auto_attack']).lower()})\
 {job_change_str}\
+{dynamic_mods_str}\
 {gear_mods_str}\
 {gambits_str}\
 {tp_str}\
@@ -4494,7 +4533,7 @@ return spellObject
             for row_data in list(self.mod_rows):
                 self.remove_mod_row(row_data[0])
             for m in data.get("mods", []):
-                self.add_mod_row(m.get("name", ""), m.get("value", ""))
+                self.add_mod_row(m.get("name", ""), m.get("value", ""), dynamic=m.get("dynamic", False))
             if hasattr(self, "refresh_stats_preview"):
                 self.refresh_stats_preview()
 
@@ -4509,6 +4548,7 @@ return spellObject
                     g.get("reaction", ""),
                     g.get("selector", ""),
                     g.get("sel_arg", ""),
+                    or_conditions=g.get("or_conditions"),
                 )
 
         elif tab_index == 3:  # TP

@@ -89,6 +89,31 @@
       "reaction": "MA",
       "selector": "SPECIFIC",
       "sel_arg": "xi.magic.spell.VIRUNA"
+    },
+    {
+      "target": "PARTY",
+      "condition": "OR",
+      "or_conditions": [
+        {
+          "condition": "STATUS",
+          "cond_arg": "xi.effect.CURSE_I"
+        },
+        {
+          "condition": "STATUS",
+          "cond_arg": "xi.effect.CURSE_II"
+        },
+        {
+          "condition": "STATUS",
+          "cond_arg": "xi.effect.BANE"
+        },
+        {
+          "condition": "STATUS",
+          "cond_arg": "xi.effect.DOOM"
+        }
+      ],
+      "reaction": "MS",
+      "selector": "SPECIFIC",
+      "sel_arg": "xi.magic.spell.CURSNA"
     }
   ],
   "tp_settings": {
