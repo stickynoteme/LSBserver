@@ -3332,14 +3332,14 @@ class TrustEditor(tk.Tk):
         gear_frame.grid(row=0, column=0, sticky="nsew", padx=(0, 5))
         ttk.Label(
             gear_frame,
-            text="Assign items to apply stats from SQL. Use 🔍 for slot-filtered lists.",
+            text="Use 🔍 for slot-filtered lists.",
         ).grid(row=0, column=0, columnspan=2, sticky="w")
         
         # Gear set buttons
         gear_buttons_frame = ttk.Frame(gear_frame)
-        gear_buttons_frame.grid(row=0, column=2, columnspan=2, sticky="e")
-        ttk.Button(gear_buttons_frame, text="💾 Save Gear Set", command=self.save_gear_set, width=15).pack(side=tk.LEFT, padx=2)
-        ttk.Button(gear_buttons_frame, text="📂 Load Gear Set", command=self.load_gear_set, width=15).pack(side=tk.LEFT, padx=2)
+        gear_buttons_frame.grid(row=0, column=0, columnspan=2, sticky="e")
+        ttk.Button(gear_buttons_frame, text="💾", command=self.save_gear_set, width=5).pack(side=tk.LEFT, padx=2)
+        ttk.Button(gear_buttons_frame, text="📂", command=self.load_gear_set, width=5).pack(side=tk.LEFT, padx=2)
         
         self.create_gear_rows(gear_frame)
 
