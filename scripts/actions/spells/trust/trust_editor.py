@@ -571,6 +571,149 @@ JOB_BASE_DELAY = {
     # Others are 4000
 }
 
+GAMBIT_PALETTE = {
+    "Healing": [
+        {
+            "name": "Emergency Cure (Self < 30%)",
+            "desc": "Casts the highest available Cure spell on self when HP is critically low (below 30%).",
+            "t": "SELF",
+            "c": "HPP_LT",
+            "c_arg": "30",
+            "r": "MA",
+            "s": "HIGHEST",
+            "s_arg": "xi.magic.spellFamily.CURE",
+        },
+        {
+            "name": "Party Cure (< 75%)",
+            "desc": "Casts highest Cure on any party member below 75% HP.",
+            "t": "PARTY",
+            "c": "HPP_LT",
+            "c_arg": "75",
+            "r": "MA",
+            "s": "HIGHEST",
+            "s_arg": "xi.magic.spellFamily.CURE",
+        },
+        {
+            "name": "Curaga (Party Multi < 75%)",
+            "desc": "Casts Curaga if multiple party members are below 75% HP (Requires PARTY_MULTI logic).",
+            "t": "PARTY_MULTI",
+            "c": "HPP_LT",
+            "c_arg": "75",
+            "r": "MA",
+            "s": "HIGHEST",
+            "s_arg": "xi.magic.spellFamily.CURAGA",
+        },
+        {
+            "name": "Erase/Na Status",
+            "desc": "Removes a specific status (e.g., Paralysis) from a party member using Paralyna.",
+            "t": "PARTY",
+            "c": "STATUS",
+            "c_arg": "xi.effect.PARALYSIS",
+            "r": "MA",
+            "s": "SPECIFIC",
+            "s_arg": "xi.magic.spellFamily.PARALYNA",
+        },
+    ],
+    "Combat": [
+        {
+            "name": "WS at 1000 TP",
+            "desc": "Uses highest WS as soon as 1000 TP is reached.",
+            "t": "TARGET",
+            "c": "TP_GTE",
+            "c_arg": "1000",
+            "r": "WS",
+            "s": "HIGHEST",
+            "s_arg": "0",
+        },
+        {
+            "name": "Magic Burst (Any)",
+            "desc": "Attempts to Magic Burst with the appropriate element if the window is open.",
+            "t": "TARGET",
+            "c": "MB_AVAILABLE",
+            "c_arg": "0",
+            "r": "MA",
+            "s": "MB_ELEMENT",
+            "s_arg": "xi.magic.spellFamily.NONE",
+        },
+        {
+            "name": "Provoke (Lost Hate)",
+            "desc": "Uses Provoke if the trust does not have top enmity.",
+            "t": "TARGET",
+            "c": "NOT_HAS_TOP_ENMITY",
+            "c_arg": "0",
+            "r": "JA",
+            "s": "SPECIFIC",
+            "s_arg": "xi.ja.PROVOKE",
+        },
+        {
+            "name": "Skillchain Opener",
+            "desc": "Attempts to open a skillchain (example logic).",
+            "t": "TARGET",
+            "c": "SC_AVAILABLE",
+            "c_arg": "0",
+            "r": "WS",
+            "s": "HIGHEST",
+            "s_arg": "0",
+        },
+    ],
+    "Buffs & Support": [
+        {
+            "name": "Haste Party",
+            "desc": "Keep Haste on party members who don't have it.",
+            "t": "PARTY",
+            "c": "NOT_STATUS",
+            "c_arg": "xi.effect.HASTE",
+            "r": "MA",
+            "s": "SPECIFIC",
+            "s_arg": "xi.magic.spellFamily.HASTE",
+        },
+        {
+            "name": "Refresh Caster",
+            "desc": "Cast Refresh on a Caster type party member if MP < 80%.",
+            "t": "CASTER",
+            "c": "MPP_LT",
+            "c_arg": "80",
+            "r": "MA",
+            "s": "SPECIFIC",
+            "s_arg": "xi.magic.spellFamily.REFRESH",
+        },
+        {
+            "name": "Self Phalanx",
+            "desc": "Keep Phalanx up on self.",
+            "t": "SELF",
+            "c": "NOT_STATUS",
+            "c_arg": "xi.effect.PHALANX",
+            "r": "MA",
+            "s": "SPECIFIC",
+            "s_arg": "xi.magic.spellFamily.PHALANX",
+        },
+    ],
+    "Dynamic / Advanced": [
+        {
+            "name": "Dynamic HP Check",
+            "desc": "Example of a dynamic condition argument using Lua math.",
+            "t": "SELF",
+            "c": "HPP_LT",
+            "c_arg": "25 + 5",
+            "r": "MA",
+            "s": "HIGHEST",
+            "s_arg": "xi.magic.spellFamily.CURE",
+            "dynamic": True,
+        },
+        {
+            "name": "Distance Check (< 10)",
+            "desc": "Uses a custom Lua expression to check distance. (Requires core support for expression eval in cond_arg or custom logic).",
+            "t": "TARGET",
+            "c": "ALWAYS",
+            "c_arg": "target:getDistance(mob) < 10",
+            "r": "JA",
+            "s": "SPECIFIC",
+            "s_arg": "xi.ja.PROVOKE",
+            "dynamic": True,
+        },
+    ],
+}
+
 JOB_TEMPLATES = {
     "PLD": {
         "auto_attack": True,
@@ -3012,24 +3155,31 @@ class TrustEditor(tk.Tk):
         # Headers
         header_frame = ttk.Frame(self.gambits_frame)
         header_frame.pack(fill=tk.X, padx=10, pady=5)
-        self.create_help_label(header_frame, "Target", "TARGET", width=15).pack(
+
+        # Spacer for Lock/Dynamic buttons
+        ttk.Label(header_frame, text="", width=6).pack(side=tk.LEFT)
+
+        self.create_help_label(header_frame, "Target", "TARGET", width=12).pack(
             side=tk.LEFT
         )
-        self.create_help_label(header_frame, "Condition", "CONDITION", width=20).pack(
+        self.create_help_label(header_frame, "Condition", "CONDITION", width=16).pack(
             side=tk.LEFT
         )
         self.create_help_label(header_frame, "Cond. Arg", "COND_ARG", width=10).pack(
             side=tk.LEFT
         )
-        self.create_help_label(header_frame, "Reaction", "REACTION", width=15).pack(
+        self.create_help_label(header_frame, "Reaction", "REACTION", width=12).pack(
             side=tk.LEFT
         )
-        self.create_help_label(header_frame, "Selector", "SELECTOR", width=20).pack(
+        self.create_help_label(header_frame, "Selector", "SELECTOR", width=16).pack(
             side=tk.LEFT
         )
         self.create_help_label(
-            header_frame, "Sel. Arg (Spell/Family/ID)", "SEL_ARG", width=30
+            header_frame, "Sel. Arg (Spell/Family/ID)", "SEL_ARG", width=24
         ).pack(side=tk.LEFT)
+        self.create_help_label(header_frame, "Dyn", "DYNAMIC_GAMBITS", width=5).pack(
+            side=tk.LEFT
+        )
 
         # List
         self.gambits_list_frame = ttk.Frame(self.gambits_frame)
@@ -3058,12 +3208,149 @@ class TrustEditor(tk.Tk):
         self.gambits_canvas.pack(side="left", fill="both", expand=True)
         self.gambits_scrollbar.pack(side="right", fill="y")
 
+        button_frame = ttk.Frame(self.gambits_frame)
+        button_frame.pack(pady=5)
+
+        ttk.Button(button_frame, text="Add Gambit", command=self.add_gambit_row).pack(
+            side=tk.LEFT, padx=(0, 5)
+        )
+
         ttk.Button(
-            self.gambits_frame, text="Add Gambit", command=self.add_gambit_row
-        ).pack(pady=5)
+            button_frame, text="📖 Palette / Examples", command=self.open_gambit_palette
+        ).pack(side=tk.LEFT, padx=5)
+
         self.gambit_rows = []
 
-    def add_gambit_row(self, t="", c="", c_arg="", r="", s="", s_arg="", locked=False, or_conditions=None):
+    def open_gambit_palette(self):
+        """Open a window with gambit templates and examples."""
+        win = tk.Toplevel(self)
+        win.title("Gambit Palette & Examples")
+        win.geometry("800x600")
+
+        # Configure grid for split view
+        win.columnconfigure(0, weight=1)
+        win.columnconfigure(1, weight=2)
+        win.rowconfigure(0, weight=1)
+
+        # Left: Treeview for Categories
+        left_frame = ttk.Frame(win, padding=5)
+        left_frame.grid(row=0, column=0, sticky="nsew")
+
+        ttk.Label(left_frame, text="Categories").pack(anchor="w")
+
+        tree = ttk.Treeview(left_frame, selectmode="browse")
+        tree.pack(fill=tk.BOTH, expand=True)
+
+        # Populate Tree
+        for category, items in GAMBIT_PALETTE.items():
+            cat_id = tree.insert("", "end", text=category, open=True)
+            for idx, item in enumerate(items):
+                tree.insert(cat_id, "end", text=item["name"], values=(category, idx))
+
+        # Right: Details & Preview
+        right_frame = ttk.Frame(win, padding=10)
+        right_frame.grid(row=0, column=1, sticky="nsew")
+
+        lbl_name = ttk.Label(
+            right_frame, text="Select an item...", font=("TkDefaultFont", 12, "bold")
+        )
+        lbl_name.pack(anchor="w", pady=(0, 10))
+
+        lbl_desc = ttk.Label(right_frame, text="", wraplength=400, justify="left")
+        lbl_desc.pack(anchor="w", fill=tk.X)
+
+        desc_sep = ttk.Separator(right_frame, orient="horizontal")
+        desc_sep.pack(fill=tk.X, pady=15)
+
+        # Preview Frame
+        preview_frame = ttk.LabelFrame(right_frame, text="Values Preview", padding=10)
+        preview_frame.pack(fill=tk.X, anchor="n")
+
+        preview_labels = {}
+        for row, key in enumerate(
+            ["Target", "Condition", "Cond. Arg", "Reaction", "Selector", "Sel. Arg"]
+        ):
+            ttk.Label(preview_frame, text=f"{key}:").grid(
+                row=row, column=0, sticky="e", padx=5, pady=2
+            )
+            lbl = ttk.Label(preview_frame, text="-", font=("TkFixedFont", 10))
+            lbl.grid(row=row, column=1, sticky="w", padx=5, pady=2)
+            preview_labels[key] = lbl
+
+        # Helper to update inputs
+        selected_item_data = {}
+
+        def on_select(event):
+            selection = tree.selection()
+            if not selection:
+                return
+
+            item_id = selection[0]
+            values = tree.item(item_id, "values")
+
+            if not values:  # Category selected
+                return
+
+            cat, idx = values
+            idx = int(idx)
+            data = GAMBIT_PALETTE[cat][idx]
+            selected_item_data.clear()
+            selected_item_data.update(data)
+
+            lbl_name.configure(
+                text=data["name"] + (" (⚡)" if data.get("dynamic") else "")
+            )
+            lbl_desc.configure(text=data.get("desc", ""))
+
+            # Update preview
+            preview_labels["Target"].configure(text=data.get("t", ""))
+            preview_labels["Condition"].configure(text=data.get("c", ""))
+            preview_labels["Cond. Arg"].configure(text=data.get("c_arg", ""))
+            preview_labels["Reaction"].configure(text=data.get("r", ""))
+            preview_labels["Selector"].configure(text=data.get("s", ""))
+            preview_labels["Sel. Arg"].configure(text=data.get("s_arg", ""))
+
+        tree.bind("<<TreeviewSelect>>", on_select)
+
+        # Apply Button
+        def apply_selection():
+            if not selected_item_data:
+                return
+
+            self.add_gambit_row(
+                t=selected_item_data.get("t", ""),
+                c=selected_item_data.get("c", ""),
+                c_arg=selected_item_data.get("c_arg", ""),
+                r=selected_item_data.get("r", ""),
+                s=selected_item_data.get("s", ""),
+                s_arg=selected_item_data.get("s_arg", ""),
+                dynamic=selected_item_data.get("dynamic", False),
+            )
+            # Optional: close window? OR stay open for more?
+            # win.destroy()
+
+        btn_frame = ttk.Frame(right_frame)
+        btn_frame.pack(side=tk.BOTTOM, fill=tk.X, pady=10)
+
+        ttk.Button(btn_frame, text="Insert into Editor", command=apply_selection).pack(
+            side=tk.RIGHT
+        )
+        ttk.Button(btn_frame, text="Close", command=win.destroy).pack(
+            side=tk.RIGHT, padx=5
+        )
+
+    def add_gambit_row(
+        self,
+        t="",
+        c="",
+        c_arg="",
+        r="",
+        s="",
+        s_arg="",
+        locked=False,
+        dynamic=False,
+        or_conditions=None,
+    ):
         row_frame = ttk.Frame(self.gambits_scrollable_frame)
         row_frame.pack(fill=tk.X, pady=2)
 
@@ -3072,11 +3359,19 @@ class TrustEditor(tk.Tk):
         lock_btn = ttk.Checkbutton(
             row_frame, text="🔒", variable=locked_var, style="Toolbutton", width=2
         )
-        lock_btn.pack(side=tk.LEFT, padx=(2, 5))
+        lock_btn.pack(side=tk.LEFT, padx=(2, 0))
+
+        # Dynamic Button
+        dynamic_var = tk.BooleanVar(value=dynamic)
+        dyn_btn = ttk.Checkbutton(
+            row_frame, text="⚡", variable=dynamic_var, style="Toolbutton", width=2
+        )
+        dyn_btn.pack(side=tk.LEFT, padx=(0, 5))
 
         # Store OR conditions if provided (for display and Lua generation)
         or_conditions_var = or_conditions if or_conditions else None
 
+        # Increase width slightly to match new headers
         t_frame, t_var = self.create_list_picker(
             row_frame,
             SORTED_AI_TARGETS,
@@ -3097,9 +3392,11 @@ class TrustEditor(tk.Tk):
         )
         c_var.set(c)
         c_frame.pack(side=tk.LEFT, padx=2)
+
         c_arg_e = ttk.Entry(row_frame, width=8)
         c_arg_e.insert(0, str(c_arg))
         c_arg_e.pack(side=tk.LEFT, padx=2)
+
         r_frame, r_var = self.create_list_picker(
             row_frame,
             SORTED_AI_REACTIONS,
@@ -3147,6 +3444,7 @@ class TrustEditor(tk.Tk):
                 s_var.get(),
                 s_arg_var.get(),
                 locked_var.get(),
+                dynamic_var.get(),
             ),
         )
         dup_btn.pack(side=tk.LEFT, padx=2)
@@ -3160,7 +3458,18 @@ class TrustEditor(tk.Tk):
         del_btn.pack(side=tk.LEFT, padx=2)
 
         self.gambit_rows.append(
-            (row_frame, t_var, c_var, c_arg_e, r_var, s_var, s_arg_var, locked_var, or_conditions_var)
+            (
+                row_frame,
+                t_var,
+                c_var,
+                c_arg_e,
+                r_var,
+                s_var,
+                s_arg_var,
+                locked_var,
+                or_conditions_var,
+                dynamic_var,
+            )
         )
 
     def remove_gambit_row(self, row_frame):
@@ -3750,9 +4059,16 @@ class TrustEditor(tk.Tk):
                 items.append(
                     {
                         "name": f"{k} ({AI_CONDITIONS[k]})",
-                        "info": f"{k}\nValue: {AI_CONDITIONS[k]}\nCondition: {desc}\nArg: {arg}",
+                        "info": f"Provide an explicit ID for the target entity to use as an argument.",
                     }
                 )
+        elif category == "DYNAMIC_GAMBITS":
+            items.append(
+                {
+                    "name": "Dynamic Gambits (⚡)",
+                    "info": "Toggle the ⚡ button to enable Dynamic Mode for a gambit row. This signals that the gambit uses custom Lua logic or advanced expressions in its arguments, preventing the editor from trying to force them into standard enum format. Use this for complex conditions or selectors.",
+                }
+            )
         elif category == "COND_ARG":
             items.append(
                 {
@@ -3927,7 +4243,9 @@ class TrustEditor(tk.Tk):
                 row["name_var"].set(display_name)
 
         for m in data.get("mods", []):
-            self.add_mod_row(m.get("name", ""), m.get("value", ""), dynamic=m.get("dynamic", False))
+            self.add_mod_row(
+                m.get("name", ""), m.get("value", ""), dynamic=m.get("dynamic", False)
+            )
 
         for g in data.get("gambits", []):
             self.add_gambit_row(
@@ -3938,6 +4256,7 @@ class TrustEditor(tk.Tk):
                 g.get("selector", ""),
                 g.get("sel_arg", ""),
                 or_conditions=g.get("or_conditions"),
+                dynamic=g.get("dynamic", False),
             )
 
         tp = data.get("tp_settings", {})
@@ -4123,7 +4442,18 @@ class TrustEditor(tk.Tk):
                 )
 
         for row_data in self.gambit_rows:
-            _, t_var, c_var, c_arg_e, r_var, s_var, s_arg_var, _, or_conditions = row_data
+            (
+                _,
+                t_var,
+                c_var,
+                c_arg_e,
+                r_var,
+                s_var,
+                s_arg_var,
+                _,
+                or_conditions,
+                dynamic_var,
+            ) = row_data
             if t_var.get():
                 gambit_entry = {
                     "target": t_var.get(),
@@ -4135,6 +4465,8 @@ class TrustEditor(tk.Tk):
                 }
                 if or_conditions:
                     gambit_entry["or_conditions"] = or_conditions
+                if dynamic_var.get():
+                    gambit_entry["dynamic"] = True
                 data["gambits"].append(gambit_entry)
 
         for _, e_var, p_e, d_e in self.effect_rows:
@@ -4398,7 +4730,9 @@ class TrustEditor(tk.Tk):
                 # OR gambit: mob:addGambit(ai.t.PARTY, { ai.l.OR(...) }, { ai.r.MA, ... })
                 or_parts = []
                 for oc in g["or_conditions"]:
-                    or_parts.append(f"{{ ai.c.{oc['condition']}, {fmt_arg(oc['cond_arg'])} }}")
+                    or_parts.append(
+                        f"{{ ai.c.{oc['condition']}, {fmt_arg(oc['cond_arg'])} }}"
+                    )
                 or_str = ",\n                                ".join(or_parts)
                 c = f"{{ ai.l.OR(\n                                {or_str})\n                                }}"
                 gambits_str += f"    mob:addGambit({t}, {c}, {r})\n"
@@ -4533,7 +4867,11 @@ return spellObject
             for row_data in list(self.mod_rows):
                 self.remove_mod_row(row_data[0])
             for m in data.get("mods", []):
-                self.add_mod_row(m.get("name", ""), m.get("value", ""), dynamic=m.get("dynamic", False))
+                self.add_mod_row(
+                    m.get("name", ""),
+                    m.get("value", ""),
+                    dynamic=m.get("dynamic", False),
+                )
             if hasattr(self, "refresh_stats_preview"):
                 self.refresh_stats_preview()
 
