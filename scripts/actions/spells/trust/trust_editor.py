@@ -2291,6 +2291,7 @@ class TrustEditor(tk.Tk):
                                 continue  # Check this ID
 
                 # Weapon filtering logic
+                selected_weapon = local_weapon_var.get()
                 if filter_by_weapon and selected_weapon != "All":
                     try:
                         item_id_match = re.search(r"\[(\d+)\]$", v)
@@ -3590,21 +3591,27 @@ class TrustEditor(tk.Tk):
             )
             lbl_desc.configure(text=data.get("desc", ""))
 
-            # Update preview
-            preview_labels["Target"].configure(text=data.get("t", ""))
-            preview_labels["Condition"].configure(text=data.get("c", ""))
-            preview_labels["Arg"].configure(text=data.get("c_arg", ""))
-            preview_labels["Reaction"].configure(text=data.get("r", ""))
-            preview_labels["Selector"].configure(text=data.get("s", ""))
-            preview_labels["Arg"].configure(text=data.get("s_arg", ""))  # This might need adjustment
-            
-            # Fix: Map the correct preview label keys
+            # Update preview - keys from preview_rows match the split()[1] values
+            # "🎯 Target" -> key is "Target"
+            # "💭 Condition Arg" -> key is "Condition" (split on space, take second word)
+            # "📝 Selector Arg" -> key is "Selector" (split on space, take second word)
             preview_labels["Target"].configure(text=data.get("t", "-"))
             preview_labels["Condition"].configure(text=data.get("c", "-"))
-            list(preview_labels.values())[2].configure(text=data.get("c_arg", "-"))  # Condition Arg
+            preview_labels["Condition"].configure(text=data.get("c_arg", "-"))  # This should be Condition Arg but key is just "Condition"
             preview_labels["Reaction"].configure(text=data.get("r", "-"))
             preview_labels["Selector"].configure(text=data.get("s", "-"))
-            list(preview_labels.values())[5].configure(text=data.get("s_arg", "-"))  # Selector Arg
+            preview_labels["Selector"].configure(text=data.get("s_arg", "-"))  # This should be Selector Arg but key is just "Selector"
+            
+            # Actually, we need to fix the key extraction. Let me use proper keys
+            # The keys extracted are: Target, Condition, Condition (from "Condition Arg"), Reaction, Selector, Selector (from "Selector Arg")
+            # This creates a collision. Let's use unique keys
+            all_labels = list(preview_labels.values())
+            all_labels[0].configure(text=data.get("t", "-"))      # Target
+            all_labels[1].configure(text=data.get("c", "-"))      # Condition
+            all_labels[2].configure(text=data.get("c_arg", "-"))  # Condition Arg
+            all_labels[3].configure(text=data.get("r", "-"))      # Reaction
+            all_labels[4].configure(text=data.get("s", "-"))      # Selector
+            all_labels[5].configure(text=data.get("s_arg", "-"))  # Selector Arg
             
             # Update explanation
             explain_text.config(state="normal")
@@ -5095,7 +5102,7 @@ end
 
 return spellObject
 """
-        with open(os.path.join(CURRENT_DIR, trust_name), "w") as f:
+        with open(os.path.join(CURRENT_DIR, filename), "w") as f:
             f.write(lua_content)
 
     def restore_action(self):
