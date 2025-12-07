@@ -1937,6 +1937,194 @@ LISTENER_TEMPLATES = {
     },
 }
 
+LISTENER_PALETTE = {
+    "Messages - Special Moves": [
+        {"name": "Special Move Message", "desc": "Display message when using specific weaponskill", "event": "WEAPONSKILL_USE", "tag": "SPECIAL_MOVE_MSG", "body": [
+            "if wsid == 3263 then -- Bear Killer (example)",
+            "    xi.trust.message(mobArg, xi.trust.messageOffset.SPECIAL_MOVE_1)",
+            "end"
+        ]},
+        {"name": "WS Message (Generic)", "desc": "Display message on any weaponskill use", "event": "WEAPONSKILL_USE", "tag": "WS_MSG", "body": [
+            "-- Display message when using weaponskill",
+            "xi.trust.message(mobArg, xi.trust.messageOffset.SPECIAL_MOVE_1)"
+        ]},
+        {"name": "Ability Message", "desc": "Display message when using specific ability", "event": "ABILITY_USE", "tag": "ABILITY_MSG", "body": [
+            "if abilityId == xi.ja.PROVOKE then",
+            "    xi.trust.message(mobArg, xi.trust.messageOffset.SPECIAL_MOVE_1)",
+            "end"
+        ]},
+    ],
+    "Damage Response - Take Damage": [
+        {"name": "Elemental Barspell on Damage", "desc": "Cast appropriate Barspell when taking elemental damage (Karaha-Baruha)", "event": "TAKE_DAMAGE", "tag": "BAR_ELEM_DMG", "body": [
+            "local elemTable = {",
+            "    [xi.damageType.FIRE] = { effect = xi.effect.BARFIRE, spell = 66 },",
+            "    [xi.damageType.ICE] = { effect = xi.effect.BARBLIZZARD, spell = 67 },",
+            "    [xi.damageType.WIND] = { effect = xi.effect.BARAERO, spell = 68 },",
+            "    [xi.damageType.EARTH] = { effect = xi.effect.BARSTONE, spell = 69 },",
+            "    [xi.damageType.THUNDER] = { effect = xi.effect.BARTHUNDER, spell = 70 },",
+            "    [xi.damageType.WATER] = { effect = xi.effect.BARWATER, spell = 71 },",
+            "}",
+            "local elemData = elemTable[element]",
+            "if elemData and not mobArg:getStatusEffect(elemData.effect) then",
+            "    mobArg:timer(30, function(mobBar)",
+            "        mobBar:castSpell(elemData.spell)",
+            "    end)",
+            "end"
+        ]},
+        {"name": "Log Damage Taken", "desc": "Print damage taken information for debugging", "event": "TAKE_DAMAGE", "tag": "LOG_DMG_TAKE", "body": [
+            "printf('[%s] Took %d damage from attacker (element: %d)', mobArg:getName(), damage, element)"
+        ]},
+    ],
+    "Damage Response - Deal Damage": [
+        {"name": "Log Damage Dealt", "desc": "Print damage dealt information for debugging", "event": "DEAL_DAMAGE", "tag": "LOG_DMG_DEAL", "body": [
+            "printf('[%s] Dealt %d damage to %s (element: %d)', mobArg:getName(), damage, target:getName(), element)"
+        ]},
+    ],
+    "Status Effects - Gain": [
+        {"name": "React to Buff Gain", "desc": "Trigger action when gaining a specific buff", "event": "EFFECT_GAIN", "tag": "REACT_BUFF", "body": [
+            "if effectId == xi.effect.HASTE then",
+            "    -- React to haste being applied",
+            "    printf('[%s] Haste gained!', mobArg:getName())",
+            "end"
+        ]},
+        {"name": "React to Debuff Gain", "desc": "Trigger action when gaining a debuff", "event": "EFFECT_GAIN", "tag": "REACT_DEBUFF", "body": [
+            "if effectId == xi.effect.SILENCE then",
+            "    -- React to being silenced",
+            "    printf('[%s] Silenced!', mobArg:getName())",
+            "end"
+        ]},
+    ],
+    "Status Effects - Lose": [
+        {"name": "React to Buff Loss", "desc": "Trigger action when losing a buff", "event": "EFFECT_LOSE", "tag": "REACT_BUFF_LOSS", "body": [
+            "if effectId == xi.effect.PROTECT then",
+            "    -- React to protect wearing off",
+            "    printf('[%s] Protect wore off', mobArg:getName())",
+            "end"
+        ]},
+    ],
+    "Resource Management - TP Control": [
+        {"name": "Force Zero TP (Monberaux)", "desc": "Prevent TP accumulation for abilities-only trust", "event": "COMBAT_TICK", "tag": "ZERO_TP", "body": [
+            "mobArg:setTP(0)"
+        ]},
+        {"name": "Conditional TP Settings", "desc": "Adjust TP usage based on MP (Karaha-Baruha)", "event": "TP_TICK", "tag": "CONDITIONAL_TP", "body": [
+            "if mobArg:getMPP() < 30 then",
+            "    mobArg:setTrustTPSkillSettings(ai.tp.ASAP, ai.s.RANDOM)",
+            "else",
+            "    mobArg:setTrustTPSkillSettings(ai.tp.CLOSER_UNTIL_TP, ai.s.HIGHEST, 3000)",
+            "end"
+        ]},
+    ],
+    "Resource Management - Consumables": [
+        {"name": "Track Item Usage", "desc": "Decrement counter when using consumable item (Monberaux)", "event": "WEAPONSKILL_USE", "tag": "TRACK_ITEM", "body": [
+            "local master = mobArg:getMaster()",
+            "local itemCount = master:getCharVar('finalElixir')",
+            "if wsid == 4231 then -- Final Elixir skill ID",
+            "    master:setCharVar('finalElixir', itemCount - 1)",
+            "end"
+        ]},
+    ],
+    "Gambit Management - Dynamic": [
+        {"name": "Remove Gambit After Use (Prishe II)", "desc": "Remove a gambit after using specific item/skill", "event": "WEAPONSKILL_STATE_EXIT", "tag": "REMOVE_GAMBIT", "body": [
+            "local psychoAnima = 3539",
+            "-- Store gambit ID when adding: local gambitId = mob:addGambit(...)",
+            "if wsid == psychoAnima then",
+            "    -- mobArg:removeGambit(gambitId) -- uncomment when gambitId available",
+            "end"
+        ]},
+    ],
+    "Combat - Auto Engage": [
+        {"name": "Auto Engage on Master Target", "desc": "Engage master's target when idle", "event": "ROAM_TICK", "tag": "AUTO_ENGAGE", "body": [
+            "if not mobArg:getBattleTarget() then",
+            "    local master = mobArg:getMaster()",
+            "    if master and master:getBattleTarget() then",
+            "        mobArg:engage(master:getBattleTarget())",
+            "    end",
+            "end"
+        ]},
+    ],
+    "Combat - Action Handling": [
+        {"name": "Fix Action Category (Monberaux)", "desc": "Set correct action category for skill display", "event": "WEAPONSKILL_USE", "tag": "FIX_ACTION", "body": [
+            "action:setCategory(xi.action.category.MOBABILITY_FINISH)"
+        ]},
+    ],
+    "Magic - Casting": [
+        {"name": "Cast Spell on Magic Exit", "desc": "Cast follow-up spell after finishing cast", "event": "MAGIC_STATE_EXIT", "tag": "FOLLOWUP_SPELL", "body": [
+            "-- Cast another spell after finishing current cast",
+            "if spellId == xi.magic.spell.CURE_IV then",
+            "    mobArg:timer(2000, function(mob)",
+            "        mob:castSpell(xi.magic.spell.REGEN, mobArg)",
+            "    end)",
+            "end"
+        ]},
+    ],
+    "Debugging - General": [
+        {"name": "Log Combat Tick", "desc": "Debug logging for combat ticks", "event": "COMBAT_TICK", "tag": "LOG_COMBAT", "body": [
+            "printf('[%s] Combat tick - HP: %d/%d, MP: %d/%d, TP: %d', ",
+            "    mobArg:getName(), mobArg:getHP(), mobArg:getMaxHP(),",
+            "    mobArg:getMP(), mobArg:getMaxMP(), mobArg:getTP())"
+        ]},
+        {"name": "Log All Events", "desc": "Generic event logger", "event": "COMBAT_TICK", "tag": "LOG_EVENT", "body": [
+            "printf('[LISTENER][%s] Event fired', mobArg:getName())"
+        ]},
+    ],
+}
+
+CUSTOM_CODE_PALETTE = {
+    "Setup - TP Settings": [
+        {"name": "TP ASAP Random", "desc": "Use weaponskills as soon as 1000 TP with random selection", "code": "mob:setTrustTPSkillSettings(ai.tp.ASAP, ai.s.RANDOM)"},
+        {"name": "TP Closer Until 3000", "desc": "Hold TP until 3000, use highest damage WS", "code": "mob:setTrustTPSkillSettings(ai.tp.CLOSER_UNTIL_TP, ai.s.HIGHEST, 3000)"},
+        {"name": "TP Opener", "desc": "Use opening weaponskill, then highest after", "code": "mob:setTrustTPSkillSettings(ai.tp.OPENER, ai.s.HIGHEST)"},
+        {"name": "Conditional TP (MP-based)", "desc": "Adjust TP settings based on MP percentage", "code": "if mob:getMPP() < 30 then\n    mob:setTrustTPSkillSettings(ai.tp.ASAP, ai.s.RANDOM)\nelse\n    mob:setTrustTPSkillSettings(ai.tp.CLOSER_UNTIL_TP, ai.s.HIGHEST, 3000)\nend"},
+    ],
+    "Setup - Combat Behavior": [
+        {"name": "Disable Auto Attack", "desc": "Prevent physical melee attacks (ranged/magic only)", "code": "mob:setAutoAttackEnabled(false)"},
+        {"name": "No Move Distance", "desc": "Trust stays stationary", "code": "mob:setMobMod(xi.mobMod.TRUST_DISTANCE, xi.trust.movementType.NO_MOVE)"},
+        {"name": "Long Range Distance", "desc": "Trust keeps long range (for ranged attackers)", "code": "mob:setMobMod(xi.mobMod.TRUST_DISTANCE, xi.trust.movementType.LONG_RANGE)"},
+    ],
+    "Setup - Stat Mods": [
+        {"name": "Reduce MP Pool", "desc": "Set MP percentage modifier (e.g., -90% for low MP)", "code": "mob:setMod(xi.mod.MPP, -90)"},
+        {"name": "Sleep Resistance", "desc": "Add sleep and lullaby resistance", "code": "mob:setMod(xi.mod.SLEEPRES, 100)\nmob:setMod(xi.mod.LULLABYRES, 100)"},
+        {"name": "Status Resistance", "desc": "Add general status effect resistance", "code": "mob:setMod(xi.mod.STATUSRES, 15)"},
+        {"name": "Increase HP", "desc": "Boost HP by flat amount", "code": "mob:addMod(xi.mod.HP, 500)"},
+        {"name": "Increase MP", "desc": "Boost MP by flat amount", "code": "mob:addMod(xi.mod.MP, 200)"},
+        {"name": "Fast Cast", "desc": "Add fast cast percentage", "code": "mob:addMod(xi.mod.FASTCAST, 25)"},
+    ],
+    "Setup - Status Effects": [
+        {"name": "Apply Permanent Buff", "desc": "Add long-duration status effect on spawn", "code": "mob:addStatusEffectEx(xi.effect.HASTE, 0, 1500, 0, 7200)"},
+        {"name": "Apply Regen on Spawn", "desc": "Add regeneration effect", "code": "mob:addStatusEffectEx(xi.effect.REGEN, 0, 10, 3, 7200)"},
+        {"name": "Apply Protect/Shell", "desc": "Add defensive buffs", "code": "mob:addStatusEffectEx(xi.effect.PROTECT, 0, 100, 0, 7200)\nmob:addStatusEffectEx(xi.effect.SHELL, 0, 100, 0, 7200)"},
+    ],
+    "Gambits - Manual Addition": [
+        {"name": "Add Basic Cure Gambit", "desc": "Manually add gambit with code", "code": "mob:addGambit(ai.t.PARTY, { ai.c.HPP_LT, 50 }, { ai.r.MA, ai.s.HIGHEST, xi.magic.spellFamily.CURE })"},
+        {"name": "Add Buff Gambit", "desc": "Add gambit to maintain buff", "code": "mob:addGambit(ai.t.SELF, { ai.c.NOT_STATUS, xi.effect.HASTE }, { ai.r.MA, ai.s.HIGHEST, xi.magic.spellFamily.HASTE })"},
+        {"name": "Add Gambit with Cooldown", "desc": "Add gambit with recast timer (in seconds)", "code": "mob:addGambit(ai.t.TARGET, { ai.c.NOT_STATUS, xi.effect.SLOW }, { ai.r.MA, ai.s.HIGHEST, xi.magic.spellFamily.SLOW }, 60)"},
+        {"name": "Add OR Logic Gambit", "desc": "Gambit that triggers on multiple conditions", "code": "mob:addGambit(ai.t.PARTY, { ai.l.OR(\n    { ai.c.STATUS, xi.effect.CURSE_I },\n    { ai.c.STATUS, xi.effect.CURSE_II },\n    { ai.c.STATUS, xi.effect.DOOM }\n) }, { ai.r.MA, ai.s.SPECIFIC, xi.magic.spell.CURSNA })"},
+        {"name": "Store Gambit ID for Removal", "desc": "Save gambit reference to remove later", "code": "local gambitId = mob:addGambit(ai.t.SELF, { ai.c.HPP_LT, 35 }, { ai.r.MS, ai.s.SPECIFIC, 3539 })\n-- Later: mob:removeGambit(gambitId)"},
+    ],
+    "Messages - Teamwork": [
+        {"name": "Simple Teamwork Messages", "desc": "Display messages when summoned with specific trusts", "code": "xi.trust.teamworkMessage(mob, {\n    [xi.magic.spell.PRISHE_II] = xi.trust.messageOffset.TEAMWORK_1,\n    [xi.magic.spell.TENZEN_II] = xi.trust.messageOffset.TEAMWORK_2,\n})"},
+        {"name": "Multiple Teamwork Messages", "desc": "Define teamwork messages for many trusts", "code": "xi.trust.teamworkMessage(mob, {\n    [xi.magic.spell.PRISHE_II] = xi.trust.messageOffset.TEAMWORK_1,\n    [xi.magic.spell.NASHMEIRA_II] = xi.trust.messageOffset.TEAMWORK_2,\n    [xi.magic.spell.LILISETTE_II] = xi.trust.messageOffset.TEAMWORK_3,\n    [xi.magic.spell.ARCIELA_II] = xi.trust.messageOffset.TEAMWORK_4,\n    [xi.magic.spell.IROHA_II] = xi.trust.messageOffset.TEAMWORK_5,\n})"},
+    ],
+    "Messages - Conditional": [
+        {"name": "Conditional Spawn Message", "desc": "Different spawn messages based on CharVars (Monberaux)", "code": "local donation1 = mob:getMaster():getCharVar('donation1')\nlocal donation2 = mob:getMaster():getCharVar('donation2')\n\nif donation1 == 0 and donation2 == 0 then\n    xi.trust.message(mob, xi.trust.messageOffset.SPAWN)\nelseif donation1 == 1 and donation2 == 0 then\n    xi.trust.message(mob, xi.trust.messageOffset.TEAMWORK_1)\nelseif donation1 == 1 and donation2 == 1 then\n    xi.trust.message(mob, xi.trust.messageOffset.TEAMWORK_2)\nend"},
+    ],
+    "Advanced - Character Variables": [
+        {"name": "Read CharVar from Master", "desc": "Get stored variable from master player", "code": "local master = mob:getMaster()\nlocal varValue = master:getCharVar('myVariable')"},
+        {"name": "Set CharVar on Master", "desc": "Store variable on master player", "code": "local master = mob:getMaster()\nmaster:setCharVar('myVariable', 123)"},
+    ],
+    "Advanced - Conditional Logic": [
+        {"name": "Branch on CharVar", "desc": "Different behavior based on stored variable", "code": "local master = mob:getMaster()\nlocal mode = master:getCharVar('trustMode')\n\nif mode == 1 then\n    -- Aggressive mode gambits\n    mob:addGambit(ai.t.TARGET, { ai.c.ALWAYS, 0 }, { ai.r.MA, ai.s.SPECIFIC, xi.magic.spell.STONE })\nelseif mode == 2 then\n    -- Defensive mode gambits\n    mob:addGambit(ai.t.PARTY, { ai.c.HPP_LT, 75 }, { ai.r.MA, ai.s.HIGHEST, xi.magic.spellFamily.CURE })\nend"},
+    ],
+    "Advanced - Timers": [
+        {"name": "Delayed Action", "desc": "Execute code after delay (milliseconds)", "code": "mob:timer(3000, function(mobArg)\n    mobArg:castSpell(xi.magic.spell.PROTECT_V, mobArg)\nend)"},
+        {"name": "Conditional Delayed Cast", "desc": "Cast spell after delay if condition met", "code": "if not mob:hasStatusEffect(xi.effect.PROTECT) then\n    mob:timer(2000, function(mobArg)\n        mobArg:castSpell(xi.magic.spell.PROTECT_V, mobArg)\n    end)\nend"},
+    ],
+    "Debugging - Info": [
+        {"name": "Print Trust Stats", "desc": "Log current stats for debugging", "code": "printf('[%s] HP: %d/%d | MP: %d/%d | TP: %d',\n    mob:getName(), mob:getHP(), mob:getMaxHP(),\n    mob:getMP(), mob:getMaxMP(), mob:getTP())"},
+        {"name": "Print Master Info", "desc": "Log information about master", "code": "local master = mob:getMaster()\nif master then\n    printf('Master: %s | Target: %s',\n        master:getName(),\n        master:getBattleTarget() and master:getBattleTarget():getName() or 'None')\nend"},
+    ],
+}
+
 
 class TrustEditor(tk.Tk):
     def __init__(self):
@@ -3959,6 +4147,331 @@ class TrustEditor(tk.Tk):
             side=tk.RIGHT, padx=5
         )
 
+    def open_listener_palette(self):
+        """Open a window with listener templates and examples."""
+        win = tk.Toplevel(self)
+        win.title("🎧 Listener Library")
+        win.geometry("800x600")
+
+        # Configure grid for split view
+        win.columnconfigure(0, weight=1)
+        win.columnconfigure(1, weight=3)
+        win.rowconfigure(0, weight=1)
+
+        # Left: Treeview for Categories
+        left_frame = ttk.Frame(win, padding=5)
+        left_frame.grid(row=0, column=0, sticky="nsew")
+
+        # Search box
+        search_frame = ttk.Frame(left_frame)
+        search_frame.pack(fill=tk.X, pady=(0, 5))
+
+        ttk.Label(search_frame, text="🔍 Search:").pack(side=tk.LEFT, padx=(0, 5))
+        search_var = tk.StringVar()
+        search_entry = ttk.Entry(search_frame, textvariable=search_var)
+        search_entry.pack(side=tk.LEFT, fill=tk.X, expand=True)
+
+        tree_frame = ttk.Frame(left_frame)
+        tree_frame.pack(fill=tk.BOTH, expand=True)
+
+        tree_scroll = ttk.Scrollbar(tree_frame)
+        tree_scroll.pack(side=tk.RIGHT, fill=tk.Y)
+
+        tree = ttk.Treeview(tree_frame, selectmode="browse", yscrollcommand=tree_scroll.set)
+        tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        tree_scroll.config(command=tree.yview)
+
+        # Count label
+        count_label = ttk.Label(left_frame, text="", font=("TkDefaultFont", 9, "italic"))
+        count_label.pack(anchor="w", pady=(5, 0))
+
+        # Populate Tree
+        def populate_tree(filter_text=""):
+            tree.delete(*tree.get_children())
+            total_count = 0
+
+            filter_lower = filter_text.lower()
+
+            for category, items in LISTENER_PALETTE.items():
+                matching_items = []
+
+                for idx, item in enumerate(items):
+                    if not filter_text or (
+                        filter_lower in item["name"].lower() or
+                        filter_lower in item.get("desc", "").lower() or
+                        filter_lower in category.lower()
+                    ):
+                        matching_items.append((idx, item))
+
+                if matching_items:
+                    cat_id = tree.insert("", "end", text=f"{category} ({len(matching_items)})", open=True)
+                    for idx, item in matching_items:
+                        tree.insert(cat_id, "end", text=item["name"], values=(category, idx))
+                        total_count += 1
+
+            if filter_text:
+                count_label.configure(text=f"Found {total_count} matching listeners")
+            else:
+                count_label.configure(text=f"Total: {total_count} listeners across {len(LISTENER_PALETTE)} categories")
+
+        populate_tree()
+
+        # Search callback
+        def on_search(*args):
+            populate_tree(search_var.get())
+
+        search_var.trace_add("write", on_search)
+
+        # Right: Details & Preview
+        right_frame = ttk.Frame(win, padding=10)
+        right_frame.grid(row=0, column=1, sticky="nsew")
+
+        lbl_name = ttk.Label(
+            right_frame, text="👈 Select a listener from the list", font=("TkDefaultFont", 12, "bold")
+        )
+        lbl_name.pack(anchor="w", pady=(0, 10))
+
+        lbl_desc = ttk.Label(right_frame, text="", wraplength=500, justify="left")
+        lbl_desc.pack(anchor="w", fill=tk.X)
+
+        desc_sep = ttk.Separator(right_frame, orient="horizontal")
+        desc_sep.pack(fill=tk.X, pady=15)
+
+        # Preview Frame
+        preview_frame = ttk.LabelFrame(right_frame, text="📋 Listener Code", padding=10)
+        preview_frame.pack(fill=tk.BOTH, expand=True, anchor="n")
+
+        # Code preview
+        code_text = scrolledtext.ScrolledText(preview_frame, wrap=tk.WORD, height=15, font=("TkFixedFont", 9))
+        code_text.pack(fill=tk.BOTH, expand=True)
+
+        # Helper to update preview
+        selected_item_data = {}
+
+        def on_select(event):
+            selection = tree.selection()
+            if not selection:
+                return
+
+            item_id = selection[0]
+            values = tree.item(item_id, "values")
+
+            if not values:  # Category selected
+                return
+
+            cat, idx = values
+            idx = int(idx)
+            data = LISTENER_PALETTE[cat][idx]
+            selected_item_data.clear()
+            selected_item_data.update(data)
+
+            lbl_name.configure(text=data["name"])
+            lbl_desc.configure(text=data.get("desc", ""))
+
+            # Show code preview
+            code_text.config(state="normal")
+            code_text.delete("1.0", tk.END)
+            body_lines = data.get("body", [])
+            code_preview = "\n".join(body_lines)
+            code_text.insert("1.0", code_preview)
+            code_text.config(state="disabled")
+
+        tree.bind("<<TreeviewSelect>>", on_select)
+
+        # Apply Button - insert listener and optionally close window
+        def insert_listener(close_window=False):
+            if not selected_item_data:
+                return
+
+            # Add listener with the template data
+            event = selected_item_data.get("event", "COMBAT_TICK")
+            tag = selected_item_data.get("tag", "LISTENER_TAG")
+            body_lines = selected_item_data.get("body", [])
+            body = "\n".join(body_lines)
+
+            self.add_listener_row(event_name=event, tag=tag, body=body)
+
+            if close_window:
+                win.destroy()
+
+        def on_double_click(event):
+            if selected_item_data:
+                insert_listener(close_window=False)
+
+        tree.bind("<Double-Button-1>", on_double_click)
+
+        btn_frame = ttk.Frame(right_frame)
+        btn_frame.pack(side=tk.BOTTOM, fill=tk.X, pady=10)
+
+        ttk.Button(btn_frame, text="Insert and Close", command=lambda: insert_listener(close_window=True)).pack(
+            side=tk.RIGHT
+        )
+        ttk.Button(btn_frame, text="Close", command=win.destroy).pack(
+            side=tk.RIGHT, padx=5
+        )
+
+    def open_custom_code_palette(self):
+        """Open a window with custom code templates and examples."""
+        win = tk.Toplevel(self)
+        win.title("💻 Custom Code Library")
+        win.geometry("800x600")
+
+        # Configure grid for split view
+        win.columnconfigure(0, weight=1)
+        win.columnconfigure(1, weight=3)
+        win.rowconfigure(0, weight=1)
+
+        # Left: Treeview for Categories
+        left_frame = ttk.Frame(win, padding=5)
+        left_frame.grid(row=0, column=0, sticky="nsew")
+
+        # Search box
+        search_frame = ttk.Frame(left_frame)
+        search_frame.pack(fill=tk.X, pady=(0, 5))
+
+        ttk.Label(search_frame, text="🔍 Search:").pack(side=tk.LEFT, padx=(0, 5))
+        search_var = tk.StringVar()
+        search_entry = ttk.Entry(search_frame, textvariable=search_var)
+        search_entry.pack(side=tk.LEFT, fill=tk.X, expand=True)
+
+        tree_frame = ttk.Frame(left_frame)
+        tree_frame.pack(fill=tk.BOTH, expand=True)
+
+        tree_scroll = ttk.Scrollbar(tree_frame)
+        tree_scroll.pack(side=tk.RIGHT, fill=tk.Y)
+
+        tree = ttk.Treeview(tree_frame, selectmode="browse", yscrollcommand=tree_scroll.set)
+        tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        tree_scroll.config(command=tree.yview)
+
+        # Count label
+        count_label = ttk.Label(left_frame, text="", font=("TkDefaultFont", 9, "italic"))
+        count_label.pack(anchor="w", pady=(5, 0))
+
+        # Populate Tree
+        def populate_tree(filter_text=""):
+            tree.delete(*tree.get_children())
+            total_count = 0
+
+            filter_lower = filter_text.lower()
+
+            for category, items in CUSTOM_CODE_PALETTE.items():
+                matching_items = []
+
+                for idx, item in enumerate(items):
+                    if not filter_text or (
+                        filter_lower in item["name"].lower() or
+                        filter_lower in item.get("desc", "").lower() or
+                        filter_lower in category.lower()
+                    ):
+                        matching_items.append((idx, item))
+
+                if matching_items:
+                    cat_id = tree.insert("", "end", text=f"{category} ({len(matching_items)})", open=True)
+                    for idx, item in matching_items:
+                        tree.insert(cat_id, "end", text=item["name"], values=(category, idx))
+                        total_count += 1
+
+            if filter_text:
+                count_label.configure(text=f"Found {total_count} matching snippets")
+            else:
+                count_label.configure(text=f"Total: {total_count} snippets across {len(CUSTOM_CODE_PALETTE)} categories")
+
+        populate_tree()
+
+        # Search callback
+        def on_search(*args):
+            populate_tree(search_var.get())
+
+        search_var.trace_add("write", on_search)
+
+        # Right: Details & Preview
+        right_frame = ttk.Frame(win, padding=10)
+        right_frame.grid(row=0, column=1, sticky="nsew")
+
+        lbl_name = ttk.Label(
+            right_frame, text="👈 Select a code snippet from the list", font=("TkDefaultFont", 12, "bold")
+        )
+        lbl_name.pack(anchor="w", pady=(0, 10))
+
+        lbl_desc = ttk.Label(right_frame, text="", wraplength=500, justify="left")
+        lbl_desc.pack(anchor="w", fill=tk.X)
+
+        desc_sep = ttk.Separator(right_frame, orient="horizontal")
+        desc_sep.pack(fill=tk.X, pady=15)
+
+        # Preview Frame
+        preview_frame = ttk.LabelFrame(right_frame, text="📋 Code Snippet", padding=10)
+        preview_frame.pack(fill=tk.BOTH, expand=True, anchor="n")
+
+        # Code preview
+        code_text = scrolledtext.ScrolledText(preview_frame, wrap=tk.WORD, height=15, font=("TkFixedFont", 9))
+        code_text.pack(fill=tk.BOTH, expand=True)
+
+        # Helper to update preview
+        selected_item_data = {}
+
+        def on_select(event):
+            selection = tree.selection()
+            if not selection:
+                return
+
+            item_id = selection[0]
+            values = tree.item(item_id, "values")
+
+            if not values:  # Category selected
+                return
+
+            cat, idx = values
+            idx = int(idx)
+            data = CUSTOM_CODE_PALETTE[cat][idx]
+            selected_item_data.clear()
+            selected_item_data.update(data)
+
+            lbl_name.configure(text=data["name"])
+            lbl_desc.configure(text=data.get("desc", ""))
+
+            # Show code preview
+            code_text.config(state="normal")
+            code_text.delete("1.0", tk.END)
+            code_text.insert("1.0", data.get("code", ""))
+            code_text.config(state="disabled")
+
+        tree.bind("<<TreeviewSelect>>", on_select)
+
+        # Apply Button - insert code and optionally close window
+        def insert_code(close_window=False):
+            if not selected_item_data:
+                return
+
+            # Append code to custom code text area
+            current_code = self.custom_code.get("1.0", tk.END).strip()
+            new_code = selected_item_data.get("code", "")
+
+            if current_code:
+                self.custom_code.insert(tk.END, "\n\n" + new_code)
+            else:
+                self.custom_code.insert("1.0", new_code)
+
+            if close_window:
+                win.destroy()
+
+        def on_double_click(event):
+            if selected_item_data:
+                insert_code(close_window=False)
+
+        tree.bind("<Double-Button-1>", on_double_click)
+
+        btn_frame = ttk.Frame(right_frame)
+        btn_frame.pack(side=tk.BOTTOM, fill=tk.X, pady=10)
+
+        ttk.Button(btn_frame, text="Insert and Close", command=lambda: insert_code(close_window=True)).pack(
+            side=tk.RIGHT
+        )
+        ttk.Button(btn_frame, text="Close", command=win.destroy).pack(
+            side=tk.RIGHT, padx=5
+        )
+
     def add_gambit_row(
         self,
         t="",
@@ -4155,6 +4668,9 @@ class TrustEditor(tk.Tk):
         ttk.Button(
             header_frame, text="Add Listener", command=self.add_listener_row
         ).pack(side=tk.LEFT, pady=5)
+        ttk.Button(
+            header_frame, text="📖 Palette / Examples", command=self.open_listener_palette
+        ).pack(side=tk.LEFT, padx=5, pady=5)
 
         help_frame = ttk.LabelFrame(self.listeners_frame, text="Listener Help")
         help_frame.pack(fill=tk.BOTH, expand=False, padx=10, pady=(0, 10))
@@ -4352,6 +4868,9 @@ class TrustEditor(tk.Tk):
             command=self.open_custom_code_help,
         )
         help_btn.pack(side=tk.LEFT, padx=(6, 0))
+        ttk.Button(
+            header, text="📖 Palette / Examples", command=self.open_custom_code_palette
+        ).pack(side=tk.LEFT, padx=5)
 
         self.custom_code = scrolledtext.ScrolledText(self.code_frame, height=20)
         self.custom_code.pack(fill=tk.BOTH, expand=True, padx=10, pady=(0, 10))
