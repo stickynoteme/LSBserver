@@ -3227,101 +3227,535 @@ class TrustEditor(tk.Tk):
         row_frame.destroy()
 
     def create_gambits_tab(self):
-        # Headers
-        header_frame = ttk.Frame(self.gambits_frame)
-        header_frame.pack(fill=tk.X, padx=10, pady=5)
+        # Initialize gambit data storage
+        self.gambit_data = []  # List of dicts with gambit data
+        self.selected_gambit_index = None
+        self._updating_gambit = False  # Flag to prevent recursive updates
 
-        # Spacer for Lock/Dynamic buttons
-        ttk.Label(header_frame, text="", width=6).pack(side=tk.LEFT)
+        # Create PanedWindow for split view
+        paned = ttk.PanedWindow(self.gambits_frame, orient=tk.HORIZONTAL)
+        paned.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
 
-        self.create_help_label(header_frame, "Target", "TARGET", width=12).pack(
-            side=tk.LEFT
-        )
-        self.create_help_label(header_frame, "Condition", "CONDITION", width=16).pack(
-            side=tk.LEFT
-        )
-        self.create_help_label(header_frame, "Cond. Arg", "COND_ARG", width=10).pack(
-            side=tk.LEFT
-        )
-        self.create_help_label(header_frame, "Reaction", "REACTION", width=12).pack(
-            side=tk.LEFT
-        )
-        self.create_help_label(header_frame, "Selector", "SELECTOR", width=16).pack(
-            side=tk.LEFT
-        )
-        self.create_help_label(
-            header_frame, "Sel. Arg (Spell/Family/ID)", "SEL_ARG", width=24
-        ).pack(side=tk.LEFT)
-        self.create_help_label(header_frame, "Dyn", "DYNAMIC_GAMBITS", width=5).pack(
-            side=tk.LEFT
-        )
+        # Left pane: Gambit list (smaller - just names and icons)
+        left_frame = ttk.Frame(paned)
+        paned.add(left_frame, weight=1)
 
-        # List
-        self.gambits_list_frame = ttk.Frame(self.gambits_frame)
-        self.gambits_list_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        # List header and controls
+        list_header_frame = ttk.Frame(left_frame)
+        list_header_frame.pack(fill=tk.X, padx=5, pady=5)
+        ttk.Label(list_header_frame, text="Gambits", font=("TkDefaultFont", 10, "bold")).pack(side=tk.LEFT)
 
-        self.gambits_canvas = tk.Canvas(self.gambits_list_frame)
-        self.gambits_scrollbar = ttk.Scrollbar(
-            self.gambits_list_frame,
-            orient="vertical",
-            command=self.gambits_canvas.yview,
-        )
-        self.gambits_scrollable_frame = ttk.Frame(self.gambits_canvas)
+        # Gambit treeview with scrollbar and icon columns
+        list_container = ttk.Frame(left_frame)
+        list_container.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
 
-        self.gambits_scrollable_frame.bind(
-            "<Configure>",
-            lambda e: self.gambits_canvas.configure(
-                scrollregion=self.gambits_canvas.bbox("all")
-            ),
+        list_scrollbar = ttk.Scrollbar(list_container)
+        list_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+        # Create treeview with columns for icons
+        self.gambits_tree = ttk.Treeview(
+            list_container,
+            columns=("lock", "dynamic", "enabled", "name"),
+            show="headings",
+            yscrollcommand=list_scrollbar.set,
+            selectmode="browse",
+            height=20
         )
 
-        self.gambits_canvas.create_window(
-            (0, 0), window=self.gambits_scrollable_frame, anchor="nw"
-        )
-        self.gambits_canvas.configure(yscrollcommand=self.gambits_scrollbar.set)
+        # Configure columns
+        self.gambits_tree.column("#0", width=0, stretch=False)  # Hide tree column
+        self.gambits_tree.column("lock", width=30, anchor="center", stretch=False)
+        self.gambits_tree.column("dynamic", width=30, anchor="center", stretch=False)
+        self.gambits_tree.column("enabled", width=30, anchor="center", stretch=False)
+        self.gambits_tree.column("name", width=200, anchor="w", stretch=True)
 
-        self.gambits_canvas.pack(side="left", fill="both", expand=True)
-        self.gambits_scrollbar.pack(side="right", fill="y")
+        # Configure headings
+        self.gambits_tree.heading("lock", text="🔒")
+        self.gambits_tree.heading("dynamic", text="⚡")
+        self.gambits_tree.heading("enabled", text="✓")
+        self.gambits_tree.heading("name", text="Name")
 
-        button_frame = ttk.Frame(self.gambits_frame)
-        button_frame.pack(pady=5)
+        self.gambits_tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        list_scrollbar.config(command=self.gambits_tree.yview)
 
-        ttk.Button(button_frame, text="Add Gambit", command=self.add_gambit_row).pack(
-            side=tk.LEFT, padx=(0, 5)
-        )
+        self.gambits_tree.bind("<<TreeviewSelect>>", self.on_gambit_select)
+        self.gambits_tree.bind("<Button-1>", self.on_gambit_tree_click)
+
+        # List controls
+        controls_frame = ttk.Frame(left_frame)
+        controls_frame.pack(fill=tk.X, padx=5, pady=5)
+
+        ttk.Button(controls_frame, text="➕ Add", command=self.add_gambit, width=10).pack(side=tk.LEFT, padx=2)
+        ttk.Button(controls_frame, text="❌ Remove", command=self.remove_gambit, width=10).pack(side=tk.LEFT, padx=2)
+        ttk.Button(controls_frame, text="⬆", command=self.move_gambit_up, width=3).pack(side=tk.LEFT, padx=2)
+        ttk.Button(controls_frame, text="⬇", command=self.move_gambit_down, width=3).pack(side=tk.LEFT, padx=2)
 
         ttk.Button(
-            button_frame, text="📖 Palette / Examples", command=self.open_gambit_palette
+            left_frame, text="📖 Palette / Examples", command=self.open_gambit_palette
+        ).pack(pady=5)
+
+        # Right pane: Gambit editor (larger - more typing space)
+        right_frame = ttk.Frame(paned)
+        paned.add(right_frame, weight=4)
+
+        # Editor container with scrollbar
+        editor_canvas = tk.Canvas(right_frame, highlightthickness=0, borderwidth=0)
+        editor_scrollbar = ttk.Scrollbar(right_frame, orient="vertical", command=editor_canvas.yview)
+        self.gambit_editor_frame = ttk.Frame(editor_canvas)
+
+        # Create window and update size when canvas resizes
+        canvas_window = editor_canvas.create_window((0, 0), window=self.gambit_editor_frame, anchor="nw")
+
+        def on_canvas_configure(event):
+            # Update the scroll region
+            editor_canvas.configure(scrollregion=editor_canvas.bbox("all"))
+            # Make the frame fill the canvas width
+            canvas_width = event.width
+            editor_canvas.itemconfig(canvas_window, width=canvas_width)
+
+        editor_canvas.bind("<Configure>", on_canvas_configure)
+        editor_canvas.configure(yscrollcommand=editor_scrollbar.set)
+
+        editor_canvas.pack(side="left", fill="both", expand=True)
+        editor_scrollbar.pack(side="right", fill="y")
+
+        # Editor fields (initially hidden)
+        self.create_gambit_editor_fields()
+
+        # Legacy compatibility
+        self.gambit_rows = []
+
+    def create_gambit_editor_fields(self):
+        """Create the gambit editor fields in the right pane."""
+        # Name field
+        name_label_frame = ttk.Frame(self.gambit_editor_frame)
+        name_label_frame.pack(fill=tk.X, padx=10, pady=(5, 0))
+
+        ttk.Label(name_label_frame, text="📝 Gambit Name", font=("TkDefaultFont", 11, "bold")).pack(side=tk.LEFT)
+        ttk.Button(
+            name_label_frame,
+            text="Auto Name",
+            width=10,
+            command=self.auto_name_gambit
         ).pack(side=tk.LEFT, padx=5)
 
-        self.gambit_rows = []
+        name_frame = ttk.Frame(self.gambit_editor_frame)
+        name_frame.pack(fill=tk.X, padx=10, pady=(0, 5))
+
+        self.gambit_name_var = tk.StringVar()
+        self.gambit_name_entry = ttk.Entry(name_frame, textvariable=self.gambit_name_var)
+        self.gambit_name_entry.pack(fill=tk.X, expand=True, padx=10, pady=5)
+        self.gambit_name_var.trace_add("write", lambda *args: self.on_gambit_field_change())
+
+        # Target - with picker button by label
+        target_label_frame = ttk.Frame(self.gambit_editor_frame)
+        target_label_frame.pack(fill=tk.X, padx=10, pady=(5, 0))
+
+        ttk.Label(target_label_frame, text="🎯 Target", font=("TkDefaultFont", 11, "bold")).pack(side=tk.LEFT)
+        ttk.Button(
+            target_label_frame,
+            text="...",
+            width=3,
+            command=lambda: self.open_filter_list_dialog(
+                SORTED_AI_TARGETS,
+                self.gambit_target_var,
+                title="Pick Target",
+                help_category="TARGET"
+            )
+        ).pack(side=tk.LEFT, padx=5)
+
+        target_frame = ttk.Frame(self.gambit_editor_frame)
+        target_frame.pack(fill=tk.X, padx=10, pady=(0, 5))
+
+        self.gambit_target_var = tk.StringVar()
+        ttk.Entry(target_frame, textvariable=self.gambit_target_var).pack(fill=tk.X, expand=True, padx=10, pady=5)
+
+        # Condition - with picker button by label
+        cond_label_frame = ttk.Frame(self.gambit_editor_frame)
+        cond_label_frame.pack(fill=tk.X, padx=10, pady=(5, 0))
+
+        ttk.Label(cond_label_frame, text="❓ Condition", font=("TkDefaultFont", 11, "bold")).pack(side=tk.LEFT)
+        ttk.Button(
+            cond_label_frame,
+            text="...",
+            width=3,
+            command=lambda: self.open_filter_list_dialog(
+                SORTED_AI_CONDITIONS,
+                self.gambit_cond_var,
+                title="Pick Condition",
+                help_category="CONDITION"
+            )
+        ).pack(side=tk.LEFT, padx=5)
+
+        cond_frame = ttk.Frame(self.gambit_editor_frame)
+        cond_frame.pack(fill=tk.X, padx=10, pady=(0, 5))
+
+        self.gambit_cond_var = tk.StringVar()
+        ttk.Entry(cond_frame, textvariable=self.gambit_cond_var).pack(fill=tk.X, expand=True, padx=10, pady=5)
+
+        # Condition Arg - multi-line
+        cond_arg_label_frame = ttk.Frame(self.gambit_editor_frame)
+        cond_arg_label_frame.pack(fill=tk.X, padx=10, pady=(5, 0))
+
+        ttk.Label(cond_arg_label_frame, text="💭 Condition Argument", font=("TkDefaultFont", 11, "bold")).pack(side=tk.LEFT)
+
+        cond_arg_frame = ttk.Frame(self.gambit_editor_frame)
+        cond_arg_frame.pack(fill=tk.X, padx=10, pady=(0, 5))
+
+        self.gambit_cond_arg_text = tk.Text(cond_arg_frame, height=3, wrap=tk.WORD)
+        self.gambit_cond_arg_text.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
+
+        # Reaction - with picker button by label
+        reaction_label_frame = ttk.Frame(self.gambit_editor_frame)
+        reaction_label_frame.pack(fill=tk.X, padx=10, pady=(5, 0))
+
+        ttk.Label(reaction_label_frame, text="⚡ Reaction", font=("TkDefaultFont", 11, "bold")).pack(side=tk.LEFT)
+        ttk.Button(
+            reaction_label_frame,
+            text="...",
+            width=3,
+            command=lambda: self.open_filter_list_dialog(
+                SORTED_AI_REACTIONS,
+                self.gambit_reaction_var,
+                title="Pick Reaction",
+                help_category="REACTION"
+            )
+        ).pack(side=tk.LEFT, padx=5)
+
+        reaction_frame = ttk.Frame(self.gambit_editor_frame)
+        reaction_frame.pack(fill=tk.X, padx=10, pady=(0, 5))
+
+        self.gambit_reaction_var = tk.StringVar()
+        ttk.Entry(reaction_frame, textvariable=self.gambit_reaction_var).pack(fill=tk.X, expand=True, padx=10, pady=5)
+
+        # Selector - with picker button by label
+        selector_label_frame = ttk.Frame(self.gambit_editor_frame)
+        selector_label_frame.pack(fill=tk.X, padx=10, pady=(5, 0))
+
+        ttk.Label(selector_label_frame, text="🔧 Selector", font=("TkDefaultFont", 11, "bold")).pack(side=tk.LEFT)
+        ttk.Button(
+            selector_label_frame,
+            text="...",
+            width=3,
+            command=lambda: self.open_filter_list_dialog(
+                SORTED_AI_SELECTS,
+                self.gambit_selector_var,
+                title="Pick Selector",
+                help_category="SELECTOR"
+            )
+        ).pack(side=tk.LEFT, padx=5)
+
+        selector_frame = ttk.Frame(self.gambit_editor_frame)
+        selector_frame.pack(fill=tk.X, padx=10, pady=(0, 5))
+
+        self.gambit_selector_var = tk.StringVar()
+        ttk.Entry(selector_frame, textvariable=self.gambit_selector_var).pack(fill=tk.X, expand=True, padx=10, pady=5)
+
+        # Selector Arg - with picker button by label
+        sel_arg_label_frame = ttk.Frame(self.gambit_editor_frame)
+        sel_arg_label_frame.pack(fill=tk.X, padx=10, pady=(5, 0))
+
+        ttk.Label(sel_arg_label_frame, text="📝 Selector Argument", font=("TkDefaultFont", 11, "bold")).pack(side=tk.LEFT)
+        ttk.Button(
+            sel_arg_label_frame,
+            text="...",
+            width=3,
+            command=lambda: self.open_filter_list_dialog(
+                ALL_CONSTANTS,
+                self.gambit_sel_arg_var,
+                title="Pick Selector Arg",
+                help_category="SEL_ARG",
+                selector_var=self.gambit_selector_var
+            )
+        ).pack(side=tk.LEFT, padx=5)
+
+        sel_arg_frame = ttk.Frame(self.gambit_editor_frame)
+        sel_arg_frame.pack(fill=tk.X, padx=10, pady=(0, 5))
+
+        self.gambit_sel_arg_var = tk.StringVar()
+        ttk.Entry(sel_arg_frame, textvariable=self.gambit_sel_arg_var).pack(fill=tk.X, expand=True, padx=10, pady=5)
+
+        # Note: Options (locked/dynamic/enabled) are now in the left list as clickable icons
+        # Initialize vars for data storage but don't show them in the editor
+        self.gambit_locked_var = tk.BooleanVar()
+        self.gambit_dynamic_var = tk.BooleanVar()
+        self.gambit_enabled_var = tk.BooleanVar(value=True)
+
+        # Initially disable all fields
+        self.set_editor_state("disabled")
+
+    def auto_name_gambit(self):
+        """Generate a name for the gambit based on its configuration."""
+        if self.selected_gambit_index is None:
+            return
+
+        # Get current values
+        target = self.gambit_target_var.get()
+        condition = self.gambit_cond_var.get()
+        cond_arg = self.gambit_cond_arg_text.get("1.0", "end-1c").strip()
+        reaction = self.gambit_reaction_var.get()
+        selector = self.gambit_selector_var.get()
+        sel_arg = self.gambit_sel_arg_var.get()
+
+        # Extract last part of sel_arg after final "."
+        if sel_arg and "." in sel_arg:
+            sel_arg = sel_arg.split(".")[-1]
+
+        # Build a readable name
+        name_parts = []
+
+        # Start with action
+        if reaction:
+            name_parts.append(reaction)
+        if selector and selector not in ["SPECIFIC"]:
+            name_parts.append(selector)
+        if sel_arg:
+            name_parts.append(sel_arg)
+
+        # Add target
+        if target:
+            name_parts.append(f"on {target}")
+
+        # Add condition
+        if condition and condition != "ALWAYS":
+            cond_part = f"when {condition}"
+            if cond_arg:
+                cond_part += f" {cond_arg}"
+            name_parts.append(cond_part)
+
+        # Join and set
+        auto_name = " ".join(name_parts) if name_parts else "New Gambit"
+        self.gambit_name_var.set(auto_name)
+
+    def set_editor_state(self, state):
+        """Enable or disable editor fields."""
+        # Determine ttk state
+        ttk_state = ['!disabled'] if state == "normal" else ['disabled']
+
+        # Enable/disable all entry fields
+        self.gambit_name_entry.state(ttk_state)
+
+        # Handle the Text widget for condition arg
+        self.gambit_cond_arg_text.config(state=state)
+
+        # Recursively enable/disable all Entry and Button widgets
+        def update_widget_state(widget):
+            for child in widget.winfo_children():
+                if isinstance(child, (ttk.Entry, ttk.Button)):
+                    child.state(ttk_state)
+                elif isinstance(child, tk.Text):
+                    child.config(state=state)
+                else:
+                    update_widget_state(child)
+
+        update_widget_state(self.gambit_editor_frame)
+
+    def on_gambit_field_change(self):
+        """Called when any gambit field changes - saves to data."""
+        if self._updating_gambit:
+            return
+        if self.selected_gambit_index is not None:
+            self.save_current_gambit()
+            self.refresh_gambit_list()
+
+    def save_current_gambit(self):
+        """Save the current editor state to gambit data."""
+        if self.selected_gambit_index is None or self.selected_gambit_index >= len(self.gambit_data):
+            return
+
+        self.gambit_data[self.selected_gambit_index] = {
+            "name": self.gambit_name_var.get(),
+            "target": self.gambit_target_var.get(),
+            "condition": self.gambit_cond_var.get(),
+            "cond_arg": self.gambit_cond_arg_text.get("1.0", "end-1c"),
+            "reaction": self.gambit_reaction_var.get(),
+            "selector": self.gambit_selector_var.get(),
+            "sel_arg": self.gambit_sel_arg_var.get(),
+            "locked": self.gambit_locked_var.get(),
+            "dynamic": self.gambit_dynamic_var.get(),
+            "enabled": self.gambit_enabled_var.get()
+        }
+
+    def load_gambit_to_editor(self, index):
+        """Load a gambit from data into the editor."""
+        if index < 0 or index >= len(self.gambit_data):
+            return
+
+        # Set flag to prevent recursive updates
+        self._updating_gambit = True
+        try:
+            gambit = self.gambit_data[index]
+            self.gambit_name_var.set(gambit.get("name", ""))
+            self.gambit_target_var.set(gambit.get("target", ""))
+            self.gambit_cond_var.set(gambit.get("condition", ""))
+
+            # Handle Text widget for condition arg
+            self.gambit_cond_arg_text.delete("1.0", tk.END)
+            self.gambit_cond_arg_text.insert("1.0", gambit.get("cond_arg", ""))
+
+            self.gambit_reaction_var.set(gambit.get("reaction", ""))
+            self.gambit_selector_var.set(gambit.get("selector", ""))
+            self.gambit_sel_arg_var.set(gambit.get("sel_arg", ""))
+            self.gambit_locked_var.set(gambit.get("locked", False))
+            self.gambit_dynamic_var.set(gambit.get("dynamic", False))
+            self.gambit_enabled_var.set(gambit.get("enabled", True))
+        finally:
+            self._updating_gambit = False
+
+    def refresh_gambit_list(self):
+        """Update the treeview with current gambit data."""
+        # Save current selection
+        current_selection = self.selected_gambit_index
+
+        # Clear treeview
+        for item in self.gambits_tree.get_children():
+            self.gambits_tree.delete(item)
+
+        # Populate with gambit data
+        for i, gambit in enumerate(self.gambit_data):
+            name = gambit.get("name", f"Gambit {i+1}")
+            locked = gambit.get("locked", False)
+            dynamic = gambit.get("dynamic", False)
+            enabled = gambit.get("enabled", True)
+
+            # Icon display
+            lock_icon = "🔒" if locked else ""
+            dynamic_icon = "⚡" if dynamic else ""
+            enabled_icon = "✓" if enabled else ""
+
+            self.gambits_tree.insert(
+                "",
+                "end",
+                iid=str(i),
+                values=(lock_icon, dynamic_icon, enabled_icon, name)
+            )
+
+        # Restore selection
+        if current_selection is not None and current_selection < len(self.gambit_data):
+            self.gambits_tree.selection_set(str(current_selection))
+            self.gambits_tree.see(str(current_selection))
+
+    def on_gambit_select(self, event):
+        """Handle gambit selection from treeview."""
+        selection = self.gambits_tree.selection()
+        if not selection:
+            return
+
+        # Save current gambit before switching
+        if self.selected_gambit_index is not None:
+            self.save_current_gambit()
+
+        self.selected_gambit_index = int(selection[0])
+        self.load_gambit_to_editor(self.selected_gambit_index)
+        self.set_editor_state("normal")
+
+    def on_gambit_tree_click(self, event):
+        """Handle clicks on the treeview - toggle icons when clicked."""
+        region = self.gambits_tree.identify_region(event.x, event.y)
+        if region != "cell":
+            return
+
+        column = self.gambits_tree.identify_column(event.x)
+        item = self.gambits_tree.identify_row(event.y)
+
+        if not item:
+            return
+
+        index = int(item)
+        if index >= len(self.gambit_data):
+            return
+
+        # Toggle the appropriate flag based on which column was clicked
+        if column == "#1":  # Lock column
+            self.gambit_data[index]["locked"] = not self.gambit_data[index].get("locked", False)
+        elif column == "#2":  # Dynamic column
+            self.gambit_data[index]["dynamic"] = not self.gambit_data[index].get("dynamic", False)
+        elif column == "#3":  # Enabled column
+            self.gambit_data[index]["enabled"] = not self.gambit_data[index].get("enabled", True)
+        else:
+            # Clicked on name column, let normal selection handle it
+            return
+
+        # Update display
+        self.refresh_gambit_list()
+
+        # If this is the currently selected gambit, reload it in the editor
+        if self.selected_gambit_index == index:
+            self.load_gambit_to_editor(index)
+
+    def add_gambit(self):
+        """Add a new gambit to the list."""
+        new_gambit = {
+            "name": f"New Gambit {len(self.gambit_data) + 1}",
+            "target": "",
+            "condition": "",
+            "cond_arg": "",
+            "reaction": "",
+            "selector": "",
+            "sel_arg": "",
+            "locked": False,
+            "dynamic": False,
+            "enabled": True
+        }
+        self.gambit_data.append(new_gambit)
+        self.refresh_gambit_list()
+
+        # Select the new gambit
+        new_index = len(self.gambit_data) - 1
+        self.gambits_tree.selection_set(str(new_index))
+        self.gambits_tree.see(str(new_index))
+        self.selected_gambit_index = new_index
+        self.load_gambit_to_editor(new_index)
+        self.set_editor_state("normal")
+
+    def remove_gambit(self):
+        """Remove the selected gambit."""
+        if self.selected_gambit_index is None:
+            messagebox.showwarning("No Selection", "Please select a gambit to remove.")
+            return
+
+        if messagebox.askyesno("Confirm Delete", f"Delete gambit '{self.gambit_data[self.selected_gambit_index].get('name', 'Unnamed')}'?"):
+            self.gambit_data.pop(self.selected_gambit_index)
+            self.selected_gambit_index = None
+            self.refresh_gambit_list()
+            self.set_editor_state("disabled")
+
+    def move_gambit_up(self):
+        """Move selected gambit up in the list."""
+        if self.selected_gambit_index is None or self.selected_gambit_index == 0:
+            return
+
+        idx = self.selected_gambit_index
+        self.gambit_data[idx], self.gambit_data[idx-1] = self.gambit_data[idx-1], self.gambit_data[idx]
+        self.selected_gambit_index = idx - 1
+        self.refresh_gambit_list()
+        self.gambits_tree.selection_set(str(self.selected_gambit_index))
+
+    def move_gambit_down(self):
+        """Move selected gambit down in the list."""
+        if self.selected_gambit_index is None or self.selected_gambit_index >= len(self.gambit_data) - 1:
+            return
+
+        idx = self.selected_gambit_index
+        self.gambit_data[idx], self.gambit_data[idx+1] = self.gambit_data[idx+1], self.gambit_data[idx]
+        self.selected_gambit_index = idx + 1
+        self.refresh_gambit_list()
+        self.gambits_tree.selection_set(str(self.selected_gambit_index))
 
     def open_gambit_palette(self):
         """Open a window with gambit templates and examples."""
         win = tk.Toplevel(self)
-        win.title("🎮 Gambit Library - Complete Guide")
-        win.geometry("1000x700")
+        win.title("🎮 Gambit Library")
+        win.geometry("700x500")
 
-        # Configure grid for split view
+        # Configure grid for split view - left smaller, right takes maximum space
         win.columnconfigure(0, weight=1)
-        win.columnconfigure(1, weight=2)
-        win.rowconfigure(0, weight=0)  # Search row
-        win.rowconfigure(1, weight=1)  # Content row
-
-        # Header with instructions
-        header_frame = ttk.Frame(win, padding=5)
-        header_frame.grid(row=0, column=0, columnspan=2, sticky="ew")
-        
-        ttk.Label(
-            header_frame, 
-            text="📚 Browse through all available gambit patterns used in FFXI trusts. Select one to see details and insert it into your trust.",
-            wraplength=950,
-            justify="left"
-        ).pack(anchor="w", pady=5)
+        win.columnconfigure(1, weight=4)
+        win.rowconfigure(0, weight=1)  # Content row only
 
         # Left: Treeview for Categories
         left_frame = ttk.Frame(win, padding=5)
-        left_frame.grid(row=1, column=0, sticky="nsew")
+        left_frame.grid(row=0, column=0, sticky="nsew")
 
         # Search box
         search_frame = ttk.Frame(left_frame)
@@ -3374,7 +3808,11 @@ class TrustEditor(tk.Tk):
                 if matching_items:
                     cat_id = tree.insert("", "end", text=f"{category} ({len(matching_items)})", open=True)
                     for idx, item in matching_items:
-                        tree.insert(cat_id, "end", text=item["name"], values=(category, idx))
+                        # Add lightning bolt icon for dynamic gambits
+                        display_name = item["name"]
+                        if item.get("dynamic", False):
+                            display_name = f"⚡ {display_name}"
+                        tree.insert(cat_id, "end", text=display_name, values=(category, idx))
                         total_count += 1
             
             # Update count
@@ -3393,14 +3831,14 @@ class TrustEditor(tk.Tk):
 
         # Right: Details & Preview
         right_frame = ttk.Frame(win, padding=10)
-        right_frame.grid(row=1, column=1, sticky="nsew")
+        right_frame.grid(row=0, column=1, sticky="nsew")
 
         lbl_name = ttk.Label(
             right_frame, text="👈 Select a gambit from the list", font=("TkDefaultFont", 12, "bold")
         )
         lbl_name.pack(anchor="w", pady=(0, 10))
 
-        lbl_desc = ttk.Label(right_frame, text="", wraplength=550, justify="left", foreground="#555")
+        lbl_desc = ttk.Label(right_frame, text="", wraplength=400, justify="left")
         lbl_desc.pack(anchor="w", fill=tk.X)
 
         desc_sep = ttk.Separator(right_frame, orient="horizontal")
@@ -3410,7 +3848,7 @@ class TrustEditor(tk.Tk):
         preview_frame = ttk.LabelFrame(right_frame, text="📋 Gambit Details", padding=10)
         preview_frame.pack(fill=tk.X, anchor="n")
 
-        preview_labels = {}
+        preview_labels = []  # Use a list to maintain order
         preview_rows = [
             ("🎯 Target", "Who this action targets"),
             ("❓ Condition", "When to perform this action"),
@@ -3419,155 +3857,20 @@ class TrustEditor(tk.Tk):
             ("🔧 Selector", "How to choose the specific action"),
             ("📝 Selector Arg", "Spell/Ability/ID to use")
         ]
-        
+
         for row, (key, tooltip) in enumerate(preview_rows):
             label_frame = ttk.Frame(preview_frame)
             label_frame.grid(row=row, column=0, sticky="ew", pady=3)
             preview_frame.columnconfigure(0, weight=1)
-            
-            ttk.Label(label_frame, text=f"{key}:", width=18).pack(side=tk.LEFT, anchor="w")
-            lbl = ttk.Label(label_frame, text="-", font=("TkFixedFont", 10), foreground="#000")
-            lbl.pack(side=tk.LEFT, anchor="w", padx=10)
-            
-            preview_labels[key.split()[1]] = lbl  # Store by the actual key name
 
-        # Explanation text
-        explain_frame = ttk.LabelFrame(right_frame, text="ℹ️ Understanding This Gambit", padding=10)
-        explain_frame.pack(fill=tk.BOTH, expand=True, pady=(15, 0))
-        
-        explain_text = scrolledtext.ScrolledText(explain_frame, wrap=tk.WORD, height=8, font=("TkDefaultFont", 9))
-        explain_text.pack(fill=tk.BOTH, expand=True)
-        explain_text.insert("1.0", "Select a gambit to see a plain-English explanation of what it does.")
-        explain_text.config(state="disabled")
+            ttk.Label(label_frame, text=f"{key}:", width=18).pack(side=tk.LEFT, anchor="w")
+            lbl = ttk.Label(label_frame, text="-", font=("TkFixedFont", 10))
+            lbl.pack(side=tk.LEFT, anchor="w", padx=10)
+
+            preview_labels.append(lbl)  # Store in order
 
         # Helper to update inputs
         selected_item_data = {}
-
-        def get_friendly_explanation(data):
-            """Generate a user-friendly explanation of what the gambit does."""
-            parts = []
-            
-            # Target explanation
-            target_map = {
-                "SELF": "the trust itself",
-                "PARTY": "any party member",
-                "TARGET": "the enemy",
-                "MASTER": "the player who summoned the trust",
-                "TANK": "the party's main tank",
-                "MELEE": "melee fighters in the party",
-                "RANGED": "ranged attackers in the party",
-                "CASTER": "spell casters in the party",
-                "TOP_ENMITY": "whoever has the enemy's attention",
-                "PARTY_DEAD": "dead party members",
-            }
-            target_text = target_map.get(data.get("t", ""), data.get("t", ""))
-            
-            # Condition explanation
-            cond = data.get("c", "")
-            cond_arg = data.get("c_arg", "")
-            
-            if cond == "HPP_LT":
-                condition_text = f"when HP drops below {cond_arg}%"
-            elif cond == "HPP_GTE":
-                condition_text = f"when HP is {cond_arg}% or higher"
-            elif cond == "MPP_LT":
-                condition_text = f"when MP drops below {cond_arg}%"
-            elif cond == "TP_LT":
-                condition_text = f"when TP is below {cond_arg}"
-            elif cond == "TP_GTE":
-                condition_text = f"when TP reaches {cond_arg} or more"
-            elif cond == "STATUS":
-                status = cond_arg.split(".")[-1] if "." in cond_arg else cond_arg
-                condition_text = f"when afflicted with {status}"
-            elif cond == "NOT_STATUS":
-                status = cond_arg.split(".")[-1] if "." in cond_arg else cond_arg
-                condition_text = f"when not affected by {status}"
-            elif cond == "STATUS_FLAG":
-                flag = cond_arg.split(".")[-1] if "." in cond_arg else cond_arg
-                condition_text = f"when has a {flag.lower()} status effect"
-            elif cond == "HAS_TOP_ENMITY":
-                condition_text = "when holding the enemy's attention"
-            elif cond == "NOT_HAS_TOP_ENMITY":
-                condition_text = "when not holding the enemy's attention"
-            elif cond == "MB_AVAILABLE":
-                condition_text = "when a magic burst opportunity is available"
-            elif cond == "SC_AVAILABLE":
-                condition_text = "when a skillchain opportunity is available"
-            elif cond == "NOT_SC_AVAILABLE":
-                condition_text = "when no skillchain is happening"
-            elif cond == "CASTING_MA":
-                condition_text = "when the enemy is casting magic"
-            elif cond == "READYING_WS":
-                condition_text = "when the enemy is preparing a weaponskill"
-            elif cond == "READYING_MS":
-                condition_text = "when the enemy is preparing a special attack"
-            elif cond == "READYING_JA":
-                condition_text = "when the enemy is using a special ability"
-            elif cond == "ALWAYS":
-                condition_text = "always (whenever possible)"
-            elif cond == "NO_SAMBA":
-                condition_text = "when no Samba is active"
-            elif cond == "PT_HAS_TANK":
-                condition_text = "when the party has a tank"
-            elif cond == "NOT_PT_HAS_TANK":
-                condition_text = "when the party has no tank"
-            elif cond == "IS_ECOSYSTEM":
-                eco = cond_arg.split(".")[-1] if "." in cond_arg else cond_arg
-                condition_text = f"when fighting {eco.lower()} enemies"
-            else:
-                condition_text = f"when {cond}"
-            
-            # Reaction explanation
-            reaction = data.get("r", "")
-            selector = data.get("s", "")
-            sel_arg = data.get("s_arg", "")
-            
-            if reaction == "MA":
-                spell = sel_arg.split(".")[-1] if "." in sel_arg else sel_arg
-                if selector == "HIGHEST":
-                    action_text = f"cast the highest tier {spell} spell"
-                elif selector == "SPECIFIC":
-                    action_text = f"cast {spell}"
-                elif selector == "MB_ELEMENT":
-                    action_text = "cast a nuke spell matching the skillchain element"
-                elif selector == "BEST_AGAINST_TARGET":
-                    action_text = "cast the most effective elemental spell against this enemy"
-                else:
-                    action_text = f"cast {spell} ({selector})"
-            elif reaction == "JA":
-                ability = sel_arg.split(".")[-1] if "." in sel_arg else sel_arg
-                action_text = f"use {ability}"
-            elif reaction == "WS":
-                action_text = "use a weaponskill"
-            elif reaction == "RATTACK":
-                action_text = "perform a ranged attack"
-            else:
-                action_text = reaction
-            
-            # Combine into sentence
-            explanation = f"This gambit makes the trust {action_text} on {target_text} {condition_text}."
-            
-            # Add usage notes
-            notes = []
-            if "CURE" in str(sel_arg):
-                notes.append("💊 This is a healing action - the trust will cure wounds.")
-            if "HASTE" in str(sel_arg) or "REFRESH" in str(sel_arg):
-                notes.append("⚡ This is a support buff - keeps allies enhanced.")
-            if "PROTECT" in str(sel_arg) or "SHELL" in str(sel_arg):
-                notes.append("🛡️ This is a defensive buff - reduces damage taken.")
-            if "PROVOKE" in str(sel_arg):
-                notes.append("💢 This is for tanking - helps maintain enemy attention.")
-            if reaction == "WS":
-                notes.append("⚔️ This controls when the trust uses weaponskills for damage.")
-            if "STUN" in str(sel_arg) or "VIOLENT_FLOURISH" in str(sel_arg):
-                notes.append("🚫 This interrupts enemy actions - very useful for dangerous abilities.")
-            if "MB_ELEMENT" in str(selector):
-                notes.append("💥 This creates magic bursts - massive bonus damage during skillchains!")
-            
-            if notes:
-                explanation += "\n\n" + "\n".join(notes)
-            
-            return explanation
 
         def on_select(event):
             selection = tree.selection()
@@ -3591,57 +3894,65 @@ class TrustEditor(tk.Tk):
             )
             lbl_desc.configure(text=data.get("desc", ""))
 
-            # Update preview - keys from preview_rows match the split()[1] values
-            # "🎯 Target" -> key is "Target"
-            # "💭 Condition Arg" -> key is "Condition" (split on space, take second word)
-            # "📝 Selector Arg" -> key is "Selector" (split on space, take second word)
-            preview_labels["Target"].configure(text=data.get("t", "-"))
-            preview_labels["Condition"].configure(text=data.get("c", "-"))
-            preview_labels["Condition"].configure(text=data.get("c_arg", "-"))  # This should be Condition Arg but key is just "Condition"
-            preview_labels["Reaction"].configure(text=data.get("r", "-"))
-            preview_labels["Selector"].configure(text=data.get("s", "-"))
-            preview_labels["Selector"].configure(text=data.get("s_arg", "-"))  # This should be Selector Arg but key is just "Selector"
-            
-            # Actually, we need to fix the key extraction. Let me use proper keys
-            # The keys extracted are: Target, Condition, Condition (from "Condition Arg"), Reaction, Selector, Selector (from "Selector Arg")
-            # This creates a collision. Let's use unique keys
-            all_labels = list(preview_labels.values())
-            all_labels[0].configure(text=data.get("t", "-"))      # Target
-            all_labels[1].configure(text=data.get("c", "-"))      # Condition
-            all_labels[2].configure(text=data.get("c_arg", "-"))  # Condition Arg
-            all_labels[3].configure(text=data.get("r", "-"))      # Reaction
-            all_labels[4].configure(text=data.get("s", "-"))      # Selector
-            all_labels[5].configure(text=data.get("s_arg", "-"))  # Selector Arg
-            
-            # Update explanation
-            explain_text.config(state="normal")
-            explain_text.delete("1.0", tk.END)
-            explain_text.insert("1.0", get_friendly_explanation(data))
-            explain_text.config(state="disabled")
+            # Update preview labels - now using list directly
+            preview_labels[0].configure(text=data.get("t", "-"))      # Target
+            preview_labels[1].configure(text=data.get("c", "-"))      # Condition
+            preview_labels[2].configure(text=data.get("c_arg", "-"))  # Condition Arg
+            preview_labels[3].configure(text=data.get("r", "-"))      # Reaction
+            preview_labels[4].configure(text=data.get("s", "-"))      # Selector
+            preview_labels[5].configure(text=data.get("s_arg", "-"))  # Selector Arg
 
         tree.bind("<<TreeviewSelect>>", on_select)
 
-        # Apply Button
-        def apply_selection():
+        # Apply Button - insert gambit and optionally close window
+        def insert_gambit(close_window=False):
             if not selected_item_data:
                 return
 
-            self.add_gambit_row(
-                t=selected_item_data.get("t", ""),
-                c=selected_item_data.get("c", ""),
-                c_arg=selected_item_data.get("c_arg", ""),
-                r=selected_item_data.get("r", ""),
-                s=selected_item_data.get("s", ""),
-                s_arg=selected_item_data.get("s_arg", ""),
-                dynamic=selected_item_data.get("dynamic", False),
-            )
-            # Optional: close window? OR stay open for more?
-            # win.destroy()
+            # Create a new gambit from the template
+            new_gambit = {
+                "name": selected_item_data.get("name", "New Gambit"),
+                "target": selected_item_data.get("t", ""),
+                "condition": selected_item_data.get("c", ""),
+                "cond_arg": selected_item_data.get("c_arg", ""),
+                "reaction": selected_item_data.get("r", ""),
+                "selector": selected_item_data.get("s", ""),
+                "sel_arg": selected_item_data.get("s_arg", ""),
+                "locked": False,
+                "dynamic": selected_item_data.get("dynamic", False),
+                "enabled": True
+            }
+
+            # Add gambit to data
+            self.gambit_data.append(new_gambit)
+
+            # Update UI - now safe with recursion guard
+            self.refresh_gambit_list()
+
+            # Select the new gambit
+            new_index = len(self.gambit_data) - 1
+            self.gambits_tree.selection_set(str(new_index))
+            self.gambits_tree.see(str(new_index))
+            self.selected_gambit_index = new_index
+            self.load_gambit_to_editor(new_index)
+            self.set_editor_state("normal")
+
+            # Close window if requested
+            if close_window:
+                win.destroy()
+
+        def on_double_click(event):
+            """Double-click to insert without closing."""
+            # Only insert if a valid gambit is selected (not a category)
+            if selected_item_data:
+                insert_gambit(close_window=False)
+
+        tree.bind("<Double-Button-1>", on_double_click)
 
         btn_frame = ttk.Frame(right_frame)
         btn_frame.pack(side=tk.BOTTOM, fill=tk.X, pady=10)
 
-        ttk.Button(btn_frame, text="Insert into Editor", command=apply_selection).pack(
+        ttk.Button(btn_frame, text="Insert and Close", command=lambda: insert_gambit(close_window=True)).pack(
             side=tk.RIGHT
         )
         ttk.Button(btn_frame, text="Close", command=win.destroy).pack(
@@ -3660,133 +3971,15 @@ class TrustEditor(tk.Tk):
         dynamic=False,
         or_conditions=None,
     ):
-        row_frame = ttk.Frame(self.gambits_scrollable_frame)
-        row_frame.pack(fill=tk.X, pady=2)
-
-        # Lock Button
-        locked_var = tk.BooleanVar(value=locked)
-        lock_btn = ttk.Checkbutton(
-            row_frame, text="🔒", variable=locked_var, style="Toolbutton", width=2
-        )
-        lock_btn.pack(side=tk.LEFT, padx=(2, 0))
-
-        # Dynamic Button
-        dynamic_var = tk.BooleanVar(value=dynamic)
-        dyn_btn = ttk.Checkbutton(
-            row_frame, text="⚡", variable=dynamic_var, style="Toolbutton", width=2
-        )
-        dyn_btn.pack(side=tk.LEFT, padx=(0, 5))
-
-        # Store OR conditions if provided (for display and Lua generation)
-        or_conditions_var = or_conditions if or_conditions else None
-
-        # Increase width slightly to match new headers
-        t_frame, t_var = self.create_list_picker(
-            row_frame,
-            SORTED_AI_TARGETS,
-            width=10,
-            textvariable=tk.StringVar(),
-            title="Pick Target",
-            help_category="TARGET",
-        )
-        t_var.set(t)
-        t_frame.pack(side=tk.LEFT, padx=2)
-        c_frame, c_var = self.create_list_picker(
-            row_frame,
-            SORTED_AI_CONDITIONS,
-            width=14,
-            textvariable=tk.StringVar(),
-            title="Pick Condition",
-            help_category="CONDITION",
-        )
-        c_var.set(c)
-        c_frame.pack(side=tk.LEFT, padx=2)
-
-        c_arg_e = ttk.Entry(row_frame, width=8)
-        c_arg_e.insert(0, str(c_arg))
-        c_arg_e.pack(side=tk.LEFT, padx=2)
-
-        r_frame, r_var = self.create_list_picker(
-            row_frame,
-            SORTED_AI_REACTIONS,
-            width=10,
-            textvariable=tk.StringVar(),
-            title="Pick Reaction",
-            help_category="REACTION",
-        )
-        r_var.set(r)
-        r_frame.pack(side=tk.LEFT, padx=2)
-        s_frame, s_var = self.create_list_picker(
-            row_frame,
-            SORTED_AI_SELECTS,
-            width=14,
-            textvariable=tk.StringVar(),
-            title="Pick Selector",
-            help_category="SELECTOR",
-        )
-        s_var.set(s)
-        s_frame.pack(side=tk.LEFT, padx=2)
-
-        # Selector Arg: filtered picker with all constants + manual entry support
-        s_arg_frame, s_arg_var = self.create_list_picker(
-            row_frame,
-            ALL_CONSTANTS,
-            width=22,
-            textvariable=tk.StringVar(),
-            title="Pick Selector Arg",
-            help_category="SEL_ARG",
-            selector_var=s_var,
-        )
-        s_arg_var.set(s_arg)
-        s_arg_frame.pack(side=tk.LEFT, padx=2)
-
-        # Duplicate Button
-        dup_btn = ttk.Button(
-            row_frame,
-            text="📄",
-            width=2,
-            command=lambda: self.add_gambit_row(
-                t_var.get(),
-                c_var.get(),
-                c_arg_e.get(),
-                r_var.get(),
-                s_var.get(),
-                s_arg_var.get(),
-                locked_var.get(),
-                dynamic_var.get(),
-            ),
-        )
-        dup_btn.pack(side=tk.LEFT, padx=2)
-
-        del_btn = ttk.Button(
-            row_frame,
-            text="X",
-            width=2,
-            command=lambda: self.remove_gambit_row(row_frame),
-        )
-        del_btn.pack(side=tk.LEFT, padx=2)
-
-        self.gambit_rows.append(
-            (
-                row_frame,
-                t_var,
-                c_var,
-                c_arg_e,
-                r_var,
-                s_var,
-                s_arg_var,
-                locked_var,
-                or_conditions_var,
-                dynamic_var,
-            )
-        )
+        """Legacy method for backwards compatibility - delegates to new add_gambit."""
+        # This is now handled by the new structure
+        # Just add to gambit_data directly
+        pass
 
     def remove_gambit_row(self, row_frame):
-        for i, row_data in enumerate(self.gambit_rows):
-            if row_data[0] == row_frame:
-                self.gambit_rows.pop(i)
-                break
-        row_frame.destroy()
+        """Legacy method for backwards compatibility."""
+        # This is now handled by the new structure
+        pass
 
     def create_tp_tab(self):
         self.tp_trigger_var = tk.StringVar()
@@ -4368,7 +4561,7 @@ class TrustEditor(tk.Tk):
                 items.append(
                     {
                         "name": f"{k} ({AI_CONDITIONS[k]})",
-                        "info": f"Provide an explicit ID for the target entity to use as an argument.",
+                        "info": f"{k}\nValue: {AI_CONDITIONS[k]}\n\n{desc}\n\nArgument: {arg}",
                     }
                 )
         elif category == "DYNAMIC_GAMBITS":
@@ -4750,32 +4943,32 @@ class TrustEditor(tk.Tk):
                     }
                 )
 
-        for row_data in self.gambit_rows:
-            (
-                _,
-                t_var,
-                c_var,
-                c_arg_e,
-                r_var,
-                s_var,
-                s_arg_var,
-                _,
-                or_conditions,
-                dynamic_var,
-            ) = row_data
-            if t_var.get():
+        # Save current gambit being edited
+        if hasattr(self, 'selected_gambit_index') and self.selected_gambit_index is not None:
+            self.save_current_gambit()
+
+        # Save all gambits from new structure
+        for gambit in self.gambit_data:
+            # Only save enabled gambits (disabled ones are stored but not exported)
+            if gambit.get("enabled", True):
                 gambit_entry = {
-                    "target": t_var.get(),
-                    "condition": c_var.get(),
-                    "cond_arg": c_arg_e.get(),
-                    "reaction": r_var.get(),
-                    "selector": s_var.get(),
-                    "sel_arg": s_arg_var.get(),
+                    "target": gambit.get("target", ""),
+                    "condition": gambit.get("condition", ""),
+                    "cond_arg": gambit.get("cond_arg", ""),
+                    "reaction": gambit.get("reaction", ""),
+                    "selector": gambit.get("selector", ""),
+                    "sel_arg": gambit.get("sel_arg", ""),
                 }
-                if or_conditions:
-                    gambit_entry["or_conditions"] = or_conditions
-                if dynamic_var.get():
+                if gambit.get("name"):
+                    gambit_entry["name"] = gambit["name"]
+                if gambit.get("locked"):
+                    gambit_entry["locked"] = True
+                if gambit.get("dynamic"):
                     gambit_entry["dynamic"] = True
+                if gambit.get("or_conditions"):
+                    gambit_entry["or_conditions"] = gambit["or_conditions"]
+                if not gambit.get("enabled", True):
+                    gambit_entry["enabled"] = False
                 data["gambits"].append(gambit_entry)
 
         for _, e_var, p_e, d_e in self.effect_rows:
@@ -5185,18 +5378,32 @@ return spellObject
                 self.refresh_stats_preview()
 
         elif tab_index == 2:  # Gambits
-            for row_data in list(self.gambit_rows):
-                self.remove_gambit_row(row_data[0])
+            # Clear existing data
+            self.gambit_data = []
+            self.selected_gambit_index = None
+
+            # Load gambits from data
             for g in data.get("gambits", []):
-                self.add_gambit_row(
-                    g.get("target", ""),
-                    g.get("condition", ""),
-                    g.get("cond_arg", ""),
-                    g.get("reaction", ""),
-                    g.get("selector", ""),
-                    g.get("sel_arg", ""),
-                    or_conditions=g.get("or_conditions"),
-                )
+                gambit_entry = {
+                    "name": g.get("name", ""),
+                    "target": g.get("target", ""),
+                    "condition": g.get("condition", ""),
+                    "cond_arg": g.get("cond_arg", ""),
+                    "reaction": g.get("reaction", ""),
+                    "selector": g.get("selector", ""),
+                    "sel_arg": g.get("sel_arg", ""),
+                    "locked": g.get("locked", False),
+                    "dynamic": g.get("dynamic", False),
+                    "enabled": g.get("enabled", True),
+                    "or_conditions": g.get("or_conditions")
+                }
+                self.gambit_data.append(gambit_entry)
+
+            self.refresh_gambit_list()
+            self.set_editor_state("disabled")
+
+            # Legacy compatibility - populate gambit_rows for old code
+            self.gambit_rows = []
 
         elif tab_index == 3:  # TP
             tp = data.get("tp_settings", {})
