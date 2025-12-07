@@ -255,15 +255,16 @@ def parse_item_equipment():
         return equipment
     content = file_path.read_text(errors="ignore")
     # Format: (itemId,'name',level,ilevel,jobs,MId,shieldSize,scriptType,slot,rslot,rslotlook,su_level)
+    # Handle escaped quotes in name: '((?:[^']|'')*)'
     for match in re.findall(
-        r"VALUES\s*\((\d+),'([^']*)',(\d+),(\d+),(\d+),(\d+),(\d+),(\d+),(\d+),(\d+),(\d+),(\d+)\)",
+        r"VALUES\s*\((\d+),'((?:[^']|'')*)',(\d+),(\d+),(\d+),(\d+),(\d+),(\d+),(\d+),(\d+),(\d+),(\d+)\)",
         content,
     ):
         item_id = int(match[0])
-        name = match[1]
+        name = match[1].replace("''", "'")  # Unescape quotes
         level = int(match[2])
         ilevel = int(match[3])
-        mid = int(match[5])
+        mid = int(match[5])  # Model ID
         slot_bitmask = int(match[8])
         equipment[item_id] = {
             "name": name,
@@ -533,23 +534,25 @@ JOB_ROLE_MAP = {
 }
 
 # Default spell lists for jobs (based on mob_spell_lists.sql)
+# Verified IDs: WHM=1, BLM=2, RDM=3, PLD=4, DRK=5, BRD=6, NIN=7, BLU=8, SMN=30
 JOB_SPELL_LISTS = {
-    "WHM": 1,  # Beastmen_WHM
-    "BLM": 2,  # Beastmen_BLM
-    "RDM": 3,  # Beastmen_RDM
-    "PLD": 4,  # Beastmen_PLD
-    "DRK": 5,  # Beastmen_DRK
-    "BRD": 6,  # Beastmen_BRD
-    "NIN": 7,  # Beastmen_NIN
-    "BLU": 8,  # Beastmen_BLU
-    "SMN": 30,  # Yagudo_SMN
-    "GEO": 2,  # Fallback to BLM? Or custom.
-    "SCH": 3,  # Fallback to RDM?
-    "RUN": 4,  # Fallback to PLD?
+    "WHM": 1,
+    "BLM": 2,
+    "RDM": 3,
+    "PLD": 4,
+    "DRK": 5,
+    "BRD": 6,
+    "NIN": 7,
+    "BLU": 8,
+    "SMN": 30,
+    "GEO": 2,  # Fallback to BLM
+    "SCH": 3,  # Fallback to RDM
+    "RUN": 4,  # Fallback to PLD
 }
 
 # Base delay set by changeJob in lua_baseentity.cpp
 # Used to calculate the delay mod offset
+# C++: MNK, PUP, RUN, SAM, DRK, DRG, SMN = 8000. Others = 4000.
 JOB_BASE_DELAY = {
     "MNK": 8000,
     "PUP": 8000,
@@ -3639,6 +3642,30 @@ class TrustEditor(tk.Tk):
                     return val
                 return val  # Fallback
 
+        # Determine if we need to add MP mod for casters
+        # If the user hasn't manually added MP, and it's a caster job, give them some MP.
+        main_job = data.get("main_job", "")
+        sub_job = data.get("sub_job", "NONE")
+
+        has_mp_mod = any(m["name"] == "MP" for m in data["mods"])
+        caster_jobs = [
+            "WHM",
+            "BLM",
+            "RDM",
+            "PLD",
+            "DRK",
+            "SMN",
+            "BLU",
+            "GEO",
+            "SCH",
+            "RUN",
+        ]
+
+        # We will inject MP mod in the mods_str generation if needed
+        inject_mp = (
+            main_job in caster_jobs or sub_job in caster_jobs
+        ) and not has_mp_mod
+
         # Generate job change call if main_job is specified
         job_change_str = ""
         main_job = data.get("main_job", "")
@@ -3657,8 +3684,14 @@ class TrustEditor(tk.Tk):
                 job_change_str += f"    mob:setSpellList({JOB_SPELL_LISTS[main_job]})\n"
 
         mods_str = ""
-        if data["mods"]:
+        if data["mods"] or inject_mp:
             mods_str += "\n"  # Blank line before
+
+        if inject_mp:
+            mods_str += (
+                f"    mob:addMod(xi.mod.MP, 1000) -- Default MP for caster job\n"
+            )
+
         for m in data["mods"]:
             mods_str += f"    mob:addMod(xi.mod.{m['name']}, {fmt_arg(m['value'])})\n"
 
@@ -3767,6 +3800,11 @@ class TrustEditor(tk.Tk):
         lua_content = f"""-----------------------------------
 -- Trust: {name}
 {job_line}-----------------------------------
+require('scripts/globals/trust')
+require('scripts/enum/slot')
+require('scripts/enum/magic')
+require('scripts/enum/mod')
+
 ---@type TSpellTrust
 local spellObject = {{}}
 
