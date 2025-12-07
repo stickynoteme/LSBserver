@@ -1,11 +1,13 @@
 -----------------------------------
--- Trust: Zeid
+-- Trust: ArkEV
+-----------------------------------
+require("scripts/globals/trust")
 -----------------------------------
 ---@type TSpellTrust
 local spellObject = {}
 
 spellObject.onMagicCastingCheck = function(caster, target, spell)
-    return xi.trust.canCast(caster, spell, xi.magic.spell.ZEID_II)
+    return 0
 end
 
 spellObject.onSpellCast = function(caster, target, spell)
@@ -13,7 +15,7 @@ spellObject.onSpellCast = function(caster, target, spell)
 end
 
 spellObject.onMobSpawn = function(mob)
-    xi.trust.message(mob, xi.trust.messageOffset.SPAWN)
+    -- Placeholder
 end
 
 spellObject.onMobDespawn = function(mob)

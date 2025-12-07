@@ -1311,7 +1311,6 @@ JOB_TEMPLATES = {
 
 JOB_SUB_TEMPLATES = {
     ("PLD", "WAR"): {
-        "mods": [{"name": "ENMITY", "value": "10"}],
         "gambits": [
             {
                 "target": "SELF",
@@ -1324,7 +1323,6 @@ JOB_SUB_TEMPLATES = {
         ],
     },
     ("WAR", "NIN"): {
-        "mods": [{"name": "EVA", "value": "10"}],
         "gambits": [
             {
                 "target": "SELF",
@@ -1349,10 +1347,6 @@ JOB_SUB_TEMPLATES = {
         ],
     },
     ("BLM", "RDM"): {
-        "mods": [
-            {"name": "FASTCAST", "value": "10"},
-            {"name": "REFRESH", "value": "2"},
-        ],
         "gambits": [
             {
                 "target": "SELF",
@@ -1365,7 +1359,6 @@ JOB_SUB_TEMPLATES = {
         ],
     },
     ("RNG", "NIN"): {
-        "mods": [{"name": "EVA", "value": "10"}],
         "gambits": [
             {
                 "target": "SELF",
@@ -1393,7 +1386,6 @@ JOB_SUB_TEMPLATES = {
 
 SUB_JOB_EXTRAS = {
     "NIN": {
-        "mods": [{"name": "EVA", "value": "10"}],
         "gambits": [
             {
                 "target": "SELF",
@@ -1431,7 +1423,6 @@ SUB_JOB_EXTRAS = {
         ],
     },
     "DNC": {
-        "mods": [{"name": "CHR", "value": "10"}],
         "gambits": [
             {
                 "target": "PARTY",
@@ -1734,7 +1725,7 @@ class TrustEditor(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("Trust Editor")
-        self.geometry("1100x700")
+        self.geometry("1100x800")
         self.style = ttk.Style()
         self.style.configure("Icon.TButton", padding=0)
         self.style.configure(
@@ -1745,11 +1736,19 @@ class TrustEditor(tk.Tk):
 
         self.trust_files = self.get_trust_files()
         self.current_trust = tk.StringVar()
-        self.config = {}
-        self.current_trust.trace_add("write", self.on_trust_selected)
-
         self.create_widgets()
         self.load_sql_data()
+        self.current_trust.trace_add("write", self.on_trust_selected)
+
+    def on_trust_selected(self, *args):
+        val = self.current_trust.get()
+        if not val:
+            return
+        # Strip asterisk if present
+        if val.startswith("* "):
+            val = val[2:]
+
+        self.load_trust_data(val)
 
     def load_sql_data(self):
         self.ja_job_map = {}
@@ -2472,12 +2471,38 @@ class TrustEditor(tk.Tk):
         search_entry.focus_set()
 
     def get_trust_files(self):
-        files = [
-            f
-            for f in os.listdir(CURRENT_DIR)
-            if f.endswith(".lua") and f != os.path.basename(__file__)
-        ]
-        return sorted(files)
+        files = []
+        for f in os.listdir(CURRENT_DIR):
+            if f.endswith(".lua") and f != os.path.basename(__file__):
+                # Check if placeholder
+                path = os.path.join(CURRENT_DIR, f)
+                is_placeholder = False
+                try:
+                    with open(path, "r", encoding="utf-8") as file:
+                        content = file.read()
+                        # Heuristic: if file is small or has no gambits/listeners defined in t_editor blocks
+                        # Or maybe just check if it has "t_editor" blocks at all?
+                        # If it has no t_editor blocks, it might be a raw file or empty.
+                        # If it has t_editor blocks but they are empty?
+                        # Let's check for "gambits = {" or "listeners = {" inside t_editor blocks?
+                        # Or simpler: if file size < 2KB?
+                        # Or if it doesn't contain "mob:addGambit"?
+                        if (
+                            "mob:addGambit" not in content
+                            and "mob:addListener" not in content
+                        ):
+                            is_placeholder = True
+                except:
+                    pass
+
+                if is_placeholder:
+                    files.append("* " + f)
+                else:
+                    files.append(f)
+
+        # Sort: Placeholders (* ...) first, then others. Both groups alphabetically.
+        files.sort(key=lambda x: (not x.startswith("* "), x))
+        return files
 
     def create_widgets(self):
         # Top Bar
@@ -2497,12 +2522,12 @@ class TrustEditor(tk.Tk):
         ttk.Button(top_frame, text="Save Trust", command=self.save_trust).pack(
             side=tk.RIGHT, padx=5
         )
-        ttk.Button(top_frame, text="Clear All", command=self.clear_all).pack(
+        ttk.Button(top_frame, text="Clear", command=self.clear_action).pack(
             side=tk.RIGHT, padx=5
         )
-        ttk.Button(
-            top_frame, text="Restore to Default", command=self.restore_to_default
-        ).pack(side=tk.RIGHT, padx=5)
+        ttk.Button(top_frame, text="Restore Default", command=self.restore_action).pack(
+            side=tk.RIGHT, padx=5
+        )
 
         # Notebook (Tabs)
         self.notebook = ttk.Notebook(self, padding=5)
@@ -2923,9 +2948,21 @@ class TrustEditor(tk.Tk):
 
         self.mod_rows = []
 
-    def add_mod_row(self, mod_name="", value=""):
+    def add_mod_row(self, mod_name="", value="", locked=False):
         row_frame = ttk.Frame(self.mods_scrollable_frame)
         row_frame.pack(fill=tk.X, pady=2)
+
+        # Lock Button (Icon only)
+        locked_var = tk.BooleanVar(value=locked)
+        lock_btn = ttk.Checkbutton(
+            row_frame,
+            text="🔒",  # Using text as icon substitute, or could use image if available.
+            # Checkbutton with style="Toolbutton" looks like a button.
+            variable=locked_var,
+            style="Toolbutton",
+            width=2,
+        )
+        lock_btn.pack(side=tk.LEFT, padx=(2, 5))
 
         ttk.Label(row_frame, text="Mod:").pack(side=tk.LEFT)
         mod_frame, mod_var = self.create_list_picker(
@@ -2943,15 +2980,26 @@ class TrustEditor(tk.Tk):
         val_entry.insert(0, str(value))
         val_entry.pack(side=tk.LEFT, padx=5)
 
-        del_btn = ttk.Button(
-            row_frame, text="X", width=3, command=lambda: self.remove_mod_row(row_frame)
+        # Duplicate Button
+        dup_btn = ttk.Button(
+            row_frame,
+            text="📄",  # Copy icon substitute
+            width=2,
+            command=lambda: self.add_mod_row(
+                mod_var.get(), val_entry.get(), locked_var.get()
+            ),
         )
-        del_btn.pack(side=tk.LEFT, padx=5)
+        dup_btn.pack(side=tk.LEFT, padx=2)
 
-        self.mod_rows.append((row_frame, mod_var, val_entry))
+        del_btn = ttk.Button(
+            row_frame, text="X", width=2, command=lambda: self.remove_mod_row(row_frame)
+        )
+        del_btn.pack(side=tk.LEFT, padx=2)
+
+        self.mod_rows.append((row_frame, mod_var, val_entry, locked_var))
 
     def remove_mod_row(self, row_frame):
-        for i, (frame, _, _) in enumerate(self.mod_rows):
+        for i, (frame, _, _, _) in enumerate(self.mod_rows):
             if frame == row_frame:
                 self.mod_rows.pop(i)
                 break
@@ -3012,9 +3060,16 @@ class TrustEditor(tk.Tk):
         ).pack(pady=5)
         self.gambit_rows = []
 
-    def add_gambit_row(self, t="", c="", c_arg="", r="", s="", s_arg=""):
+    def add_gambit_row(self, t="", c="", c_arg="", r="", s="", s_arg="", locked=False):
         row_frame = ttk.Frame(self.gambits_scrollable_frame)
         row_frame.pack(fill=tk.X, pady=2)
+
+        # Lock Button
+        locked_var = tk.BooleanVar(value=locked)
+        lock_btn = ttk.Checkbutton(
+            row_frame, text="🔒", variable=locked_var, style="Toolbutton", width=2
+        )
+        lock_btn.pack(side=tk.LEFT, padx=(2, 5))
 
         t_frame, t_var = self.create_list_picker(
             row_frame,
@@ -3073,21 +3128,38 @@ class TrustEditor(tk.Tk):
         s_arg_var.set(s_arg)
         s_arg_frame.pack(side=tk.LEFT, padx=2)
 
+        # Duplicate Button
+        dup_btn = ttk.Button(
+            row_frame,
+            text="📄",
+            width=2,
+            command=lambda: self.add_gambit_row(
+                t_var.get(),
+                c_var.get(),
+                c_arg_e.get(),
+                r_var.get(),
+                s_var.get(),
+                s_arg_var.get(),
+                locked_var.get(),
+            ),
+        )
+        dup_btn.pack(side=tk.LEFT, padx=2)
+
         del_btn = ttk.Button(
             row_frame,
             text="X",
-            width=3,
+            width=2,
             command=lambda: self.remove_gambit_row(row_frame),
         )
-        del_btn.pack(side=tk.LEFT, padx=5)
+        del_btn.pack(side=tk.LEFT, padx=2)
 
         self.gambit_rows.append(
-            (row_frame, t_var, c_var, c_arg_e, r_var, s_var, s_arg_var)
+            (row_frame, t_var, c_var, c_arg_e, r_var, s_var, s_arg_var, locked_var)
         )
 
     def remove_gambit_row(self, row_frame):
-        for i, (frame, _, _, _, _, _, _) in enumerate(self.gambit_rows):
-            if frame == row_frame:
+        for i, row_data in enumerate(self.gambit_rows):
+            if row_data[0] == row_frame:
                 self.gambit_rows.pop(i)
                 break
         row_frame.destroy()
@@ -3529,11 +3601,11 @@ class TrustEditor(tk.Tk):
             row["id_var"].set("")
             row["name_var"].set("")
 
-        for frame, _, _ in list(self.mod_rows):
-            self.remove_mod_row(frame)
+        for row_data in list(self.mod_rows):
+            self.remove_mod_row(row_data[0])
 
-        for frame, _, _, _, _, _, _ in list(self.gambit_rows):
-            self.remove_gambit_row(frame)
+        for row_data in list(self.gambit_rows):
+            self.remove_gambit_row(row_data[0])
 
         for frame, _, _, _ in list(self.effect_rows):
             self.remove_effect_row(frame)
@@ -4347,8 +4419,169 @@ end
 
 return spellObject
 """
-        with open(os.path.join(CURRENT_DIR, filename), "w") as f:
+        with open(os.path.join(CURRENT_DIR, trust_name), "w") as f:
             f.write(lua_content)
+
+    def restore_action(self):
+        if not self.current_trust.get():
+            return
+
+        choice = messagebox.askyesnocancel(
+            "Restore Default",
+            "Restore ALL tabs to default (Yes) or ONLY current tab (No)?",
+        )
+        if choice is None:  # Cancel
+            return
+
+        if choice:  # Yes = All
+            self.load_trust_data(self.current_trust.get())
+        else:  # No = Current Tab
+            self.restore_current_tab()
+
+    def restore_current_tab(self):
+        # Load data from file but only apply to current tab
+        trust_name = self.current_trust.get()
+        if not trust_name:
+            return
+
+        # We need to parse the file again
+        # Reuse logic from load_trust_data but split it
+        path = os.path.join(CURRENT_DIR, trust_name)
+        if not os.path.exists(path):
+            return
+
+        with open(path, "r", encoding="utf-8") as f:
+            content = f.read()
+
+        data = self.parse_lua_to_data(content)
+        data = self.ensure_template_defaults(data)
+
+        current_tab = self.notebook.select()
+        tab_index = self.notebook.index(current_tab)
+        # Tab indices: 0=General, 1=Mods, 2=Gambits, 3=TP, 4=Effects, 5=Listeners, 6=Code
+
+        if tab_index == 0:  # General
+            self.auto_attack_var.set(data.get("auto_attack", True))
+            self.main_job_var.set(data.get("main_job", ""))
+            self.sub_job_var.set(data.get("sub_job", "NONE") or "NONE")
+            # Gear
+            gear_map = {g.get("slot"): g for g in data.get("gear", [])}
+            for row in self.gear_rows:
+                slot = row["slot"]
+                if slot in gear_map:
+                    item_id = gear_map[slot].get("item_id", "")
+                    row["id_var"].set(str(item_id) if item_id else "")
+                    # Update name logic duplicated from populate_from_data
+                    display_name = ""
+                    if item_id:
+                        slot_items = get_slot_item_lists().get(slot, [])
+                        for item in slot_items:
+                            if item["id"] == int(item_id):
+                                display_name = item["display"]
+                                break
+                        if not display_name:
+                            nm = ITEM_NAMES.get(int(item_id), "")
+                            display_name = f"{nm} [{item_id}]" if nm else str(item_id)
+                    row["name_var"].set(display_name)
+                else:
+                    row["id_var"].set("")
+                    row["name_var"].set("")
+            if hasattr(self, "refresh_stats_preview"):
+                self.refresh_stats_preview()
+
+        elif tab_index == 1:  # Mods
+            for row_data in list(self.mod_rows):
+                self.remove_mod_row(row_data[0])
+            for m in data.get("mods", []):
+                self.add_mod_row(m.get("name", ""), m.get("value", ""))
+            if hasattr(self, "refresh_stats_preview"):
+                self.refresh_stats_preview()
+
+        elif tab_index == 2:  # Gambits
+            for row_data in list(self.gambit_rows):
+                self.remove_gambit_row(row_data[0])
+            for g in data.get("gambits", []):
+                self.add_gambit_row(
+                    g.get("target", ""),
+                    g.get("condition", ""),
+                    g.get("cond_arg", ""),
+                    g.get("reaction", ""),
+                    g.get("selector", ""),
+                    g.get("sel_arg", ""),
+                )
+
+        elif tab_index == 3:  # TP
+            tp = data.get("tp_settings", {})
+            self.tp_trigger_var.set(tp.get("trigger", ""))
+            self.tp_select_var.set(tp.get("select", ""))
+            self.tp_value_var.set(tp.get("value", ""))
+
+        elif tab_index == 4:  # Effects
+            for frame, _, _, _ in list(self.effect_rows):
+                self.remove_effect_row(frame)
+            for e in data.get("effects", []):
+                self.add_effect_row(
+                    e.get("effect", ""), e.get("power", ""), e.get("duration", "")
+                )
+
+        elif tab_index == 5:  # Listeners
+            for row_data in list(self.listener_rows):
+                self.remove_listener_row(row_data["row_frame"], row_data["body_frame"])
+            for lst in data.get("listeners", []):
+                self.add_listener_row(
+                    lst.get("event", ""), lst.get("tag", ""), lst.get("body", "")
+                )
+
+        elif tab_index == 6:  # Code
+            self.custom_code.delete("1.0", tk.END)
+            if data.get("custom_code"):
+                self.custom_code.insert("1.0", data.get("custom_code", ""))
+
+    def clear_action(self):
+        choice = messagebox.askyesnocancel(
+            "Clear", "Clear ALL tabs (Yes) or ONLY current tab (No)?"
+        )
+        if choice is None:
+            return
+
+        if choice:  # All
+            self.reset_form()
+        else:  # Current Tab
+            self.clear_current_tab()
+
+    def clear_current_tab(self):
+        current_tab = self.notebook.select()
+        tab_index = self.notebook.index(current_tab)
+
+        if tab_index == 0:  # General
+            self.auto_attack_var.set(True)
+            self.main_job_var.set("")
+            self.sub_job_var.set("NONE")
+            for row in self.gear_rows:
+                row["id_var"].set("")
+                row["name_var"].set("")
+            if hasattr(self, "refresh_stats_preview"):
+                self.refresh_stats_preview()
+        elif tab_index == 1:  # Mods
+            for row_data in list(self.mod_rows):
+                self.remove_mod_row(row_data[0])
+            if hasattr(self, "refresh_stats_preview"):
+                self.refresh_stats_preview()
+        elif tab_index == 2:  # Gambits
+            for row_data in list(self.gambit_rows):
+                self.remove_gambit_row(row_data[0])
+        elif tab_index == 3:  # TP
+            self.tp_trigger_var.set("")
+            self.tp_select_var.set("")
+            self.tp_value_var.set("")
+        elif tab_index == 4:  # Effects
+            for frame, _, _, _ in list(self.effect_rows):
+                self.remove_effect_row(frame)
+        elif tab_index == 5:  # Listeners
+            for row_data in list(self.listener_rows):
+                self.remove_listener_row(row_data["row_frame"], row_data["body_frame"])
+        elif tab_index == 6:  # Code
+            self.custom_code.delete("1.0", tk.END)
 
 
 if __name__ == "__main__":

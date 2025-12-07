@@ -1,19 +1,11 @@
 -----------------------------------
 -- Trust: Trion
--- Jobs: BLM/NONE
 -----------------------------------
-require('scripts/globals/trust')
-require('scripts/enum/slot')
-require('scripts/enum/magic')
-require('scripts/enum/mod')
-require('scripts/enum/job')
-require('scripts/enum/skill')
-
 ---@type TSpellTrust
 local spellObject = {}
 
 spellObject.onMagicCastingCheck = function(caster, target, spell)
-    return 0
+    return xi.trust.canCast(caster, spell)
 end
 
 spellObject.onSpellCast = function(caster, target, spell)
@@ -21,28 +13,17 @@ spellObject.onSpellCast = function(caster, target, spell)
 end
 
 spellObject.onMobSpawn = function(mob)
-    mob:setAutoAttackEnabled(false)
-    -- Set main job to enable job-specific abilities and spells
-    mob:changeJob(xi.job.BLM)
-    mob:setSpellList(2)
+    xi.trust.teamworkMessage(mob, {
+        [xi.magic.spell.CURILLA] = xi.trust.messageOffset.TEAMWORK_1,
+        [xi.magic.spell.RAHAL] = xi.trust.messageOffset.TEAMWORK_2,
+        [xi.magic.spell.HALVER] = xi.trust.messageOffset.TEAMWORK_3,
+    })
 
-    mob:addMod(xi.mod.MP, 1000) -- Default MP for caster job
-    mob:addMod(xi.mod.MATT, 35)
-    mob:addMod(xi.mod.MACC, 30)
-    mob:addMod(xi.mod.FASTCAST, 20)
-    mob:addMod(xi.mod.ELEM, 424)
-    mob:addMod(xi.mod.DARK, 424)
-    mob:addMod(xi.mod.ENHANCE, 424)
-    mob:addMod(xi.mod.ENFEEBLE, 424)
+    mob:addGambit(ai.t.SELF, { ai.c.NOT_HAS_TOP_ENMITY, 0 }, { ai.r.JA, ai.s.SPECIFIC, xi.ja.PROVOKE })
 
-    -- Visuals (setModelId)
-    -- mob:setModelId(291, xi.slot.MAIN) -- onion_staff
-    mob:addGambit(ai.t.TARGET, { ai.c.HPP_GTE, 80 }, { ai.r.MA, ai.s.SPECIFIC, xi.magic.spell.SLEEP_II })
-    mob:addGambit(ai.t.TARGET, { ai.c.MB_AVAILABLE, 0 }, { ai.r.MA, ai.s.MB_ELEMENT, xi.magic.spellFamily.NONE })
-    mob:addGambit(ai.t.TARGET, { ai.c.NOT_SC_AVAILABLE, 0 }, { ai.r.MA, ai.s.BEST_AGAINST_TARGET, 0 })
-    mob:addGambit(ai.t.TARGET, { ai.c.ALWAYS, 0 }, { ai.r.MA, ai.s.HIGHEST, xi.magic.spellFamily.FIRE })
+    mob:addGambit(ai.t.TARGET, { ai.c.NOT_STATUS, xi.effect.FLASH }, { ai.r.MA, ai.s.SPECIFIC, xi.magic.spell.FLASH })
 
-    -- Custom Code
+    mob:addGambit(ai.t.PARTY, { ai.c.HPP_LT, 75 }, { ai.r.MA, ai.s.HIGHEST, xi.magic.spellFamily.CURE })
 end
 
 spellObject.onMobDespawn = function(mob)
