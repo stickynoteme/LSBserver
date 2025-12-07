@@ -3298,61 +3298,275 @@ class TrustEditor(tk.Tk):
     def open_gambit_palette(self):
         """Open a window with gambit templates and examples."""
         win = tk.Toplevel(self)
-        win.title("Gambit Palette & Examples")
-        win.geometry("800x600")
+        win.title("🎮 Gambit Library - Complete Guide")
+        win.geometry("1000x700")
 
         # Configure grid for split view
         win.columnconfigure(0, weight=1)
         win.columnconfigure(1, weight=2)
-        win.rowconfigure(0, weight=1)
+        win.rowconfigure(0, weight=0)  # Search row
+        win.rowconfigure(1, weight=1)  # Content row
+
+        # Header with instructions
+        header_frame = ttk.Frame(win, padding=5)
+        header_frame.grid(row=0, column=0, columnspan=2, sticky="ew")
+        
+        ttk.Label(
+            header_frame, 
+            text="📚 Browse through all available gambit patterns used in FFXI trusts. Select one to see details and insert it into your trust.",
+            wraplength=950,
+            justify="left"
+        ).pack(anchor="w", pady=5)
 
         # Left: Treeview for Categories
         left_frame = ttk.Frame(win, padding=5)
-        left_frame.grid(row=0, column=0, sticky="nsew")
+        left_frame.grid(row=1, column=0, sticky="nsew")
 
-        ttk.Label(left_frame, text="Categories").pack(anchor="w")
+        # Search box
+        search_frame = ttk.Frame(left_frame)
+        search_frame.pack(fill=tk.X, pady=(0, 5))
+        
+        ttk.Label(search_frame, text="🔍 Search:").pack(side=tk.LEFT, padx=(0, 5))
+        search_var = tk.StringVar()
+        search_entry = ttk.Entry(search_frame, textvariable=search_var)
+        search_entry.pack(side=tk.LEFT, fill=tk.X, expand=True)
 
-        tree = ttk.Treeview(left_frame, selectmode="browse")
-        tree.pack(fill=tk.BOTH, expand=True)
+        tree_frame = ttk.Frame(left_frame)
+        tree_frame.pack(fill=tk.BOTH, expand=True)
 
+        tree_scroll = ttk.Scrollbar(tree_frame)
+        tree_scroll.pack(side=tk.RIGHT, fill=tk.Y)
+
+        tree = ttk.Treeview(tree_frame, selectmode="browse", yscrollcommand=tree_scroll.set)
+        tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        tree_scroll.config(command=tree.yview)
+
+        # Count label
+        count_label = ttk.Label(left_frame, text="", font=("TkDefaultFont", 9, "italic"))
+        count_label.pack(anchor="w", pady=(5, 0))
+
+        # Store all items for search
+        all_items = []
+        
         # Populate Tree
-        for category, items in GAMBIT_PALETTE.items():
-            cat_id = tree.insert("", "end", text=category, open=True)
-            for idx, item in enumerate(items):
-                tree.insert(cat_id, "end", text=item["name"], values=(category, idx))
+        def populate_tree(filter_text=""):
+            tree.delete(*tree.get_children())
+            all_items.clear()
+            total_count = 0
+            
+            filter_lower = filter_text.lower()
+            
+            for category, items in GAMBIT_PALETTE.items():
+                matching_items = []
+                
+                for idx, item in enumerate(items):
+                    # Check if item matches filter
+                    if not filter_text or (
+                        filter_lower in item["name"].lower() or
+                        filter_lower in item.get("desc", "").lower() or
+                        filter_lower in category.lower()
+                    ):
+                        matching_items.append((idx, item))
+                        all_items.append((category, idx, item))
+                
+                # Only show category if it has matching items
+                if matching_items:
+                    cat_id = tree.insert("", "end", text=f"{category} ({len(matching_items)})", open=True)
+                    for idx, item in matching_items:
+                        tree.insert(cat_id, "end", text=item["name"], values=(category, idx))
+                        total_count += 1
+            
+            # Update count
+            if filter_text:
+                count_label.configure(text=f"Found {total_count} matching gambits")
+            else:
+                count_label.configure(text=f"Total: {total_count} gambits across {len(GAMBIT_PALETTE)} categories")
+        
+        populate_tree()
+
+        # Search callback
+        def on_search(*args):
+            populate_tree(search_var.get())
+        
+        search_var.trace_add("write", on_search)
 
         # Right: Details & Preview
         right_frame = ttk.Frame(win, padding=10)
-        right_frame.grid(row=0, column=1, sticky="nsew")
+        right_frame.grid(row=1, column=1, sticky="nsew")
 
         lbl_name = ttk.Label(
-            right_frame, text="Select an item...", font=("TkDefaultFont", 12, "bold")
+            right_frame, text="👈 Select a gambit from the list", font=("TkDefaultFont", 12, "bold")
         )
         lbl_name.pack(anchor="w", pady=(0, 10))
 
-        lbl_desc = ttk.Label(right_frame, text="", wraplength=400, justify="left")
+        lbl_desc = ttk.Label(right_frame, text="", wraplength=550, justify="left", foreground="#555")
         lbl_desc.pack(anchor="w", fill=tk.X)
 
         desc_sep = ttk.Separator(right_frame, orient="horizontal")
         desc_sep.pack(fill=tk.X, pady=15)
 
         # Preview Frame
-        preview_frame = ttk.LabelFrame(right_frame, text="Values Preview", padding=10)
+        preview_frame = ttk.LabelFrame(right_frame, text="📋 Gambit Details", padding=10)
         preview_frame.pack(fill=tk.X, anchor="n")
 
         preview_labels = {}
-        for row, key in enumerate(
-            ["Target", "Condition", "Cond. Arg", "Reaction", "Selector", "Sel. Arg"]
-        ):
-            ttk.Label(preview_frame, text=f"{key}:").grid(
-                row=row, column=0, sticky="e", padx=5, pady=2
-            )
-            lbl = ttk.Label(preview_frame, text="-", font=("TkFixedFont", 10))
-            lbl.grid(row=row, column=1, sticky="w", padx=5, pady=2)
-            preview_labels[key] = lbl
+        preview_rows = [
+            ("🎯 Target", "Who this action targets"),
+            ("❓ Condition", "When to perform this action"),
+            ("💭 Condition Arg", "Value/threshold for the condition"),
+            ("⚡ Reaction", "What action to take"),
+            ("🔧 Selector", "How to choose the specific action"),
+            ("📝 Selector Arg", "Spell/Ability/ID to use")
+        ]
+        
+        for row, (key, tooltip) in enumerate(preview_rows):
+            label_frame = ttk.Frame(preview_frame)
+            label_frame.grid(row=row, column=0, sticky="ew", pady=3)
+            preview_frame.columnconfigure(0, weight=1)
+            
+            ttk.Label(label_frame, text=f"{key}:", width=18).pack(side=tk.LEFT, anchor="w")
+            lbl = ttk.Label(label_frame, text="-", font=("TkFixedFont", 10), foreground="#000")
+            lbl.pack(side=tk.LEFT, anchor="w", padx=10)
+            
+            preview_labels[key.split()[1]] = lbl  # Store by the actual key name
+
+        # Explanation text
+        explain_frame = ttk.LabelFrame(right_frame, text="ℹ️ Understanding This Gambit", padding=10)
+        explain_frame.pack(fill=tk.BOTH, expand=True, pady=(15, 0))
+        
+        explain_text = scrolledtext.ScrolledText(explain_frame, wrap=tk.WORD, height=8, font=("TkDefaultFont", 9))
+        explain_text.pack(fill=tk.BOTH, expand=True)
+        explain_text.insert("1.0", "Select a gambit to see a plain-English explanation of what it does.")
+        explain_text.config(state="disabled")
 
         # Helper to update inputs
         selected_item_data = {}
+
+        def get_friendly_explanation(data):
+            """Generate a user-friendly explanation of what the gambit does."""
+            parts = []
+            
+            # Target explanation
+            target_map = {
+                "SELF": "the trust itself",
+                "PARTY": "any party member",
+                "TARGET": "the enemy",
+                "MASTER": "the player who summoned the trust",
+                "TANK": "the party's main tank",
+                "MELEE": "melee fighters in the party",
+                "RANGED": "ranged attackers in the party",
+                "CASTER": "spell casters in the party",
+                "TOP_ENMITY": "whoever has the enemy's attention",
+                "PARTY_DEAD": "dead party members",
+            }
+            target_text = target_map.get(data.get("t", ""), data.get("t", ""))
+            
+            # Condition explanation
+            cond = data.get("c", "")
+            cond_arg = data.get("c_arg", "")
+            
+            if cond == "HPP_LT":
+                condition_text = f"when HP drops below {cond_arg}%"
+            elif cond == "HPP_GTE":
+                condition_text = f"when HP is {cond_arg}% or higher"
+            elif cond == "MPP_LT":
+                condition_text = f"when MP drops below {cond_arg}%"
+            elif cond == "TP_LT":
+                condition_text = f"when TP is below {cond_arg}"
+            elif cond == "TP_GTE":
+                condition_text = f"when TP reaches {cond_arg} or more"
+            elif cond == "STATUS":
+                status = cond_arg.split(".")[-1] if "." in cond_arg else cond_arg
+                condition_text = f"when afflicted with {status}"
+            elif cond == "NOT_STATUS":
+                status = cond_arg.split(".")[-1] if "." in cond_arg else cond_arg
+                condition_text = f"when not affected by {status}"
+            elif cond == "STATUS_FLAG":
+                flag = cond_arg.split(".")[-1] if "." in cond_arg else cond_arg
+                condition_text = f"when has a {flag.lower()} status effect"
+            elif cond == "HAS_TOP_ENMITY":
+                condition_text = "when holding the enemy's attention"
+            elif cond == "NOT_HAS_TOP_ENMITY":
+                condition_text = "when not holding the enemy's attention"
+            elif cond == "MB_AVAILABLE":
+                condition_text = "when a magic burst opportunity is available"
+            elif cond == "SC_AVAILABLE":
+                condition_text = "when a skillchain opportunity is available"
+            elif cond == "NOT_SC_AVAILABLE":
+                condition_text = "when no skillchain is happening"
+            elif cond == "CASTING_MA":
+                condition_text = "when the enemy is casting magic"
+            elif cond == "READYING_WS":
+                condition_text = "when the enemy is preparing a weaponskill"
+            elif cond == "READYING_MS":
+                condition_text = "when the enemy is preparing a special attack"
+            elif cond == "READYING_JA":
+                condition_text = "when the enemy is using a special ability"
+            elif cond == "ALWAYS":
+                condition_text = "always (whenever possible)"
+            elif cond == "NO_SAMBA":
+                condition_text = "when no Samba is active"
+            elif cond == "PT_HAS_TANK":
+                condition_text = "when the party has a tank"
+            elif cond == "NOT_PT_HAS_TANK":
+                condition_text = "when the party has no tank"
+            elif cond == "IS_ECOSYSTEM":
+                eco = cond_arg.split(".")[-1] if "." in cond_arg else cond_arg
+                condition_text = f"when fighting {eco.lower()} enemies"
+            else:
+                condition_text = f"when {cond}"
+            
+            # Reaction explanation
+            reaction = data.get("r", "")
+            selector = data.get("s", "")
+            sel_arg = data.get("s_arg", "")
+            
+            if reaction == "MA":
+                spell = sel_arg.split(".")[-1] if "." in sel_arg else sel_arg
+                if selector == "HIGHEST":
+                    action_text = f"cast the highest tier {spell} spell"
+                elif selector == "SPECIFIC":
+                    action_text = f"cast {spell}"
+                elif selector == "MB_ELEMENT":
+                    action_text = "cast a nuke spell matching the skillchain element"
+                elif selector == "BEST_AGAINST_TARGET":
+                    action_text = "cast the most effective elemental spell against this enemy"
+                else:
+                    action_text = f"cast {spell} ({selector})"
+            elif reaction == "JA":
+                ability = sel_arg.split(".")[-1] if "." in sel_arg else sel_arg
+                action_text = f"use {ability}"
+            elif reaction == "WS":
+                action_text = "use a weaponskill"
+            elif reaction == "RATTACK":
+                action_text = "perform a ranged attack"
+            else:
+                action_text = reaction
+            
+            # Combine into sentence
+            explanation = f"This gambit makes the trust {action_text} on {target_text} {condition_text}."
+            
+            # Add usage notes
+            notes = []
+            if "CURE" in str(sel_arg):
+                notes.append("💊 This is a healing action - the trust will cure wounds.")
+            if "HASTE" in str(sel_arg) or "REFRESH" in str(sel_arg):
+                notes.append("⚡ This is a support buff - keeps allies enhanced.")
+            if "PROTECT" in str(sel_arg) or "SHELL" in str(sel_arg):
+                notes.append("🛡️ This is a defensive buff - reduces damage taken.")
+            if "PROVOKE" in str(sel_arg):
+                notes.append("💢 This is for tanking - helps maintain enemy attention.")
+            if reaction == "WS":
+                notes.append("⚔️ This controls when the trust uses weaponskills for damage.")
+            if "STUN" in str(sel_arg) or "VIOLENT_FLOURISH" in str(sel_arg):
+                notes.append("🚫 This interrupts enemy actions - very useful for dangerous abilities.")
+            if "MB_ELEMENT" in str(selector):
+                notes.append("💥 This creates magic bursts - massive bonus damage during skillchains!")
+            
+            if notes:
+                explanation += "\n\n" + "\n".join(notes)
+            
+            return explanation
 
         def on_select(event):
             selection = tree.selection()
@@ -3372,17 +3586,31 @@ class TrustEditor(tk.Tk):
             selected_item_data.update(data)
 
             lbl_name.configure(
-                text=data["name"] + (" (⚡)" if data.get("dynamic") else "")
+                text=data["name"] + (" ⚡ Dynamic" if data.get("dynamic") else "")
             )
             lbl_desc.configure(text=data.get("desc", ""))
 
             # Update preview
             preview_labels["Target"].configure(text=data.get("t", ""))
             preview_labels["Condition"].configure(text=data.get("c", ""))
-            preview_labels["Cond. Arg"].configure(text=data.get("c_arg", ""))
+            preview_labels["Arg"].configure(text=data.get("c_arg", ""))
             preview_labels["Reaction"].configure(text=data.get("r", ""))
             preview_labels["Selector"].configure(text=data.get("s", ""))
-            preview_labels["Sel. Arg"].configure(text=data.get("s_arg", ""))
+            preview_labels["Arg"].configure(text=data.get("s_arg", ""))  # This might need adjustment
+            
+            # Fix: Map the correct preview label keys
+            preview_labels["Target"].configure(text=data.get("t", "-"))
+            preview_labels["Condition"].configure(text=data.get("c", "-"))
+            list(preview_labels.values())[2].configure(text=data.get("c_arg", "-"))  # Condition Arg
+            preview_labels["Reaction"].configure(text=data.get("r", "-"))
+            preview_labels["Selector"].configure(text=data.get("s", "-"))
+            list(preview_labels.values())[5].configure(text=data.get("s_arg", "-"))  # Selector Arg
+            
+            # Update explanation
+            explain_text.config(state="normal")
+            explain_text.delete("1.0", tk.END)
+            explain_text.insert("1.0", get_friendly_explanation(data))
+            explain_text.config(state="disabled")
 
         tree.bind("<<TreeviewSelect>>", on_select)
 
