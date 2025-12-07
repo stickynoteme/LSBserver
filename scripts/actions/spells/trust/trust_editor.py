@@ -2889,18 +2889,18 @@ class TrustEditor(tk.Tk):
         )
         self.sub_job_picker.pack(side=tk.LEFT, padx=(0, 10))
 
-        ttk.Checkbutton(
-            preset_frame,
-            text="Auto Attack",
-            variable=self.auto_attack_var,
-        ).pack(side=tk.LEFT, padx=10)
-
         ttk.Button(
             preset_frame,
             text="Apply Template",
             command=self.apply_job_template,
             width=15,
-        ).pack(side=tk.RIGHT, padx=5)
+        ).pack(side=tk.LEFT, padx=5)
+
+        ttk.Checkbutton(
+            preset_frame,
+            text="Auto Attack",
+            variable=self.auto_attack_var,
+        ).pack(side=tk.LEFT, padx=10)
 
         # Main content frame with gear and stats side by side
         content_frame = ttk.Frame(general_scrollable)
