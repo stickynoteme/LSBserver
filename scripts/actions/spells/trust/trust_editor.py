@@ -1740,16 +1740,6 @@ class TrustEditor(tk.Tk):
         self.load_sql_data()
         self.current_trust.trace_add("write", self.on_trust_selected)
 
-    def on_trust_selected(self, *args):
-        val = self.current_trust.get()
-        if not val:
-            return
-        # Strip asterisk if present
-        if val.startswith("* "):
-            val = val[2:]
-
-        self.load_trust_data(val)
-
     def load_sql_data(self):
         self.ja_job_map = {}
         self.ws_job_map = {}
@@ -4043,6 +4033,10 @@ class TrustEditor(tk.Tk):
         if not filename:
             return
 
+        # Strip asterisk prefix if present (placeholder trusts)
+        if filename.startswith("* "):
+            filename = filename[2:]
+
         self.reset_form()
 
         # Strip .lua extension if present to get the base name
@@ -4051,16 +4045,23 @@ class TrustEditor(tk.Tk):
         # Try to load user data first
         json_path = os.path.join(USERDATA_DIR, base_name + ".json")
         if os.path.exists(json_path):
+            print(f"[DEBUG] Loading userdata: {json_path}")
             with open(json_path, "r") as f:
                 data = json.load(f)
+                print(f"[DEBUG] Loaded data: gambits={len(data.get('gambits', []))}, mods={len(data.get('mods', []))}")
                 self.populate_from_data(data)
         else:
             # If no user data, try to load defaults
             default_path = os.path.join(DEFAULTS_DIR, base_name + ".json")
+            print(f"[DEBUG] Looking for defaults: {default_path}")
+            print(f"[DEBUG] Exists: {os.path.exists(default_path)}")
             if os.path.exists(default_path):
                 with open(default_path, "r") as f:
                     data = json.load(f)
+                    print(f"[DEBUG] Loaded data: gambits={len(data.get('gambits', []))}, mods={len(data.get('mods', []))}")
                     self.populate_from_data(data)
+            else:
+                print(f"[DEBUG] No defaults found for {base_name}")
             # No existing user data or defaults found, start with blank form
 
     def save_trust(self):

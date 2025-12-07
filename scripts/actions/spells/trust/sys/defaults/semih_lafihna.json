@@ -30,14 +30,6 @@
       "reaction": "JA",
       "selector": "SPECIFIC",
       "sel_arg": "xi.ja.DOUBLE_SHOT"
-    },
-    {
-      "target": "SELF",
-      "condition": "HAS_TOP_ENMITY",
-      "cond_arg": "0",
-      "reaction": "JA",
-      "selector": "SPECIFIC",
-      "sel_arg": "xi.ja.STEALTH_SHOT"
     }
   ],
   "tp_settings": {},

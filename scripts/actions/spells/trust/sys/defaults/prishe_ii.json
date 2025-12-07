@@ -8,15 +8,7 @@
       "cond_arg": "35",
       "reaction": "MS",
       "selector": "SPECIFIC",
-      "sel_arg": "psychoAnima"
-    },
-    {
-      "target": "TARGET",
-      "condition": "CASTING_MA",
-      "cond_arg": "35",
-      "reaction": "MS",
-      "selector": "SPECIFIC",
-      "sel_arg": "3540"
+      "sel_arg": "3539"
     },
     {
       "target": "PARTY",

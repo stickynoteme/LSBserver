@@ -1,7 +1,225 @@
 {
   "auto_attack": false,
-  "mods": [],
-  "gambits": [],
+  "mods": [
+    {
+      "name": "MPP",
+      "value": "-90"
+    },
+    {
+      "name": "SLEEPRES",
+      "value": "100"
+    },
+    {
+      "name": "LULLABYRES",
+      "value": "100"
+    },
+    {
+      "name": "STATUSRES",
+      "value": "15"
+    }
+  ],
+  "gambits": [
+    {
+      "target": "PARTY",
+      "condition": "NOT_STATUS",
+      "cond_arg": "xi.effect.PROTECT",
+      "reaction": "MS",
+      "selector": "SPECIFIC",
+      "sel_arg": "4255"
+    },
+    {
+      "target": "PARTY",
+      "condition": "NOT_STATUS",
+      "cond_arg": "xi.effect.SHELL",
+      "reaction": "MS",
+      "selector": "SPECIFIC",
+      "sel_arg": "4255"
+    },
+    {
+      "target": "PARTY",
+      "condition": "STATUS",
+      "cond_arg": "xi.effect.SLEEP_I",
+      "reaction": "MS",
+      "selector": "SPECIFIC",
+      "sel_arg": "4231"
+    },
+    {
+      "target": "PARTY",
+      "condition": "HPP_LT",
+      "cond_arg": "40",
+      "reaction": "MS",
+      "selector": "SPECIFIC",
+      "sel_arg": "4237"
+    },
+    {
+      "target": "PARTY",
+      "condition": "HPP_LT",
+      "cond_arg": "55",
+      "reaction": "MS",
+      "selector": "SPECIFIC",
+      "sel_arg": "4236"
+    },
+    {
+      "target": "PARTY",
+      "condition": "STATUS",
+      "cond_arg": "xi.effect.BLINDNESS",
+      "reaction": "MS",
+      "selector": "SPECIFIC",
+      "sel_arg": "4240"
+    },
+    {
+      "target": "PARTY",
+      "condition": "STATUS",
+      "cond_arg": "xi.effect.POISON",
+      "reaction": "MS",
+      "selector": "SPECIFIC",
+      "sel_arg": "4238"
+    },
+    {
+      "target": "PARTY",
+      "condition": "STATUS",
+      "cond_arg": "xi.effect.SILENCE",
+      "reaction": "MS",
+      "selector": "SPECIFIC",
+      "sel_arg": "4241"
+    },
+    {
+      "target": "PARTY",
+      "condition": "STATUS",
+      "cond_arg": "xi.effect.PARALYSIS",
+      "reaction": "MS",
+      "selector": "SPECIFIC",
+      "sel_arg": "4239"
+    },
+    {
+      "target": "PARTY",
+      "condition": "STATUS_FLAG",
+      "cond_arg": "xi.effectFlag.ERASABLE",
+      "reaction": "MS",
+      "selector": "SPECIFIC",
+      "sel_arg": "4245"
+    },
+    {
+      "target": "PARTY",
+      "condition": "STATUS",
+      "cond_arg": "xi.effect.PLAGUE",
+      "reaction": "MS",
+      "selector": "SPECIFIC",
+      "sel_arg": "4243"
+    },
+    {
+      "target": "PARTY",
+      "condition": "STATUS",
+      "cond_arg": "xi.effect.PETRIFICATION",
+      "reaction": "MS",
+      "selector": "SPECIFIC",
+      "sel_arg": "4244"
+    },
+    {
+      "target": "PARTY",
+      "condition": "STATUS",
+      "cond_arg": "xi.effect.BLINDNESS",
+      "reaction": "MS",
+      "selector": "SPECIFIC",
+      "sel_arg": "4248"
+    },
+    {
+      "target": "PARTY",
+      "condition": "STATUS",
+      "cond_arg": "xi.effect.POISON",
+      "reaction": "MS",
+      "selector": "SPECIFIC",
+      "sel_arg": "4246"
+    },
+    {
+      "target": "PARTY",
+      "condition": "STATUS",
+      "cond_arg": "xi.effect.SILENCE",
+      "reaction": "MS",
+      "selector": "SPECIFIC",
+      "sel_arg": "4249"
+    },
+    {
+      "target": "PARTY",
+      "condition": "STATUS",
+      "cond_arg": "xi.effect.PARALYSIS",
+      "reaction": "MS",
+      "selector": "SPECIFIC",
+      "sel_arg": "4247"
+    },
+    {
+      "target": "PARTY",
+      "condition": "STATUS_FLAG",
+      "cond_arg": "xi.effectFlag.ERASABLE",
+      "reaction": "MS",
+      "selector": "SPECIFIC",
+      "sel_arg": "4253"
+    },
+    {
+      "target": "PARTY",
+      "condition": "STATUS",
+      "cond_arg": "xi.effect.PETRIFICATION",
+      "reaction": "MS",
+      "selector": "SPECIFIC",
+      "sel_arg": "4252"
+    },
+    {
+      "target": "PARTY",
+      "condition": "NOT_STATUS",
+      "cond_arg": "xi.effect.REGEN",
+      "reaction": "MS",
+      "selector": "SPECIFIC",
+      "sel_arg": "4257"
+    },
+    {
+      "target": "PARTY",
+      "condition": "NOT_STATUS",
+      "cond_arg": "xi.effect.STR_BOOST",
+      "reaction": "MS",
+      "selector": "SPECIFIC",
+      "sel_arg": "4261"
+    },
+    {
+      "target": "PARTY",
+      "condition": "NOT_STATUS",
+      "cond_arg": "xi.effect.MAGIC_DEF_BOOST",
+      "reaction": "MS",
+      "selector": "SPECIFIC",
+      "sel_arg": "4259"
+    },
+    {
+      "target": "CASTER",
+      "condition": "NOT_STATUS",
+      "cond_arg": "xi.effect.MAGIC_ATK_BOOST",
+      "reaction": "MS",
+      "selector": "SPECIFIC",
+      "sel_arg": "4258"
+    },
+    {
+      "target": "TARGET",
+      "condition": "ALWAYS",
+      "cond_arg": "0",
+      "reaction": "MS",
+      "selector": "SPECIFIC",
+      "sel_arg": "4260"
+    },
+    {
+      "target": "CASTER",
+      "condition": "MPP_LT",
+      "cond_arg": "50",
+      "reaction": "MS",
+      "selector": "SPECIFIC",
+      "sel_arg": "4254"
+    },
+    {
+      "target": "PARTY",
+      "condition": "HPP_LT",
+      "cond_arg": "65",
+      "reaction": "MS",
+      "selector": "SPECIFIC",
+      "sel_arg": "4235"
+    }
+  ],
   "tp_settings": {},
   "effects": [],
   "listeners": [],

@@ -14,11 +14,59 @@ DEFAULTS_DIR = TRUST_DIR / "sys" / "defaults"
 # Mods to exclude when parsing (these can interfere with trust functionality)
 EXCLUDED_MODS = {'EQUIPMENT_ONLY_RACE'}
 
+
+def extract_local_variables(content):
+    """Extract local variable assignments from Lua content."""
+    variables = {}
+    # Match patterns like: local kGrapeshot = 3198 or local healingMoveCooldown = math.random(3, 4)
+    local_pattern = r'local\s+(\w+)\s*=\s*(\d+)'
+    for match in re.finditer(local_pattern, content):
+        var_name = match.group(1)
+        var_value = match.group(2)
+        variables[var_name] = var_value
+    return variables
+
+
+def resolve_variable(value, variables):
+    """Resolve a variable reference to its value if possible."""
+    value = value.strip()
+    if value in variables:
+        return variables[value]
+    return value
+
+
+def remove_lua_comments(content):
+    """Remove Lua comments from content to avoid parsing commented code."""
+    # Remove single-line comments (--) but preserve the rest of the line structure
+    lines = content.split('\n')
+    cleaned_lines = []
+    in_block_comment = False
+    for line in lines:
+        # Handle block comments --[[ ... ]]
+        if '--[[' in line:
+            in_block_comment = True
+            line = line[:line.index('--[[')]
+        if ']]' in line and in_block_comment:
+            in_block_comment = False
+            line = line[line.index(']]') + 2:]
+        if in_block_comment:
+            cleaned_lines.append('')
+            continue
+        # Remove single-line comments
+        if '--' in line:
+            line = line[:line.index('--')]
+        cleaned_lines.append(line)
+    return '\n'.join(cleaned_lines)
+
+
 def parse_trust_lua(lua_path):
     """Parse a trust Lua file and extract configuration data."""
     with open(lua_path, 'r', encoding='utf-8') as f:
-        content = f.read()
-    
+        raw_content = f.read()
+
+    # Remove comments to avoid parsing commented code
+    content = remove_lua_comments(raw_content)
+
     data = {
         'auto_attack': True,  # Default
         'mods': [],
@@ -31,14 +79,17 @@ def parse_trust_lua(lua_path):
         'sub_job': 'NONE',
         'gear': []
     }
-    
+
+    # Extract local variables for resolution (from raw content since comments don't affect this)
+    local_vars = extract_local_variables(raw_content)
+
     # Parse auto attack setting
     auto_attack_match = re.search(r'setAutoAttackEnabled\((\w+)\)', content)
     if auto_attack_match:
         data['auto_attack'] = auto_attack_match.group(1) == 'true'
-    
-    # Parse mods: mob:addMod(xi.mod.STAT, value)
-    mod_pattern = r'mob:addMod\(xi\.mod\.(\w+),\s*([^)]+)\)'
+
+    # Parse mods: mob:addMod(xi.mod.STAT, value) and mob:setMod(xi.mod.STAT, value)
+    mod_pattern = r'mob:(?:add|set)Mod\(xi\.mod\.(\w+),\s*([^)]+)\)'
     for match in re.finditer(mod_pattern, content):
         mod_name = match.group(1)
         value = match.group(2).strip()
@@ -46,10 +97,13 @@ def parse_trust_lua(lua_path):
         if mod_name in EXCLUDED_MODS:
             continue  # Skip mods that can interfere with trust functionality
         if not any(x in value for x in ['mob:', 'power', 'level', '/', '*', 'Lvl']):
-            data['mods'].append({'name': mod_name, 'value': value})
-    
+            # Resolve variable references
+            resolved_value = resolve_variable(value, local_vars)
+            data['mods'].append({'name': mod_name, 'value': resolved_value})
+
     # Parse gambits: mob:addGambit(ai.t.TARGET, { ai.c.HPP_LT, 25 }, { ai.r.MA, ai.s.HIGHEST, xi.magic.spellFamily.CURE })
-    gambit_pattern = r'mob:addGambit\(ai\.t\.(\w+),\s*\{\s*ai\.c\.(\w+),\s*([^}]+)\}\s*,\s*\{\s*ai\.r\.(\w+),\s*ai\.s\.(\w+),\s*([^}]+)\}\s*(?:,\s*\d+)?\)'
+    # Also handles optional cooldown parameter at the end (variable name or number)
+    gambit_pattern = r'mob:addGambit\(ai\.t\.(\w+),\s*\{\s*ai\.c\.(\w+),\s*([^}]+)\}\s*,\s*\{\s*ai\.r\.(\w+),\s*ai\.s\.(\w+),\s*([^}]+)\}\s*(?:,\s*[\w]+)?\)'
     for match in re.finditer(gambit_pattern, content):
         target = match.group(1)
         condition = match.group(2)
@@ -57,14 +111,17 @@ def parse_trust_lua(lua_path):
         reaction = match.group(4)
         selector = match.group(5)
         sel_arg = match.group(6).strip()
-        
+
+        # Resolve variable references in selector argument
+        resolved_sel_arg = resolve_variable(sel_arg, local_vars)
+
         data['gambits'].append({
             'target': target,
             'condition': condition,
             'cond_arg': cond_arg,
             'reaction': reaction,
             'selector': selector,
-            'sel_arg': sel_arg
+            'sel_arg': resolved_sel_arg
         })
     
     # Parse TP settings: mob:setTrustTPSkillSettings(ai.tp.OPENER, ai.s.HIGHEST, 1000)
