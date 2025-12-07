@@ -206,6 +206,10 @@ SKILL_ID_TO_NAME = {v: k for k, v in SKILLS.items()}
 # Reverse mod lookup for SQL-driven gear mods
 MOD_ID_TO_NAME = {v: k for k, v in MODS.items()}
 
+# Pre-compiled regex patterns for dynamic mod detection
+DYNAMIC_MOD_OPERATOR_PATTERN = re.compile(r'[*/%]')
+DYNAMIC_MOD_FUNCTION_PATTERN = re.compile(r'\b\w+\(')
+
 # SQL parsing helpers for pseudo-gear
 SQL_DIR = Path(os.path.abspath(os.path.join(CURRENT_DIR, "../../../.."))) / "sql"
 
@@ -3794,8 +3798,8 @@ class TrustEditor(tk.Tk):
                                 # Look for operators, function calls, or method calls
                                 is_dynamic = (
                                     any(op in mod_value for op in ["mob:", "math.", "target:"]) or
-                                    re.search(r'[*/%]', mod_value) or  # multiplication, division, modulo
-                                    re.search(r'\b\w+\(', mod_value)  # function calls
+                                    DYNAMIC_MOD_OPERATOR_PATTERN.search(mod_value) or  # multiplication, division, modulo
+                                    DYNAMIC_MOD_FUNCTION_PATTERN.search(mod_value)  # function calls
                                 )
                                 self.add_mod_row(mod_name, mod_value, locked=False, dynamic=is_dynamic)
                                 added_count += 1
