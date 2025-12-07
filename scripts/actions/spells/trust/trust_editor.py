@@ -206,6 +206,10 @@ SKILL_ID_TO_NAME = {v: k for k, v in SKILLS.items()}
 # Reverse mod lookup for SQL-driven gear mods
 MOD_ID_TO_NAME = {v: k for k, v in MODS.items()}
 
+# Pre-compiled regex patterns for dynamic mod detection
+DYNAMIC_MOD_OPERATOR_PATTERN = re.compile(r'[*/%]')
+DYNAMIC_MOD_FUNCTION_PATTERN = re.compile(r'\b\w+\(')
+
 # SQL parsing helpers for pseudo-gear
 SQL_DIR = Path(os.path.abspath(os.path.join(CURRENT_DIR, "../../../.."))) / "sql"
 
@@ -2866,6 +2870,234 @@ class TrustEditor(tk.Tk):
             )  # Trigger refresh when weapon filter changes
         search_entry.focus_set()
 
+    def save_gear_set(self):
+        """Save the current gear configuration as a named gear set."""
+        # Create gear sets directory if it doesn't exist
+        gear_sets_dir = os.path.join(USERDATA_DIR, "gear_sets")
+        if not os.path.exists(gear_sets_dir):
+            os.makedirs(gear_sets_dir)
+        
+        # Collect current gear
+        current_gear = {}
+        has_gear = False
+        for row in self.gear_rows:
+            if row["id_var"].get():
+                try:
+                    item_id = int(row["id_var"].get())
+                    current_gear[row["slot"]] = {
+                        "item_id": item_id,
+                        "name": ITEM_NAMES.get(item_id, "Unknown")
+                    }
+                    has_gear = True
+                except ValueError:
+                    pass
+        
+        if not has_gear:
+            messagebox.showwarning("No Gear", "No gear is currently equipped to save.")
+            return
+        
+        # Ask for gear set name
+        dialog = tk.Toplevel(self)
+        dialog.title("Save Gear Set")
+        dialog.geometry("400x150")
+        dialog.transient(self)
+        dialog.grab_set()
+        
+        ttk.Label(dialog, text="Enter a name for this gear set:", font=("TkDefaultFont", 10, "bold")).pack(pady=(10, 5))
+        
+        name_var = tk.StringVar()
+        name_entry = ttk.Entry(dialog, textvariable=name_var, width=40)
+        name_entry.pack(pady=5, padx=20)
+        name_entry.focus_set()
+        
+        # Load existing gear sets to show
+        existing_sets = []
+        if os.path.exists(gear_sets_dir):
+            for file in os.listdir(gear_sets_dir):
+                if file.endswith(".json"):
+                    existing_sets.append(file.replace(".json", ""))
+        
+        if existing_sets:
+            ttk.Label(dialog, text=f"Existing sets: {', '.join(existing_sets)}", foreground="#666").pack(pady=5)
+        
+        def do_save():
+            name = name_var.get().strip()
+            if not name:
+                messagebox.showwarning("Invalid Name", "Please enter a name for the gear set.")
+                return
+            
+            # Sanitize filename
+            safe_name = re.sub(r'[^a-zA-Z0-9_-]', '_', name)
+            gear_set_path = os.path.join(gear_sets_dir, f"{safe_name}.json")
+            
+            # Check if exists
+            if os.path.exists(gear_set_path):
+                if not messagebox.askyesno("Overwrite?", f"Gear set '{name}' already exists. Overwrite?"):
+                    return
+            
+            # Save gear set
+            try:
+                with open(gear_set_path, "w") as f:
+                    json.dump({
+                        "name": name,
+                        "gear": current_gear
+                    }, f, indent=4)
+                
+                messagebox.showinfo("Success", f"Gear set '{name}' saved successfully!")
+                dialog.destroy()
+            except Exception as e:
+                messagebox.showerror("Error", f"Failed to save gear set: {e}")
+        
+        button_frame = ttk.Frame(dialog)
+        button_frame.pack(pady=10)
+        
+        ttk.Button(button_frame, text="Save", command=do_save).pack(side=tk.LEFT, padx=5)
+        ttk.Button(button_frame, text="Cancel", command=dialog.destroy).pack(side=tk.LEFT, padx=5)
+        
+        name_entry.bind("<Return>", lambda e: do_save())
+
+    def load_gear_set(self):
+        """Load a saved gear set."""
+        gear_sets_dir = os.path.join(USERDATA_DIR, "gear_sets")
+        
+        if not os.path.exists(gear_sets_dir):
+            messagebox.showinfo("No Gear Sets", "No saved gear sets found.")
+            return
+        
+        # Load all gear sets
+        gear_sets = []
+        for file in sorted(os.listdir(gear_sets_dir)):
+            if file.endswith(".json"):
+                try:
+                    with open(os.path.join(gear_sets_dir, file), "r") as f:
+                        data = json.load(f)
+                        gear_sets.append({
+                            "filename": file,
+                            "name": data.get("name", file.replace(".json", "")),
+                            "gear": data.get("gear", {})
+                        })
+                except Exception:
+                    pass
+        
+        if not gear_sets:
+            messagebox.showinfo("No Gear Sets", "No valid gear sets found.")
+            return
+        
+        # Create selection dialog
+        dialog = tk.Toplevel(self)
+        dialog.title("Load Gear Set")
+        dialog.geometry("600x450")
+        dialog.transient(self)
+        dialog.grab_set()
+        
+        ttk.Label(dialog, text="Select a gear set to load:", font=("TkDefaultFont", 11, "bold")).pack(pady=10)
+        
+        # List of gear sets
+        list_frame = ttk.Frame(dialog)
+        list_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
+        
+        listbox = tk.Listbox(list_frame, exportselection=False)
+        listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        
+        scrollbar = ttk.Scrollbar(list_frame, orient=tk.VERTICAL, command=listbox.yview)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        listbox.configure(yscrollcommand=scrollbar.set)
+        
+        for gear_set in gear_sets:
+            listbox.insert(tk.END, gear_set["name"])
+        
+        # Preview frame
+        preview_frame = ttk.LabelFrame(dialog, text="Gear Set Preview", padding=5)
+        preview_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
+        
+        preview_text = scrolledtext.ScrolledText(preview_frame, wrap=tk.WORD, height=8)
+        preview_text.pack(fill=tk.BOTH, expand=True)
+        preview_text.config(state="disabled")
+        
+        def on_select(event=None):
+            if not listbox.curselection():
+                return
+            
+            selected_idx = listbox.curselection()[0]
+            gear_set = gear_sets[selected_idx]
+            
+            # Display gear preview
+            preview_lines = []
+            for slot in ALL_EQUIP_SLOTS:
+                if slot in gear_set["gear"]:
+                    item = gear_set["gear"][slot]
+                    preview_lines.append(f"{slot.upper()}: {item['name']} ({item['item_id']})")
+            
+            preview_text.config(state="normal")
+            preview_text.delete("1.0", tk.END)
+            if preview_lines:
+                preview_text.insert("1.0", "\n".join(preview_lines))
+            else:
+                preview_text.insert("1.0", "(Empty gear set)")
+            preview_text.config(state="disabled")
+        
+        listbox.bind("<<ListboxSelect>>", on_select)
+        
+        # Buttons
+        button_frame = ttk.Frame(dialog)
+        button_frame.pack(pady=10)
+        
+        def do_load():
+            if not listbox.curselection():
+                messagebox.showwarning("No Selection", "Please select a gear set to load.")
+                return
+            
+            selected_idx = listbox.curselection()[0]
+            gear_set = gear_sets[selected_idx]
+            
+            # Clear current gear
+            for row in self.gear_rows:
+                row["id_var"].set("")
+                row["name_var"].set("")
+            
+            # Load gear from set
+            for slot, item_data in gear_set["gear"].items():
+                for row in self.gear_rows:
+                    if row["slot"] == slot:
+                        row["id_var"].set(str(item_data["item_id"]))
+                        # Name will be updated by the trace callback
+                        break
+            
+            # Refresh stats
+            if hasattr(self, "refresh_stats_preview"):
+                self.refresh_stats_preview()
+            
+            messagebox.showinfo("Success", f"Gear set '{gear_set['name']}' loaded successfully!")
+            dialog.destroy()
+        
+        def do_delete():
+            if not listbox.curselection():
+                messagebox.showwarning("No Selection", "Please select a gear set to delete.")
+                return
+            
+            selected_idx = listbox.curselection()[0]
+            gear_set = gear_sets[selected_idx]
+            
+            if not messagebox.askyesno("Confirm Delete", f"Delete gear set '{gear_set['name']}'?"):
+                return
+            
+            try:
+                os.remove(os.path.join(gear_sets_dir, gear_set["filename"]))
+                messagebox.showinfo("Deleted", f"Gear set '{gear_set['name']}' deleted.")
+                dialog.destroy()
+                # Reopen dialog with updated list
+                self.load_gear_set()
+            except Exception as e:
+                messagebox.showerror("Error", f"Failed to delete gear set: {e}")
+        
+        ttk.Button(button_frame, text="Load", command=do_load).pack(side=tk.LEFT, padx=5)
+        ttk.Button(button_frame, text="Delete", command=do_delete).pack(side=tk.LEFT, padx=5)
+        ttk.Button(button_frame, text="Cancel", command=dialog.destroy).pack(side=tk.LEFT, padx=5)
+        
+        if gear_sets:
+            listbox.selection_set(0)
+            on_select()
+
     def get_trust_files(self):
         files = []
         for f in os.listdir(CURRENT_DIR):
@@ -3102,6 +3334,13 @@ class TrustEditor(tk.Tk):
             gear_frame,
             text="Assign items to apply stats from SQL. Use 🔍 for slot-filtered lists.",
         ).grid(row=0, column=0, columnspan=2, sticky="w")
+        
+        # Gear set buttons
+        gear_buttons_frame = ttk.Frame(gear_frame)
+        gear_buttons_frame.grid(row=0, column=2, columnspan=2, sticky="e")
+        ttk.Button(gear_buttons_frame, text="💾 Save Gear Set", command=self.save_gear_set, width=15).pack(side=tk.LEFT, padx=2)
+        ttk.Button(gear_buttons_frame, text="📂 Load Gear Set", command=self.load_gear_set, width=15).pack(side=tk.LEFT, padx=2)
+        
         self.create_gear_rows(gear_frame)
 
         # Stats Preview Panel
@@ -3337,9 +3576,15 @@ class TrustEditor(tk.Tk):
         self.mods_canvas.pack(side="left", fill="both", expand=True)
         self.mods_scrollbar.pack(side="right", fill="y")
 
-        # Add Button
-        ttk.Button(self.mods_frame, text="Add Mod", command=self.add_mod_row).pack(
-            pady=5
+        # Buttons frame
+        buttons_frame = ttk.Frame(self.mods_frame)
+        buttons_frame.pack(pady=5)
+        
+        ttk.Button(buttons_frame, text="Add Mod", command=self.add_mod_row).pack(
+            side=tk.LEFT, padx=5
+        )
+        ttk.Button(buttons_frame, text="Add Template", command=self.add_mods_from_template).pack(
+            side=tk.LEFT, padx=5
         )
 
         self.mod_rows = []
@@ -3413,6 +3658,168 @@ class TrustEditor(tk.Tk):
                 self.mod_rows.pop(i)
                 break
         row_frame.destroy()
+
+    def add_mods_from_template(self):
+        """Open dialog to select a trust template and add its mods."""
+        # Get list of all trust.lua files
+        trust_files = []
+        if os.path.exists(CURRENT_DIR):
+            for file in os.listdir(CURRENT_DIR):
+                if file.endswith(".lua") and not file.startswith("_"):
+                    trust_files.append(file)
+        
+        if not trust_files:
+            messagebox.showinfo("No Trusts Found", "No trust.lua files found in the directory.")
+            return
+        
+        # Parse all trust files to find which ones have mods
+        trusts_with_mods = []
+        for trust_file in sorted(trust_files):
+            trust_path = os.path.join(CURRENT_DIR, trust_file)
+            try:
+                with open(trust_path, "r", encoding="utf-8") as f:
+                    content = f.read()
+                    # Check if file has addMod calls
+                    if "addMod" in content:
+                        trusts_with_mods.append(trust_file)
+            except Exception:
+                pass
+        
+        if not trusts_with_mods:
+            messagebox.showinfo("No Mods Found", "No trusts with mods were found.")
+            return
+        
+        # Create dialog to select trust
+        dialog = tk.Toplevel(self)
+        dialog.title("Select Trust Template")
+        dialog.geometry("500x400")
+        dialog.transient(self)
+        dialog.grab_set()
+        
+        ttk.Label(dialog, text="Select a trust to apply its mods:", font=("TkDefaultFont", 11, "bold")).pack(pady=10)
+        
+        # List of trusts with mods
+        list_frame = ttk.Frame(dialog)
+        list_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
+        
+        listbox = tk.Listbox(list_frame, exportselection=False)
+        listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        
+        scrollbar = ttk.Scrollbar(list_frame, orient=tk.VERTICAL, command=listbox.yview)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        listbox.configure(yscrollcommand=scrollbar.set)
+        
+        for trust in trusts_with_mods:
+            listbox.insert(tk.END, trust)
+        
+        # Preview frame
+        preview_frame = ttk.LabelFrame(dialog, text="Mods Preview", padding=5)
+        preview_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
+        
+        preview_text = scrolledtext.ScrolledText(preview_frame, wrap=tk.WORD, height=8)
+        preview_text.pack(fill=tk.BOTH, expand=True)
+        preview_text.config(state="disabled")
+        
+        def on_select(event=None):
+            if not listbox.curselection():
+                return
+            selected_trust = listbox.get(listbox.curselection()[0])
+            trust_path = os.path.join(CURRENT_DIR, selected_trust)
+            
+            # Parse the trust file to extract mods
+            try:
+                with open(trust_path, "r", encoding="utf-8") as f:
+                    content = f.read()
+                
+                # Extract mods from the file
+                mods = []
+                for line in content.split("\n"):
+                    if "addMod" in line and "xi.mod." in line:
+                        # Extract mod name and value
+                        # Pattern: mob:addMod(xi.mod.MODNAME, value)
+                        match = re.search(r'addMod\(xi\.mod\.(\w+)\s*,\s*([^)]+)\)', line)
+                        if match:
+                            mod_name = match.group(1)
+                            mod_value = match.group(2).strip()
+                            mods.append(f"{mod_name} = {mod_value}")
+                
+                preview_text.config(state="normal")
+                preview_text.delete("1.0", tk.END)
+                if mods:
+                    preview_text.insert("1.0", "\n".join(mods))
+                else:
+                    preview_text.insert("1.0", "No mods found in this trust.")
+                preview_text.config(state="disabled")
+            except Exception as e:
+                preview_text.config(state="normal")
+                preview_text.delete("1.0", tk.END)
+                preview_text.insert("1.0", f"Error reading trust: {e}")
+                preview_text.config(state="disabled")
+        
+        listbox.bind("<<ListboxSelect>>", on_select)
+        
+        # Buttons
+        button_frame = ttk.Frame(dialog)
+        button_frame.pack(pady=10)
+        
+        def apply_template():
+            if not listbox.curselection():
+                messagebox.showwarning("No Selection", "Please select a trust first.")
+                return
+            
+            selected_trust = listbox.get(listbox.curselection()[0])
+            trust_path = os.path.join(CURRENT_DIR, selected_trust)
+            
+            # Parse the trust file to extract mods
+            try:
+                with open(trust_path, "r", encoding="utf-8") as f:
+                    content = f.read()
+                
+                # Extract mods from the file
+                added_count = 0
+                for line in content.split("\n"):
+                    if "addMod" in line and "xi.mod." in line:
+                        # Extract mod name and value
+                        match = re.search(r'addMod\(xi\.mod\.(\w+)\s*,\s*([^)]+)\)', line)
+                        if match:
+                            mod_name = match.group(1)
+                            mod_value = match.group(2).strip()
+                            
+                            # Check if this mod already exists
+                            exists = False
+                            for row_data in self.mod_rows:
+                                _, name_var, _, _, _ = row_data
+                                if name_var.get() == mod_name:
+                                    exists = True
+                                    break
+                            
+                            if not exists:
+                                # Determine if dynamic (contains expressions or function calls)
+                                # Look for operators, function calls, or method calls
+                                is_dynamic = (
+                                    any(op in mod_value for op in ["mob:", "math.", "target:"]) or
+                                    DYNAMIC_MOD_OPERATOR_PATTERN.search(mod_value) or  # multiplication, division, modulo
+                                    DYNAMIC_MOD_FUNCTION_PATTERN.search(mod_value)  # function calls
+                                )
+                                self.add_mod_row(mod_name, mod_value, locked=False, dynamic=is_dynamic)
+                                added_count += 1
+                
+                dialog.destroy()
+                messagebox.showinfo("Success", f"Added {added_count} mods from {selected_trust}")
+                
+                # Refresh stats preview
+                if hasattr(self, "refresh_stats_preview"):
+                    self.refresh_stats_preview()
+                    
+            except Exception as e:
+                messagebox.showerror("Error", f"Failed to apply template: {e}")
+        
+        ttk.Button(button_frame, text="Apply", command=apply_template).pack(side=tk.LEFT, padx=5)
+        ttk.Button(button_frame, text="Cancel", command=dialog.destroy).pack(side=tk.LEFT, padx=5)
+        
+        if trusts_with_mods:
+            listbox.selection_set(0)
+            on_select()
 
     def create_gambits_tab(self):
         # Initialize gambit data storage
@@ -3662,6 +4069,18 @@ class TrustEditor(tk.Tk):
 
         self.gambit_sel_arg_var = tk.StringVar()
         ttk.Entry(sel_arg_frame, textvariable=self.gambit_sel_arg_var).pack(fill=tk.X, expand=True, padx=10, pady=5)
+
+        # Add help text for the icon meanings
+        icons_help_frame = ttk.LabelFrame(self.gambit_editor_frame, text="List Icon Meanings", padding=5)
+        icons_help_frame.pack(fill=tk.X, padx=10, pady=10)
+        
+        icons_help_text = (
+            "🔒 Lock: When enabled, this gambit won't be reordered or modified by templates.\n"
+            "⚡ Dynamic: Marks gambits with custom Lua logic or advanced expressions.\n"
+            "✓ Enabled: When checked, this gambit is active. Uncheck to temporarily disable without deleting."
+        )
+        icons_label = ttk.Label(icons_help_frame, text=icons_help_text, justify=tk.LEFT, wraplength=500)
+        icons_label.pack(padx=5, pady=5)
 
         # Note: Options (locked/dynamic/enabled) are now in the left list as clickable icons
         # Initialize vars for data storage but don't show them in the editor
@@ -4532,21 +4951,49 @@ class TrustEditor(tk.Tk):
         help_frame = ttk.LabelFrame(f, text="TP Settings Help")
         help_frame.grid(row=0, column=2, rowspan=3, padx=10, pady=5, sticky="nsew")
         help_text = (
-            "Trigger (when to spend TP):\n"
-            " - ASAP: Spend TP immediately when ready.\n"
-            " - RANDOM: Random timing; ignores Value.\n"
-            " - OPENER: Use early to start chains.\n"
-            " - CLOSER: Hold TP to close chains.\n"
-            " - CLOSER_UNTIL_TP: Close chains until TP exceeds Value.\n\n"
-            "Selector (what to use):\n"
-            " - HIGHEST/LOWEST: Choose strongest or weakest WS.\n"
-            " - RANDOM: Random WS.\n"
-            " - SPECIFIC: Use the exact Sel. Arg constant (xi.ws.* or JA/MA id).\n"
-            " - SPECIAL_AYAME/BEST_*: Job-specific smart selection.\n\n"
-            "Value meaning:\n"
-            " - TP threshold (e.g. 1000/1250/1500/3000).\n"
-            " - Some triggers ignore Value (ASAP/OPENER/RANDOM).\n"
-            " - CLOSER_UNTIL_TP stops closing chains once TP >= Value.\n"
+            "━━━ TRIGGER (when to spend TP) ━━━\n"
+            "• ASAP (0): Spend TP immediately when ready (1000+).\n"
+            "• RANDOM (1): Random timing; ignores Value field.\n"
+            "• OPENER (2): Use early to start skillchains.\n"
+            "• CLOSER (3): Hold TP to close skillchains.\n"
+            "• CLOSER_UNTIL_TP (4): Close chains until TP exceeds Value.\n\n"
+            
+            "━━━ SELECT (what weaponskill to use) ━━━\n"
+            "• HIGHEST (0): Choose strongest WS available.\n"
+            "• LOWEST (1): Choose weakest WS available.\n"
+            "• SPECIFIC (2): Use exact WS from Value field.\n"
+            "  For SPECIFIC, enter in Value: xi.ws.FAST_BLADE or numeric WS ID.\n"
+            "  Available WS constants:\n"
+            "  - xi.ws.FAST_BLADE, xi.ws.TACHI_ENPI, xi.ws.SPINNING_ATTACK\n"
+            "  - xi.ws.RAGING_FISTS, xi.ws.CIRCLE_BLADE, etc.\n"
+            "  - Check scripts/enum/weaponskill.lua for complete list.\n"
+            "• RANDOM (3): Pick random WS from available list.\n"
+            "• MB_ELEMENT (4): Choose WS for magic burst (rarely used for TP).\n"
+            "• SPECIAL_AYAME (5): Ayame-specific WS logic.\n"
+            "• BEST_AGAINST_TARGET (6): Pick best elemental WS vs target.\n"
+            "• BEST_SAMBA (7): Best Samba (DNC specific).\n"
+            "• HIGHEST_WALTZ (8): Highest Waltz available (DNC).\n"
+            "• ENTRUSTED (9): Entrust behavior (GEO).\n"
+            "• BEST_INDI (10): Best Indi spell (GEO).\n"
+            "• STORM_DAY (11): Storm matching day element.\n"
+            "• HELIX_DAY (12): Helix matching day element.\n"
+            "• EN_MOB_WEAKNESS (13): En-spell for mob weakness.\n"
+            "• STORM_MOB_WEAKNESS (14): Storm for mob weakness.\n"
+            "• HELIX_MOB_WEAKNESS (15): Helix for mob weakness.\n\n"
+            
+            "━━━ VALUE (TP threshold or constant) ━━━\n"
+            "• For most triggers: TP threshold (e.g. 1000, 1250, 1500, 2000, 3000).\n"
+            "• For SPECIFIC selector: Enter xi.ws.* constant or numeric WS ID.\n"
+            "• ASAP/OPENER/RANDOM triggers ignore Value field.\n"
+            "• CLOSER_UNTIL_TP: Stops closing chains when TP >= Value.\n\n"
+            
+            "━━━ EXAMPLES ━━━\n"
+            "Standard Melee DD:\n"
+            "  Trigger=CLOSER_UNTIL_TP, Select=HIGHEST, Value=1250\n\n"
+            "Specific WS (Tachi: Enpi):\n"
+            "  Trigger=CLOSER_UNTIL_TP, Select=SPECIFIC, Value=xi.ws.TACHI_ENPI\n\n"
+            "Tank (Save TP):\n"
+            "  Trigger=CLOSER_UNTIL_TP, Select=HIGHEST, Value=2000\n"
         )
         txt = scrolledtext.ScrolledText(help_frame, wrap=tk.WORD, height=12)
         txt.insert("1.0", help_text)
