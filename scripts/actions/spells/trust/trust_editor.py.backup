@@ -572,219 +572,145 @@ JOB_BASE_DELAY = {
 }
 
 GAMBIT_PALETTE = {
-    "🏥 Healing - Emergency": [
-        {"name": "Emergency Cure Self (HP < 25%)", "desc": "Cast highest Cure on self when critically wounded", "t": "SELF", "c": "HPP_LT", "c_arg": "25", "r": "MA", "s": "HIGHEST", "s_arg": "xi.magic.spellFamily.CURE"},
-        {"name": "Emergency Cure Self (HP < 33%)", "desc": "Cast highest Cure on self when severely wounded", "t": "SELF", "c": "HPP_LT", "c_arg": "33", "r": "MA", "s": "HIGHEST", "s_arg": "xi.magic.spellFamily.CURE"},
-        {"name": "Emergency Party Cure (HP < 25%)", "desc": "Cast highest Cure on party member when critically wounded", "t": "PARTY", "c": "HPP_LT", "c_arg": "25", "r": "MA", "s": "HIGHEST", "s_arg": "xi.magic.spellFamily.CURE"},
-        {"name": "Emergency Party Cure (HP < 33%)", "desc": "Cast highest Cure on party member when severely wounded", "t": "PARTY", "c": "HPP_LT", "c_arg": "33", "r": "MA", "s": "HIGHEST", "s_arg": "xi.magic.spellFamily.CURE"},
-        {"name": "Emergency Tank Cure (HP < 50%)", "desc": "Heal tank when HP drops below 50%", "t": "TANK", "c": "HPP_LT", "c_arg": "50", "r": "MA", "s": "HIGHEST", "s_arg": "xi.magic.spellFamily.CURE"},
-        {"name": "Emergency Master Cure (HP < 50%)", "desc": "Heal master when HP drops below 50%", "t": "MASTER", "c": "HPP_LT", "c_arg": "50", "r": "MA", "s": "HIGHEST", "s_arg": "xi.magic.spellFamily.CURE"},
+    "Healing": [
+        {
+            "name": "Emergency Cure (Self < 30%)",
+            "desc": "Casts the highest available Cure spell on self when HP is critically low (below 30%).",
+            "t": "SELF",
+            "c": "HPP_LT",
+            "c_arg": "30",
+            "r": "MA",
+            "s": "HIGHEST",
+            "s_arg": "xi.magic.spellFamily.CURE",
+        },
+        {
+            "name": "Party Cure (< 75%)",
+            "desc": "Casts highest Cure on any party member below 75% HP.",
+            "t": "PARTY",
+            "c": "HPP_LT",
+            "c_arg": "75",
+            "r": "MA",
+            "s": "HIGHEST",
+            "s_arg": "xi.magic.spellFamily.CURE",
+        },
+        {
+            "name": "Curaga (Party Multi < 75%)",
+            "desc": "Casts Curaga if multiple party members are below 75% HP (Requires PARTY_MULTI logic).",
+            "t": "PARTY_MULTI",
+            "c": "HPP_LT",
+            "c_arg": "75",
+            "r": "MA",
+            "s": "HIGHEST",
+            "s_arg": "xi.magic.spellFamily.CURAGA",
+        },
+        {
+            "name": "Erase/Na Status",
+            "desc": "Removes a specific status (e.g., Paralysis) from a party member using Paralyna.",
+            "t": "PARTY",
+            "c": "STATUS",
+            "c_arg": "xi.effect.PARALYSIS",
+            "r": "MA",
+            "s": "SPECIFIC",
+            "s_arg": "xi.magic.spellFamily.PARALYNA",
+        },
     ],
-    "🏥 Healing - Standard": [
-        {"name": "Party Cure (HP < 50%)", "desc": "Heal party member below 50% HP", "t": "PARTY", "c": "HPP_LT", "c_arg": "50", "r": "MA", "s": "HIGHEST", "s_arg": "xi.magic.spellFamily.CURE"},
-        {"name": "Party Cure (HP < 55%)", "desc": "Heal party member below 55% HP", "t": "PARTY", "c": "HPP_LT", "c_arg": "55", "r": "MA", "s": "HIGHEST", "s_arg": "xi.magic.spellFamily.CURE"},
-        {"name": "Party Cure (HP < 75%)", "desc": "Heal party member below 75% HP", "t": "PARTY", "c": "HPP_LT", "c_arg": "75", "r": "MA", "s": "HIGHEST", "s_arg": "xi.magic.spellFamily.CURE"},
-        {"name": "Tank Cure (HP < 75%)", "desc": "Heal tank when HP drops below 75%", "t": "TANK", "c": "HPP_LT", "c_arg": "75", "r": "MA", "s": "HIGHEST", "s_arg": "xi.magic.spellFamily.CURE"},
-        {"name": "Curaga when Multi Low (HP < 25%)", "desc": "Cast Curaga when multiple members are below 25% HP", "t": "PARTY", "c": "HPP_LT", "c_arg": "25", "r": "MA", "s": "HIGHEST", "s_arg": "xi.magic.spellFamily.CURAGA"},
-        {"name": "Curaga when Multi Low (HP < 50%)", "desc": "Cast Curaga when multiple members are below 50% HP", "t": "PARTY", "c": "HPP_LT", "c_arg": "50", "r": "MA", "s": "HIGHEST", "s_arg": "xi.magic.spellFamily.CURAGA"},
+    "Combat": [
+        {
+            "name": "WS at 1000 TP",
+            "desc": "Uses highest WS as soon as 1000 TP is reached.",
+            "t": "TARGET",
+            "c": "TP_GTE",
+            "c_arg": "1000",
+            "r": "WS",
+            "s": "HIGHEST",
+            "s_arg": "0",
+        },
+        {
+            "name": "Magic Burst (Any)",
+            "desc": "Attempts to Magic Burst with the appropriate element if the window is open.",
+            "t": "TARGET",
+            "c": "MB_AVAILABLE",
+            "c_arg": "0",
+            "r": "MA",
+            "s": "MB_ELEMENT",
+            "s_arg": "xi.magic.spellFamily.NONE",
+        },
+        {
+            "name": "Provoke (Lost Hate)",
+            "desc": "Uses Provoke if the trust does not have top enmity.",
+            "t": "TARGET",
+            "c": "NOT_HAS_TOP_ENMITY",
+            "c_arg": "0",
+            "r": "JA",
+            "s": "SPECIFIC",
+            "s_arg": "xi.ja.PROVOKE",
+        },
+        {
+            "name": "Skillchain Opener",
+            "desc": "Attempts to open a skillchain (example logic).",
+            "t": "TARGET",
+            "c": "SC_AVAILABLE",
+            "c_arg": "0",
+            "r": "WS",
+            "s": "HIGHEST",
+            "s_arg": "0",
+        },
     ],
-    "🏥 Healing - Status Removal": [
-        {"name": "Remove Poison", "desc": "Cast Poisona on poisoned party member", "t": "PARTY", "c": "STATUS", "c_arg": "xi.effect.POISON", "r": "MA", "s": "SPECIFIC", "s_arg": "xi.magic.spell.POISONA"},
-        {"name": "Remove Paralysis", "desc": "Cast Paralyna on paralyzed party member", "t": "PARTY", "c": "STATUS", "c_arg": "xi.effect.PARALYSIS", "r": "MA", "s": "SPECIFIC", "s_arg": "xi.magic.spell.PARALYNA"},
-        {"name": "Remove Blindness", "desc": "Cast Blindna on blinded party member", "t": "PARTY", "c": "STATUS", "c_arg": "xi.effect.BLINDNESS", "r": "MA", "s": "SPECIFIC", "s_arg": "xi.magic.spell.BLINDNA"},
-        {"name": "Remove Silence", "desc": "Cast Silena on silenced party member", "t": "PARTY", "c": "STATUS", "c_arg": "xi.effect.SILENCE", "r": "MA", "s": "SPECIFIC", "s_arg": "xi.magic.spell.SILENA"},
-        {"name": "Remove Disease", "desc": "Cast Viruna on diseased party member", "t": "PARTY", "c": "STATUS", "c_arg": "xi.effect.DISEASE", "r": "MA", "s": "SPECIFIC", "s_arg": "xi.magic.spell.VIRUNA"},
-        {"name": "Remove Petrification", "desc": "Cast Stona on petrified party member", "t": "PARTY", "c": "STATUS", "c_arg": "xi.effect.PETRIFICATION", "r": "MA", "s": "SPECIFIC", "s_arg": "xi.magic.spell.STONA"},
-        {"name": "Remove Curse", "desc": "Cast Cursna on cursed party member", "t": "PARTY", "c": "STATUS", "c_arg": "xi.effect.CURSE_I", "r": "MA", "s": "SPECIFIC", "s_arg": "xi.magic.spell.CURSNA"},
-        {"name": "Erase Debuffs (Party)", "desc": "Use Erase on party member with erasable debuff", "t": "PARTY", "c": "STATUS_FLAG", "c_arg": "xi.effectFlag.ERASABLE", "r": "MA", "s": "SPECIFIC", "s_arg": "xi.magic.spell.ERASE"},
-        {"name": "Erase Debuffs (Self)", "desc": "Use Erase on self when afflicted with erasable debuff", "t": "SELF", "c": "STATUS_FLAG", "c_arg": "xi.effectFlag.ERASABLE", "r": "MA", "s": "SPECIFIC", "s_arg": "xi.magic.spell.ERASE"},
-        {"name": "Wake from Sleep (Cure)", "desc": "Wake sleeping party member with Cure", "t": "PARTY", "c": "STATUS", "c_arg": "xi.effect.SLEEP_I", "r": "MA", "s": "SPECIFIC", "s_arg": "xi.magic.spell.CURE"},
-        {"name": "Wake from Sleep II (Cure)", "desc": "Wake sleeping party member (Sleep II) with Cure", "t": "PARTY", "c": "STATUS", "c_arg": "xi.effect.SLEEP_II", "r": "MA", "s": "SPECIFIC", "s_arg": "xi.magic.spell.CURE"},
-        {"name": "Wake from Sleep (Curaga)", "desc": "Wake sleeping party members with Curaga", "t": "PARTY", "c": "STATUS", "c_arg": "xi.effect.SLEEP_I", "r": "MA", "s": "SPECIFIC", "s_arg": "xi.magic.spell.CURAGA"},
+    "Buffs & Support": [
+        {
+            "name": "Haste Party",
+            "desc": "Keep Haste on party members who don't have it.",
+            "t": "PARTY",
+            "c": "NOT_STATUS",
+            "c_arg": "xi.effect.HASTE",
+            "r": "MA",
+            "s": "SPECIFIC",
+            "s_arg": "xi.magic.spellFamily.HASTE",
+        },
+        {
+            "name": "Refresh Caster",
+            "desc": "Cast Refresh on a Caster type party member if MP < 80%.",
+            "t": "CASTER",
+            "c": "MPP_LT",
+            "c_arg": "80",
+            "r": "MA",
+            "s": "SPECIFIC",
+            "s_arg": "xi.magic.spellFamily.REFRESH",
+        },
+        {
+            "name": "Self Phalanx",
+            "desc": "Keep Phalanx up on self.",
+            "t": "SELF",
+            "c": "NOT_STATUS",
+            "c_arg": "xi.effect.PHALANX",
+            "r": "MA",
+            "s": "SPECIFIC",
+            "s_arg": "xi.magic.spellFamily.PHALANX",
+        },
     ],
-    "🏥 Healing - Tank Priority": [
-        {"name": "Remove Poison (Tank)", "desc": "Cast Poisona on poisoned tank", "t": "TOP_ENMITY", "c": "STATUS", "c_arg": "xi.effect.POISON", "r": "MA", "s": "SPECIFIC", "s_arg": "xi.magic.spell.POISONA"},
-        {"name": "Remove Paralysis (Tank)", "desc": "Cast Paralyna on paralyzed tank", "t": "TOP_ENMITY", "c": "STATUS", "c_arg": "xi.effect.PARALYSIS", "r": "MA", "s": "SPECIFIC", "s_arg": "xi.magic.spell.PARALYNA"},
-        {"name": "Remove Blindness (Tank)", "desc": "Cast Blindna on blinded tank", "t": "TOP_ENMITY", "c": "STATUS", "c_arg": "xi.effect.BLINDNESS", "r": "MA", "s": "SPECIFIC", "s_arg": "xi.magic.spell.BLINDNA"},
-        {"name": "Remove Silence (Tank)", "desc": "Cast Silena on silenced tank", "t": "TOP_ENMITY", "c": "STATUS", "c_arg": "xi.effect.SILENCE", "r": "MA", "s": "SPECIFIC", "s_arg": "xi.magic.spell.SILENA"},
-        {"name": "Remove Disease (Tank)", "desc": "Cast Viruna on diseased tank", "t": "TOP_ENMITY", "c": "STATUS", "c_arg": "xi.effect.DISEASE", "r": "MA", "s": "SPECIFIC", "s_arg": "xi.magic.spell.VIRUNA"},
-        {"name": "Remove Petrification (Tank)", "desc": "Cast Stona on petrified tank", "t": "TOP_ENMITY", "c": "STATUS", "c_arg": "xi.effect.PETRIFICATION", "r": "MA", "s": "SPECIFIC", "s_arg": "xi.magic.spell.STONA"},
-        {"name": "Remove Curse (Tank)", "desc": "Cast Cursna on cursed tank (works on Doom/Bane too)", "t": "TOP_ENMITY", "c": "STATUS", "c_arg": "xi.effect.CURSE_I", "r": "MA", "s": "SPECIFIC", "s_arg": "xi.magic.spell.CURSNA"},
-        {"name": "Remove Doom (Tank)", "desc": "Cast Cursna on tank with Doom", "t": "TOP_ENMITY", "c": "STATUS", "c_arg": "xi.effect.DOOM", "r": "MA", "s": "SPECIFIC", "s_arg": "xi.magic.spell.CURSNA"},
-        {"name": "Remove Bane (Tank)", "desc": "Cast Cursna on tank with Bane", "t": "TOP_ENMITY", "c": "STATUS", "c_arg": "xi.effect.BANE", "r": "MA", "s": "SPECIFIC", "s_arg": "xi.magic.spell.CURSNA"},
-    ],
-    "🏥 Healing - Resurrection": [
-        {"name": "Raise Dead Party", "desc": "Raise fallen party members with highest available Raise spell", "t": "PARTY_DEAD", "c": "ALWAYS", "c_arg": "0", "r": "MA", "s": "HIGHEST", "s_arg": "xi.magic.spellFamily.RAISE"},
-    ],
-    "🏥 Healing - Job Abilities": [
-        {"name": "Healing Waltz (Remove Debuffs)", "desc": "Use Healing Waltz to remove waltzable debuffs from self", "t": "SELF", "c": "STATUS_FLAG", "c_arg": "xi.effectFlag.WALTZABLE", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.HEALING_WALTZ"},
-        {"name": "Curing Waltz (HP < 50%)", "desc": "Use highest Curing Waltz on party member below 50% HP", "t": "PARTY", "c": "HPP_LT", "c_arg": "50", "r": "JA", "s": "HIGHEST_WALTZ", "s_arg": "xi.ja.CURING_WALTZ"},
-        {"name": "Chakra (Self HP < 50%)", "desc": "Use Chakra to self-heal when below 50% HP", "t": "SELF", "c": "HPP_LT", "c_arg": "50", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.CHAKRA"},
-    ],
-    "⚔️ Combat - Weapon Skills": [
-        {"name": "WS at 1000 TP", "desc": "Use highest weaponskill when 1000 TP is reached", "t": "SELF", "c": "TP_GTE", "c_arg": "1000", "r": "WS", "s": "HIGHEST", "s_arg": "0"},
-        {"name": "WS at 1250 TP", "desc": "Use highest weaponskill when 1250 TP is reached", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "HIGHEST", "s_arg": "0"},
-        {"name": "WS at 1500 TP", "desc": "Use highest weaponskill when 1500 TP is reached", "t": "SELF", "c": "TP_GTE", "c_arg": "1500", "r": "WS", "s": "HIGHEST", "s_arg": "0"},
-        {"name": "WS at 2000 TP", "desc": "Use highest weaponskill when 2000 TP is reached", "t": "SELF", "c": "TP_GTE", "c_arg": "2000", "r": "WS", "s": "HIGHEST", "s_arg": "0"},
-    ],
-    "⚔️ Combat - TP Building": [
-        {"name": "Meditate (TP < 1000)", "desc": "Use Meditate to gain TP when below 1000", "t": "SELF", "c": "TP_LT", "c_arg": "1000", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.MEDITATE"},
-    ],
-    "⚔️ Combat - Ranged Attacks": [
-        {"name": "Ranged Attack (Always)", "desc": "Continuously use ranged attacks", "t": "TARGET", "c": "ALWAYS", "c_arg": "0", "r": "RATTACK", "s": "RANDOM", "s_arg": "0"},
-        {"name": "Ranged Attack (Random 50%)", "desc": "Use ranged attacks 50% of the time", "t": "TARGET", "c": "RANDOM", "c_arg": "50", "r": "RATTACK", "s": "RANDOM", "s_arg": "0"},
-    ],
-    "⚔️ Combat - Job Abilities": [
-        {"name": "Jump (Always)", "desc": "Use Jump whenever available", "t": "TARGET", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.JUMP"},
-        {"name": "High Jump (Always)", "desc": "Use High Jump whenever available", "t": "TARGET", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.HIGH_JUMP"},
-        {"name": "Super Jump (High Hate)", "desc": "Use Super Jump to shed hate when tanking", "t": "SELF", "c": "HAS_TOP_ENMITY", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.SUPER_JUMP"},
-    ],
-    "🛡️ Tank - Hate Management": [
-        {"name": "Provoke (No Top Hate)", "desc": "Use Provoke when not holding aggro", "t": "SELF", "c": "NOT_HAS_TOP_ENMITY", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.PROVOKE"},
-        {"name": "Provoke Target (No Tank)", "desc": "Provoke target when no tank in party", "t": "TARGET", "c": "NOT_PT_HAS_TANK", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.PROVOKE"},
-        {"name": "Provoke Tank (HP < 50%)", "desc": "Provoke to take aggro when tank is low HP", "t": "TANK", "c": "HPP_LT", "c_arg": "50", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.PROVOKE"},
-        {"name": "Provoke Master (HP < 50%)", "desc": "Provoke to protect master when low HP", "t": "MASTER", "c": "HPP_LT", "c_arg": "50", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.PROVOKE"},
-        {"name": "Flash (Enemy No Flash)", "desc": "Use Flash on target that doesn't have Flash debuff", "t": "TARGET", "c": "NOT_STATUS", "c_arg": "xi.effect.FLASH", "r": "MA", "s": "SPECIFIC", "s_arg": "xi.magic.spell.FLASH"},
-    ],
-    "🛡️ Tank - Defensive Abilities": [
-        {"name": "Sentinel (HP < 33%)", "desc": "Use Sentinel when HP drops below 33%", "t": "SELF", "c": "HPP_LT", "c_arg": "33", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.SENTINEL"},
-        {"name": "Sentinel (Not Active)", "desc": "Keep Sentinel active whenever possible", "t": "SELF", "c": "NOT_STATUS", "c_arg": "xi.effect.SENTINEL", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.SENTINEL"},
-        {"name": "Defender (No Tank)", "desc": "Use Defender stance when no tank in party", "t": "SELF", "c": "NOT_PT_HAS_TANK", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.DEFENDER"},
-        {"name": "Third Eye (High Hate)", "desc": "Use Third Eye when holding aggro", "t": "SELF", "c": "HAS_TOP_ENMITY", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.THIRD_EYE"},
-        {"name": "Counterstance (High Hate)", "desc": "Use Counterstance when holding aggro", "t": "SELF", "c": "HAS_TOP_ENMITY", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.COUNTERSTANCE"},
-    ],
-    "⚡ Offensive Buffs - Self": [
-        {"name": "Berserk (Not Active)", "desc": "Keep Berserk active", "t": "SELF", "c": "NOT_STATUS", "c_arg": "xi.effect.BERSERK", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.BERSERK"},
-        {"name": "Berserk (No Chain)", "desc": "Use Berserk when skillchain window not open", "t": "SELF", "c": "NOT_SC_AVAILABLE", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.BERSERK"},
-        {"name": "Berserk (Tank Present)", "desc": "Use Berserk when party has tank", "t": "SELF", "c": "PT_HAS_TANK", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.BERSERK"},
-        {"name": "Berserk (Master)", "desc": "Keep Berserk active on master", "t": "MASTER", "c": "NOT_STATUS", "c_arg": "xi.effect.BERSERK", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.BERSERK"},
-        {"name": "Aggressor (Not Active)", "desc": "Keep Aggressor active", "t": "SELF", "c": "NOT_STATUS", "c_arg": "xi.effect.AGGRESSOR", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.AGGRESSOR"},
-        {"name": "Aggressor (Tank Present)", "desc": "Use Aggressor when party has tank", "t": "SELF", "c": "PT_HAS_TANK", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.AGGRESSOR"},
-        {"name": "Warcry (No Chain)", "desc": "Use Warcry when skillchain window not open", "t": "SELF", "c": "NOT_SC_AVAILABLE", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.WARCRY"},
-        {"name": "Hasso (Not Active)", "desc": "Keep Hasso stance active", "t": "SELF", "c": "NOT_STATUS", "c_arg": "xi.effect.HASSO", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.HASSO"},
-        {"name": "Last Resort (Always)", "desc": "Use Last Resort whenever available", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.LAST_RESORT"},
-        {"name": "Souleater (Always)", "desc": "Use Souleater whenever available", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.SOULEATER"},
-        {"name": "Focus (Always)", "desc": "Use Focus to boost accuracy", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.FOCUS"},
-        {"name": "Dodge (Always)", "desc": "Use Dodge to boost evasion", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.DODGE"},
-        {"name": "Mantra (Always)", "desc": "Use Mantra to boost HP recovery", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.MANTRA"},
-        {"name": "Impetus (Always)", "desc": "Use Impetus to boost attack", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.IMPETUS"},
-        {"name": "Restraint (Always)", "desc": "Use Restraint to boost WS damage", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.RESTRAINT"},
-    ],
-    "⚡ Offensive Buffs - Ranged": [
-        {"name": "Sharpshot (Not Active)", "desc": "Keep Sharpshot active", "t": "SELF", "c": "NOT_STATUS", "c_arg": "xi.effect.SHARPSHOT", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.SHARPSHOT"},
-        {"name": "Barrage (Not Active)", "desc": "Keep Barrage active", "t": "SELF", "c": "NOT_STATUS", "c_arg": "xi.effect.BARRAGE", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.BARRAGE"},
-        {"name": "Double Shot (Not Active)", "desc": "Keep Double Shot active", "t": "SELF", "c": "NOT_STATUS", "c_arg": "xi.effect.DOUBLE_SHOT", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.DOUBLE_SHOT"},
-    ],
-    "✨ Support Buffs - Party Protection": [
-        {"name": "Protect Party", "desc": "Cast highest Protect on party members without it", "t": "PARTY", "c": "NOT_STATUS", "c_arg": "xi.effect.PROTECT", "r": "MA", "s": "HIGHEST", "s_arg": "xi.magic.spellFamily.PROTECT"},
-        {"name": "Protectra Party", "desc": "Cast highest Protectra on all party members", "t": "PARTY", "c": "NOT_STATUS", "c_arg": "xi.effect.PROTECT", "r": "MA", "s": "HIGHEST", "s_arg": "xi.magic.spellFamily.PROTECTRA"},
-        {"name": "Shell Party", "desc": "Cast highest Shell on party members without it", "t": "PARTY", "c": "NOT_STATUS", "c_arg": "xi.effect.SHELL", "r": "MA", "s": "HIGHEST", "s_arg": "xi.magic.spellFamily.SHELL"},
-        {"name": "Shellra Party", "desc": "Cast highest Shellra on all party members", "t": "PARTY", "c": "NOT_STATUS", "c_arg": "xi.effect.SHELL", "r": "MA", "s": "HIGHEST", "s_arg": "xi.magic.spellFamily.SHELLRA"},
-        {"name": "Protect Self", "desc": "Keep Protect active on self", "t": "SELF", "c": "NOT_STATUS", "c_arg": "xi.effect.PROTECT", "r": "MA", "s": "HIGHEST", "s_arg": "xi.magic.spellFamily.PROTECT"},
-        {"name": "Shell Self", "desc": "Keep Shell active on self", "t": "SELF", "c": "NOT_STATUS", "c_arg": "xi.effect.SHELL", "r": "MA", "s": "HIGHEST", "s_arg": "xi.magic.spellFamily.SHELL"},
-    ],
-    "✨ Support Buffs - Haste": [
-        {"name": "Haste Party", "desc": "Cast highest Haste on party members without it", "t": "PARTY", "c": "NOT_STATUS", "c_arg": "xi.effect.HASTE", "r": "MA", "s": "HIGHEST", "s_arg": "xi.magic.spellFamily.HASTE"},
-        {"name": "Haste Melee", "desc": "Cast highest Haste on melee party members", "t": "MELEE", "c": "NOT_STATUS", "c_arg": "xi.effect.HASTE", "r": "MA", "s": "HIGHEST", "s_arg": "xi.magic.spellFamily.HASTE"},
-        {"name": "Haste Master", "desc": "Keep Haste active on master", "t": "MASTER", "c": "NOT_STATUS", "c_arg": "xi.effect.HASTE", "r": "MA", "s": "HIGHEST", "s_arg": "xi.magic.spellFamily.HASTE"},
-        {"name": "Haste Self", "desc": "Keep Haste active on self", "t": "SELF", "c": "NOT_STATUS", "c_arg": "xi.effect.HASTE", "r": "MA", "s": "HIGHEST", "s_arg": "xi.magic.spellFamily.HASTE"},
-    ],
-    "✨ Support Buffs - Regen": [
-        {"name": "Regen Melee", "desc": "Cast highest Regen on melee party members", "t": "MELEE", "c": "NOT_STATUS", "c_arg": "xi.effect.REGEN", "r": "MA", "s": "HIGHEST", "s_arg": "xi.magic.spellFamily.REGEN"},
-        {"name": "Regen Master", "desc": "Keep Regen active on master", "t": "MASTER", "c": "NOT_STATUS", "c_arg": "xi.effect.REGEN", "r": "MA", "s": "HIGHEST", "s_arg": "xi.magic.spellFamily.REGEN"},
-    ],
-    "✨ Support Buffs - Refresh": [
-        {"name": "Refresh Tank", "desc": "Cast Refresh on tank to restore MP", "t": "TANK", "c": "NOT_STATUS", "c_arg": "xi.effect.REFRESH", "r": "MA", "s": "HIGHEST", "s_arg": "xi.magic.spellFamily.REFRESH"},
-        {"name": "Refresh Self", "desc": "Keep Refresh active on self", "t": "SELF", "c": "NOT_STATUS", "c_arg": "xi.effect.REFRESH", "r": "MA", "s": "SPECIFIC", "s_arg": "xi.magic.spell.REFRESH"},
-    ],
-    "✨ Support Buffs - Phalanx": [
-        {"name": "Phalanx Self", "desc": "Keep Phalanx active on self", "t": "SELF", "c": "NOT_STATUS", "c_arg": "xi.effect.PHALANX", "r": "MA", "s": "HIGHEST", "s_arg": "xi.magic.spellFamily.PHALANX"},
-        {"name": "Phalanx II Tank", "desc": "Cast Phalanx II on tank", "t": "TOP_ENMITY", "c": "NOT_STATUS", "c_arg": "xi.effect.PHALANX", "r": "MA", "s": "SPECIFIC", "s_arg": "xi.magic.spell.PHALANX_II"},
-    ],
-    "✨ Support Buffs - Defensive": [
-        {"name": "Stoneskin Self", "desc": "Keep Stoneskin active on self", "t": "SELF", "c": "NOT_STATUS", "c_arg": "xi.effect.STONESKIN", "r": "MA", "s": "SPECIFIC", "s_arg": "xi.magic.spell.STONESKIN"},
-        {"name": "Utsusemi Self", "desc": "Keep Utsusemi shadows active", "t": "SELF", "c": "NOT_STATUS", "c_arg": "xi.effect.COPY_IMAGE", "r": "MA", "s": "HIGHEST", "s_arg": "xi.magic.spellFamily.UTSUSEMI"},
-    ],
-    "✨ Support Buffs - Enspells": [
-        {"name": "Enlight Self", "desc": "Keep highest Enlight active on self", "t": "SELF", "c": "NOT_STATUS", "c_arg": "xi.effect.ENLIGHT", "r": "MA", "s": "HIGHEST", "s_arg": "xi.magic.spellFamily.ENLIGHT"},
-        {"name": "Enfire Self", "desc": "Keep Enfire active on self", "t": "SELF", "c": "NOT_STATUS", "c_arg": "xi.effect.ENFIRE", "r": "MA", "s": "SPECIFIC", "s_arg": "xi.magic.spell.ENFIRE"},
-        {"name": "Enwater Self", "desc": "Keep Enwater active on self", "t": "SELF", "c": "NOT_STATUS", "c_arg": "xi.effect.ENWATER", "r": "MA", "s": "SPECIFIC", "s_arg": "xi.magic.spell.ENWATER"},
-    ],
-    "🎵 Bard Songs": [
-        {"name": "Ballad Self", "desc": "Keep highest Ballad active for MP regen", "t": "SELF", "c": "NOT_STATUS", "c_arg": "xi.effect.BALLAD", "r": "MA", "s": "HIGHEST", "s_arg": "xi.magic.spellFamily.MAGES_BALLAD"},
-        {"name": "Minuet Self", "desc": "Keep highest Minuet active for attack", "t": "SELF", "c": "NOT_STATUS", "c_arg": "xi.effect.MINUET", "r": "MA", "s": "HIGHEST", "s_arg": "xi.magic.spellFamily.VALOR_MINUET"},
-        {"name": "Madrigal Self", "desc": "Keep highest Madrigal active for accuracy", "t": "SELF", "c": "NOT_STATUS", "c_arg": "xi.effect.MADRIGAL", "r": "MA", "s": "HIGHEST", "s_arg": "xi.magic.spellFamily.MADRIGAL"},
-        {"name": "March Self", "desc": "Keep highest March active for haste", "t": "SELF", "c": "NOT_STATUS", "c_arg": "xi.effect.MARCH", "r": "MA", "s": "HIGHEST", "s_arg": "xi.magic.spellFamily.MARCH"},
-    ],
-    "🎲 Corsair Rolls": [
-        {"name": "Chaos Roll", "desc": "Keep Chaos Roll active on party for attack", "t": "PARTY", "c": "NOT_STATUS", "c_arg": "xi.effect.CHAOS_ROLL", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.CHAOS_ROLL"},
-        {"name": "Corsair's Roll", "desc": "Keep Corsair's Roll active on party for EXP", "t": "PARTY", "c": "NOT_STATUS", "c_arg": "xi.effect.CORSAIRS_ROLL", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.CORSAIRS_ROLL"},
-    ],
-    "💃 Dancer Abilities": [
-        {"name": "Best Samba (No Samba)", "desc": "Use the best Samba for the situation", "t": "SELF", "c": "NO_SAMBA", "c_arg": "0", "r": "JA", "s": "BEST_SAMBA", "s_arg": "xi.ja.DRAIN_SAMBA"},
-        {"name": "Haste Samba (vs Undead)", "desc": "Use Haste Samba when fighting undead", "t": "TARGET", "c": "IS_ECOSYSTEM", "c_arg": "xi.ecosystem.UNDEAD", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.HASTE_SAMBA"},
-        {"name": "Quickstep (No Daze)", "desc": "Use Quickstep to apply Lethargic Daze", "t": "TARGET", "c": "NOT_STATUS", "c_arg": "xi.effect.LETHARGIC_DAZE_5", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.QUICKSTEP"},
-        {"name": "Stutter Step (No Daze)", "desc": "Use Stutter Step to apply Weakened Daze", "t": "TARGET", "c": "NOT_STATUS", "c_arg": "xi.effect.WEAKENED_DAZE_5", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.STUTTER_STEP"},
-        {"name": "Reverse Flourish (5 FM)", "desc": "Use Reverse Flourish at 5 Finishing Moves for TP", "t": "SELF", "c": "STATUS", "c_arg": "xi.effect.FINISHING_MOVE_5", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.REVERSE_FLOURISH"},
-        {"name": "Saber Dance (Not Active)", "desc": "Keep Saber Dance active", "t": "SELF", "c": "NOT_STATUS", "c_arg": "xi.effect.SABER_DANCE", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.SABER_DANCE"},
-    ],
-    "🌍 Geomancer Abilities": [
-        {"name": "Best Indi Buff", "desc": "Cast best Indi spell for situation", "t": "SELF", "c": "NOT_STATUS", "c_arg": "xi.effect.COLURE_ACTIVE", "r": "MA", "s": "BEST_INDI", "s_arg": "xi.magic.spellFamily.NONE"},
-        {"name": "Entrust (Not Active)", "desc": "Activate Entrust to buff others", "t": "SELF", "c": "NOT_STATUS", "c_arg": "xi.effect.ENTRUST", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.jobAbility.ENTRUST"},
-        {"name": "Entrusted Indi", "desc": "Cast entrusted Indi buff on ally", "t": "SELF", "c": "STATUS", "c_arg": "xi.effect.ENTRUST", "r": "MA", "s": "ENTRUSTED", "s_arg": "xi.magic.spellFamily.INDI_BUFF"},
-    ],
-    "🌪️ Scholar Abilities": [
-        {"name": "Dark Arts (Not Active)", "desc": "Activate Dark Arts", "t": "SELF", "c": "NOT_STATUS", "c_arg": "xi.effect.ADDENDUM_BLACK", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.DARK_ARTS"},
-        {"name": "Addendum Black", "desc": "Activate Addendum: Black", "t": "SELF", "c": "NOT_STATUS", "c_arg": "xi.effect.ADDENDUM_BLACK", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.ADDENDUM_BLACK"},
-        {"name": "Storm Day", "desc": "Cast appropriate Storm spell based on day", "t": "SELF", "c": "NO_STORM", "c_arg": "0", "r": "MA", "s": "STORM_DAY", "s_arg": "0"},
-    ],
-    "⛪ White Mage Abilities": [
-        {"name": "Afflatus Solace", "desc": "Activate Afflatus: Solace for enhanced healing", "t": "SELF", "c": "NOT_STATUS", "c_arg": "xi.effect.AFFLATUS_SOLACE", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.AFFLATUS_SOLACE"},
-        {"name": "Divine Emblem", "desc": "Activate Divine Emblem to boost next spell", "t": "SELF", "c": "NOT_STATUS", "c_arg": "xi.effect.DIVINE_EMBLEM", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.DIVINE_EMBLEM"},
-    ],
-    "🔮 Offensive Magic - Nukes": [
-        {"name": "Magic Burst", "desc": "Cast appropriate nuke spell to magic burst", "t": "TARGET", "c": "MB_AVAILABLE", "c_arg": "0", "r": "MA", "s": "MB_ELEMENT", "s_arg": "xi.magic.spellFamily.NONE"},
-        {"name": "Nuke Best Element", "desc": "Cast nuke with best element vs target", "t": "TARGET", "c": "NOT_SC_AVAILABLE", "c_arg": "0", "r": "MA", "s": "BEST_AGAINST_TARGET", "s_arg": "0"},
-        {"name": "Holy (No Skillchain)", "desc": "Cast Holy when skillchain window not open", "t": "TARGET", "c": "NOT_SC_AVAILABLE", "c_arg": "0", "r": "MA", "s": "SPECIFIC", "s_arg": "xi.magic.spell.HOLY"},
-        {"name": "Helix Day", "desc": "Cast appropriate Helix spell based on day", "t": "TARGET", "c": "NOT_STATUS", "c_arg": "xi.effect.HELIX", "r": "MA", "s": "HELIX_DAY", "s_arg": "0"},
-    ],
-    "🔮 Offensive Magic - Debuffs": [
-        {"name": "Slow Enemy", "desc": "Cast highest Slow on target without it", "t": "TARGET", "c": "NOT_STATUS", "c_arg": "xi.effect.SLOW", "r": "MA", "s": "HIGHEST", "s_arg": "xi.magic.spellFamily.SLOW"},
-        {"name": "Paralyze Enemy", "desc": "Cast highest Paralyze on target without it", "t": "TARGET", "c": "NOT_STATUS", "c_arg": "xi.effect.PARALYSIS", "r": "MA", "s": "HIGHEST", "s_arg": "xi.magic.spellFamily.PARALYZE"},
-        {"name": "Silence Enemy", "desc": "Cast Silence on target without it", "t": "TARGET", "c": "NOT_STATUS", "c_arg": "xi.effect.SILENCE", "r": "MA", "s": "SPECIFIC", "s_arg": "xi.magic.spell.SILENCE"},
-        {"name": "Blind Enemy (Kurayami)", "desc": "Cast highest Kurayami/Blind on target", "t": "TARGET", "c": "NOT_STATUS", "c_arg": "xi.effect.BLINDNESS", "r": "MA", "s": "HIGHEST", "s_arg": "xi.magic.spellFamily.KURAYAMI"},
-        {"name": "Dia Enemy", "desc": "Cast highest Dia on target without it", "t": "TARGET", "c": "NOT_STATUS", "c_arg": "xi.effect.DIA", "r": "MA", "s": "HIGHEST", "s_arg": "xi.magic.spellFamily.DIA"},
-        {"name": "Distract Enemy", "desc": "Cast highest Distract on target", "t": "TARGET", "c": "NOT_STATUS", "c_arg": "xi.effect.EVASION_DOWN", "r": "MA", "s": "HIGHEST", "s_arg": "xi.magic.spellFamily.DISTRACT"},
-        {"name": "Dispel Enemy Buffs", "desc": "Dispel target if it has dispelable buffs", "t": "TARGET", "c": "STATUS_FLAG", "c_arg": "xi.effectFlag.DISPELABLE", "r": "MA", "s": "SPECIFIC", "s_arg": "xi.magic.spell.DISPEL"},
-        {"name": "Hojo Enemy (Slow)", "desc": "Cast highest Hojo (NIN slow) on target", "t": "TARGET", "c": "NOT_STATUS", "c_arg": "xi.effect.SLOW", "r": "MA", "s": "HIGHEST", "s_arg": "xi.magic.spellFamily.HOJO"},
-    ],
-    "🛡️ Interrupts - Stun": [
-        {"name": "Stun Casting", "desc": "Stun target when it's casting magic", "t": "TARGET", "c": "CASTING_MA", "c_arg": "0", "r": "MA", "s": "SPECIFIC", "s_arg": "xi.magic.spell.STUN"},
-        {"name": "Stun Weaponskill", "desc": "Stun target when readying weaponskill", "t": "TARGET", "c": "READYING_WS", "c_arg": "0", "r": "MA", "s": "SPECIFIC", "s_arg": "xi.magic.spell.STUN"},
-        {"name": "Stun Monster Skill", "desc": "Stun target when readying monster skill", "t": "TARGET", "c": "READYING_MS", "c_arg": "0", "r": "MA", "s": "SPECIFIC", "s_arg": "xi.magic.spell.STUN"},
-        {"name": "Stun Job Ability", "desc": "Stun target when readying job ability", "t": "TARGET", "c": "READYING_JA", "c_arg": "0", "r": "MA", "s": "SPECIFIC", "s_arg": "xi.magic.spell.STUN"},
-    ],
-    "🛡️ Interrupts - Violent Flourish": [
-        {"name": "Flourish Casting", "desc": "Violent Flourish when target casts", "t": "TARGET", "c": "CASTING_MA", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.VIOLENT_FLOURISH"},
-        {"name": "Flourish Weaponskill", "desc": "Violent Flourish when target uses WS", "t": "TARGET", "c": "READYING_WS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.VIOLENT_FLOURISH"},
-        {"name": "Flourish Monster Skill", "desc": "Violent Flourish when target uses MS", "t": "TARGET", "c": "READYING_MS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.VIOLENT_FLOURISH"},
-        {"name": "Flourish Job Ability", "desc": "Violent Flourish when target uses JA", "t": "TARGET", "c": "READYING_JA", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.VIOLENT_FLOURISH"},
-    ],
-    "🎯 Situational - Enemy Type": [
-        {"name": "Holy Circle (vs Undead)", "desc": "Use Holy Circle when fighting undead", "t": "TARGET", "c": "IS_ECOSYSTEM", "c_arg": "xi.ecosystem.UNDEAD", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.HOLY_CIRCLE"},
-        {"name": "Ancient Circle (vs Dragon)", "desc": "Use Ancient Circle when fighting dragons", "t": "TARGET", "c": "IS_ECOSYSTEM", "c_arg": "xi.ecosystem.DRAGON", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.ANCIENT_CIRCLE"},
-    ],
-    "🎯 Situational - MP Management": [
-        {"name": "Convert (MP < 25%)", "desc": "Use Convert to swap HP for MP when very low MP", "t": "SELF", "c": "MPP_LT", "c_arg": "25", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.CONVERT"},
-        {"name": "Convert (MP < 5%)", "desc": "Use Convert to swap HP for MP when critically low MP", "t": "SELF", "c": "MPP_LT", "c_arg": "5", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.CONVERT"},
-        {"name": "Chivalry (MP < 50%)", "desc": "Use Chivalry to restore MP when below 50%", "t": "SELF", "c": "MPP_LT", "c_arg": "50", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.CHIVALRY"},
-    ],
-    "🎯 Situational - Ninja Tools": [
-        {"name": "Yonin (Not Active)", "desc": "Keep Yonin stance active for enmity", "t": "SELF", "c": "NOT_STATUS", "c_arg": "xi.effect.YONIN", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.YONIN"},
-    ],
-    "🎯 Situational - Misc": [
-        {"name": "Despoil (Always)", "desc": "Use Despoil to steal items", "t": "TARGET", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.DESPOIL"},
-        {"name": "Retaliation (No Tank)", "desc": "Use Retaliation when no tank in party", "t": "SELF", "c": "NOT_PT_HAS_TANK", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.RETALIATION"},
+    "Dynamic / Advanced": [
+        {
+            "name": "Dynamic HP Check",
+            "desc": "Example of a dynamic condition argument using Lua math.",
+            "t": "SELF",
+            "c": "HPP_LT",
+            "c_arg": "25 + 5",
+            "r": "MA",
+            "s": "HIGHEST",
+            "s_arg": "xi.magic.spellFamily.CURE",
+            "dynamic": True,
+        },
+        {
+            "name": "Distance Check (< 10)",
+            "desc": "Uses a custom Lua expression to check distance. (Requires core support for expression eval in cond_arg or custom logic).",
+            "t": "TARGET",
+            "c": "ALWAYS",
+            "c_arg": "target:getDistance(mob) < 10",
+            "r": "JA",
+            "s": "SPECIFIC",
+            "s_arg": "xi.ja.PROVOKE",
+            "dynamic": True,
+        },
     ],
 }
 
@@ -2291,7 +2217,6 @@ class TrustEditor(tk.Tk):
                                 continue  # Check this ID
 
                 # Weapon filtering logic
-                selected_weapon = local_weapon_var.get()
                 if filter_by_weapon and selected_weapon != "All":
                     try:
                         item_id_match = re.search(r"\[(\d+)\]$", v)
@@ -3299,275 +3224,61 @@ class TrustEditor(tk.Tk):
     def open_gambit_palette(self):
         """Open a window with gambit templates and examples."""
         win = tk.Toplevel(self)
-        win.title("🎮 Gambit Library - Complete Guide")
-        win.geometry("1000x700")
+        win.title("Gambit Palette & Examples")
+        win.geometry("800x600")
 
         # Configure grid for split view
         win.columnconfigure(0, weight=1)
         win.columnconfigure(1, weight=2)
-        win.rowconfigure(0, weight=0)  # Search row
-        win.rowconfigure(1, weight=1)  # Content row
-
-        # Header with instructions
-        header_frame = ttk.Frame(win, padding=5)
-        header_frame.grid(row=0, column=0, columnspan=2, sticky="ew")
-        
-        ttk.Label(
-            header_frame, 
-            text="📚 Browse through all available gambit patterns used in FFXI trusts. Select one to see details and insert it into your trust.",
-            wraplength=950,
-            justify="left"
-        ).pack(anchor="w", pady=5)
+        win.rowconfigure(0, weight=1)
 
         # Left: Treeview for Categories
         left_frame = ttk.Frame(win, padding=5)
-        left_frame.grid(row=1, column=0, sticky="nsew")
+        left_frame.grid(row=0, column=0, sticky="nsew")
 
-        # Search box
-        search_frame = ttk.Frame(left_frame)
-        search_frame.pack(fill=tk.X, pady=(0, 5))
-        
-        ttk.Label(search_frame, text="🔍 Search:").pack(side=tk.LEFT, padx=(0, 5))
-        search_var = tk.StringVar()
-        search_entry = ttk.Entry(search_frame, textvariable=search_var)
-        search_entry.pack(side=tk.LEFT, fill=tk.X, expand=True)
+        ttk.Label(left_frame, text="Categories").pack(anchor="w")
 
-        tree_frame = ttk.Frame(left_frame)
-        tree_frame.pack(fill=tk.BOTH, expand=True)
+        tree = ttk.Treeview(left_frame, selectmode="browse")
+        tree.pack(fill=tk.BOTH, expand=True)
 
-        tree_scroll = ttk.Scrollbar(tree_frame)
-        tree_scroll.pack(side=tk.RIGHT, fill=tk.Y)
-
-        tree = ttk.Treeview(tree_frame, selectmode="browse", yscrollcommand=tree_scroll.set)
-        tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        tree_scroll.config(command=tree.yview)
-
-        # Count label
-        count_label = ttk.Label(left_frame, text="", font=("TkDefaultFont", 9, "italic"))
-        count_label.pack(anchor="w", pady=(5, 0))
-
-        # Store all items for search
-        all_items = []
-        
         # Populate Tree
-        def populate_tree(filter_text=""):
-            tree.delete(*tree.get_children())
-            all_items.clear()
-            total_count = 0
-            
-            filter_lower = filter_text.lower()
-            
-            for category, items in GAMBIT_PALETTE.items():
-                matching_items = []
-                
-                for idx, item in enumerate(items):
-                    # Check if item matches filter
-                    if not filter_text or (
-                        filter_lower in item["name"].lower() or
-                        filter_lower in item.get("desc", "").lower() or
-                        filter_lower in category.lower()
-                    ):
-                        matching_items.append((idx, item))
-                        all_items.append((category, idx, item))
-                
-                # Only show category if it has matching items
-                if matching_items:
-                    cat_id = tree.insert("", "end", text=f"{category} ({len(matching_items)})", open=True)
-                    for idx, item in matching_items:
-                        tree.insert(cat_id, "end", text=item["name"], values=(category, idx))
-                        total_count += 1
-            
-            # Update count
-            if filter_text:
-                count_label.configure(text=f"Found {total_count} matching gambits")
-            else:
-                count_label.configure(text=f"Total: {total_count} gambits across {len(GAMBIT_PALETTE)} categories")
-        
-        populate_tree()
-
-        # Search callback
-        def on_search(*args):
-            populate_tree(search_var.get())
-        
-        search_var.trace_add("write", on_search)
+        for category, items in GAMBIT_PALETTE.items():
+            cat_id = tree.insert("", "end", text=category, open=True)
+            for idx, item in enumerate(items):
+                tree.insert(cat_id, "end", text=item["name"], values=(category, idx))
 
         # Right: Details & Preview
         right_frame = ttk.Frame(win, padding=10)
-        right_frame.grid(row=1, column=1, sticky="nsew")
+        right_frame.grid(row=0, column=1, sticky="nsew")
 
         lbl_name = ttk.Label(
-            right_frame, text="👈 Select a gambit from the list", font=("TkDefaultFont", 12, "bold")
+            right_frame, text="Select an item...", font=("TkDefaultFont", 12, "bold")
         )
         lbl_name.pack(anchor="w", pady=(0, 10))
 
-        lbl_desc = ttk.Label(right_frame, text="", wraplength=550, justify="left", foreground="#555")
+        lbl_desc = ttk.Label(right_frame, text="", wraplength=400, justify="left")
         lbl_desc.pack(anchor="w", fill=tk.X)
 
         desc_sep = ttk.Separator(right_frame, orient="horizontal")
         desc_sep.pack(fill=tk.X, pady=15)
 
         # Preview Frame
-        preview_frame = ttk.LabelFrame(right_frame, text="📋 Gambit Details", padding=10)
+        preview_frame = ttk.LabelFrame(right_frame, text="Values Preview", padding=10)
         preview_frame.pack(fill=tk.X, anchor="n")
 
         preview_labels = {}
-        preview_rows = [
-            ("🎯 Target", "Who this action targets"),
-            ("❓ Condition", "When to perform this action"),
-            ("💭 Condition Arg", "Value/threshold for the condition"),
-            ("⚡ Reaction", "What action to take"),
-            ("🔧 Selector", "How to choose the specific action"),
-            ("📝 Selector Arg", "Spell/Ability/ID to use")
-        ]
-        
-        for row, (key, tooltip) in enumerate(preview_rows):
-            label_frame = ttk.Frame(preview_frame)
-            label_frame.grid(row=row, column=0, sticky="ew", pady=3)
-            preview_frame.columnconfigure(0, weight=1)
-            
-            ttk.Label(label_frame, text=f"{key}:", width=18).pack(side=tk.LEFT, anchor="w")
-            lbl = ttk.Label(label_frame, text="-", font=("TkFixedFont", 10), foreground="#000")
-            lbl.pack(side=tk.LEFT, anchor="w", padx=10)
-            
-            preview_labels[key.split()[1]] = lbl  # Store by the actual key name
-
-        # Explanation text
-        explain_frame = ttk.LabelFrame(right_frame, text="ℹ️ Understanding This Gambit", padding=10)
-        explain_frame.pack(fill=tk.BOTH, expand=True, pady=(15, 0))
-        
-        explain_text = scrolledtext.ScrolledText(explain_frame, wrap=tk.WORD, height=8, font=("TkDefaultFont", 9))
-        explain_text.pack(fill=tk.BOTH, expand=True)
-        explain_text.insert("1.0", "Select a gambit to see a plain-English explanation of what it does.")
-        explain_text.config(state="disabled")
+        for row, key in enumerate(
+            ["Target", "Condition", "Cond. Arg", "Reaction", "Selector", "Sel. Arg"]
+        ):
+            ttk.Label(preview_frame, text=f"{key}:").grid(
+                row=row, column=0, sticky="e", padx=5, pady=2
+            )
+            lbl = ttk.Label(preview_frame, text="-", font=("TkFixedFont", 10))
+            lbl.grid(row=row, column=1, sticky="w", padx=5, pady=2)
+            preview_labels[key] = lbl
 
         # Helper to update inputs
         selected_item_data = {}
-
-        def get_friendly_explanation(data):
-            """Generate a user-friendly explanation of what the gambit does."""
-            parts = []
-            
-            # Target explanation
-            target_map = {
-                "SELF": "the trust itself",
-                "PARTY": "any party member",
-                "TARGET": "the enemy",
-                "MASTER": "the player who summoned the trust",
-                "TANK": "the party's main tank",
-                "MELEE": "melee fighters in the party",
-                "RANGED": "ranged attackers in the party",
-                "CASTER": "spell casters in the party",
-                "TOP_ENMITY": "whoever has the enemy's attention",
-                "PARTY_DEAD": "dead party members",
-            }
-            target_text = target_map.get(data.get("t", ""), data.get("t", ""))
-            
-            # Condition explanation
-            cond = data.get("c", "")
-            cond_arg = data.get("c_arg", "")
-            
-            if cond == "HPP_LT":
-                condition_text = f"when HP drops below {cond_arg}%"
-            elif cond == "HPP_GTE":
-                condition_text = f"when HP is {cond_arg}% or higher"
-            elif cond == "MPP_LT":
-                condition_text = f"when MP drops below {cond_arg}%"
-            elif cond == "TP_LT":
-                condition_text = f"when TP is below {cond_arg}"
-            elif cond == "TP_GTE":
-                condition_text = f"when TP reaches {cond_arg} or more"
-            elif cond == "STATUS":
-                status = cond_arg.split(".")[-1] if "." in cond_arg else cond_arg
-                condition_text = f"when afflicted with {status}"
-            elif cond == "NOT_STATUS":
-                status = cond_arg.split(".")[-1] if "." in cond_arg else cond_arg
-                condition_text = f"when not affected by {status}"
-            elif cond == "STATUS_FLAG":
-                flag = cond_arg.split(".")[-1] if "." in cond_arg else cond_arg
-                condition_text = f"when has a {flag.lower()} status effect"
-            elif cond == "HAS_TOP_ENMITY":
-                condition_text = "when holding the enemy's attention"
-            elif cond == "NOT_HAS_TOP_ENMITY":
-                condition_text = "when not holding the enemy's attention"
-            elif cond == "MB_AVAILABLE":
-                condition_text = "when a magic burst opportunity is available"
-            elif cond == "SC_AVAILABLE":
-                condition_text = "when a skillchain opportunity is available"
-            elif cond == "NOT_SC_AVAILABLE":
-                condition_text = "when no skillchain is happening"
-            elif cond == "CASTING_MA":
-                condition_text = "when the enemy is casting magic"
-            elif cond == "READYING_WS":
-                condition_text = "when the enemy is preparing a weaponskill"
-            elif cond == "READYING_MS":
-                condition_text = "when the enemy is preparing a special attack"
-            elif cond == "READYING_JA":
-                condition_text = "when the enemy is using a special ability"
-            elif cond == "ALWAYS":
-                condition_text = "always (whenever possible)"
-            elif cond == "NO_SAMBA":
-                condition_text = "when no Samba is active"
-            elif cond == "PT_HAS_TANK":
-                condition_text = "when the party has a tank"
-            elif cond == "NOT_PT_HAS_TANK":
-                condition_text = "when the party has no tank"
-            elif cond == "IS_ECOSYSTEM":
-                eco = cond_arg.split(".")[-1] if "." in cond_arg else cond_arg
-                condition_text = f"when fighting {eco.lower()} enemies"
-            else:
-                condition_text = f"when {cond}"
-            
-            # Reaction explanation
-            reaction = data.get("r", "")
-            selector = data.get("s", "")
-            sel_arg = data.get("s_arg", "")
-            
-            if reaction == "MA":
-                spell = sel_arg.split(".")[-1] if "." in sel_arg else sel_arg
-                if selector == "HIGHEST":
-                    action_text = f"cast the highest tier {spell} spell"
-                elif selector == "SPECIFIC":
-                    action_text = f"cast {spell}"
-                elif selector == "MB_ELEMENT":
-                    action_text = "cast a nuke spell matching the skillchain element"
-                elif selector == "BEST_AGAINST_TARGET":
-                    action_text = "cast the most effective elemental spell against this enemy"
-                else:
-                    action_text = f"cast {spell} ({selector})"
-            elif reaction == "JA":
-                ability = sel_arg.split(".")[-1] if "." in sel_arg else sel_arg
-                action_text = f"use {ability}"
-            elif reaction == "WS":
-                action_text = "use a weaponskill"
-            elif reaction == "RATTACK":
-                action_text = "perform a ranged attack"
-            else:
-                action_text = reaction
-            
-            # Combine into sentence
-            explanation = f"This gambit makes the trust {action_text} on {target_text} {condition_text}."
-            
-            # Add usage notes
-            notes = []
-            if "CURE" in str(sel_arg):
-                notes.append("💊 This is a healing action - the trust will cure wounds.")
-            if "HASTE" in str(sel_arg) or "REFRESH" in str(sel_arg):
-                notes.append("⚡ This is a support buff - keeps allies enhanced.")
-            if "PROTECT" in str(sel_arg) or "SHELL" in str(sel_arg):
-                notes.append("🛡️ This is a defensive buff - reduces damage taken.")
-            if "PROVOKE" in str(sel_arg):
-                notes.append("💢 This is for tanking - helps maintain enemy attention.")
-            if reaction == "WS":
-                notes.append("⚔️ This controls when the trust uses weaponskills for damage.")
-            if "STUN" in str(sel_arg) or "VIOLENT_FLOURISH" in str(sel_arg):
-                notes.append("🚫 This interrupts enemy actions - very useful for dangerous abilities.")
-            if "MB_ELEMENT" in str(selector):
-                notes.append("💥 This creates magic bursts - massive bonus damage during skillchains!")
-            
-            if notes:
-                explanation += "\n\n" + "\n".join(notes)
-            
-            return explanation
 
         def on_select(event):
             selection = tree.selection()
@@ -3587,37 +3298,17 @@ class TrustEditor(tk.Tk):
             selected_item_data.update(data)
 
             lbl_name.configure(
-                text=data["name"] + (" ⚡ Dynamic" if data.get("dynamic") else "")
+                text=data["name"] + (" (⚡)" if data.get("dynamic") else "")
             )
             lbl_desc.configure(text=data.get("desc", ""))
 
-            # Update preview - keys from preview_rows match the split()[1] values
-            # "🎯 Target" -> key is "Target"
-            # "💭 Condition Arg" -> key is "Condition" (split on space, take second word)
-            # "📝 Selector Arg" -> key is "Selector" (split on space, take second word)
-            preview_labels["Target"].configure(text=data.get("t", "-"))
-            preview_labels["Condition"].configure(text=data.get("c", "-"))
-            preview_labels["Condition"].configure(text=data.get("c_arg", "-"))  # This should be Condition Arg but key is just "Condition"
-            preview_labels["Reaction"].configure(text=data.get("r", "-"))
-            preview_labels["Selector"].configure(text=data.get("s", "-"))
-            preview_labels["Selector"].configure(text=data.get("s_arg", "-"))  # This should be Selector Arg but key is just "Selector"
-            
-            # Actually, we need to fix the key extraction. Let me use proper keys
-            # The keys extracted are: Target, Condition, Condition (from "Condition Arg"), Reaction, Selector, Selector (from "Selector Arg")
-            # This creates a collision. Let's use unique keys
-            all_labels = list(preview_labels.values())
-            all_labels[0].configure(text=data.get("t", "-"))      # Target
-            all_labels[1].configure(text=data.get("c", "-"))      # Condition
-            all_labels[2].configure(text=data.get("c_arg", "-"))  # Condition Arg
-            all_labels[3].configure(text=data.get("r", "-"))      # Reaction
-            all_labels[4].configure(text=data.get("s", "-"))      # Selector
-            all_labels[5].configure(text=data.get("s_arg", "-"))  # Selector Arg
-            
-            # Update explanation
-            explain_text.config(state="normal")
-            explain_text.delete("1.0", tk.END)
-            explain_text.insert("1.0", get_friendly_explanation(data))
-            explain_text.config(state="disabled")
+            # Update preview
+            preview_labels["Target"].configure(text=data.get("t", ""))
+            preview_labels["Condition"].configure(text=data.get("c", ""))
+            preview_labels["Cond. Arg"].configure(text=data.get("c_arg", ""))
+            preview_labels["Reaction"].configure(text=data.get("r", ""))
+            preview_labels["Selector"].configure(text=data.get("s", ""))
+            preview_labels["Sel. Arg"].configure(text=data.get("s_arg", ""))
 
         tree.bind("<<TreeviewSelect>>", on_select)
 
@@ -5102,7 +4793,7 @@ end
 
 return spellObject
 """
-        with open(os.path.join(CURRENT_DIR, filename), "w") as f:
+        with open(os.path.join(CURRENT_DIR, trust_name), "w") as f:
             f.write(lua_content)
 
     def restore_action(self):
