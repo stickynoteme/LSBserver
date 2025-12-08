@@ -464,6 +464,7 @@ ROLE_FALLBACKS = {
         ],
         "gambits": [
             {
+                "name": "Flash Target",
                 "target": "TARGET",
                 "condition": "NOT_STATUS",
                 "cond_arg": "xi.effect.FLASH",
@@ -487,6 +488,7 @@ ROLE_FALLBACKS = {
         ],
         "gambits": [
             {
+                "name": "Weapon Skill at 1250 TP",
                 "target": "SELF",
                 "condition": "TP_GTE",
                 "cond_arg": "1250",
@@ -510,6 +512,7 @@ ROLE_FALLBACKS = {
         ],
         "gambits": [
             {
+                "name": "Magic Burst",
                 "target": "TARGET",
                 "condition": "MB_AVAILABLE",
                 "cond_arg": "0",
@@ -804,6 +807,7 @@ JOB_TEMPLATES = {
         ],
         "gambits": [
             {
+                "name": "Flash Target",
                 "target": "TARGET",
                 "condition": "NOT_STATUS",
                 "cond_arg": "xi.effect.FLASH",
@@ -812,6 +816,7 @@ JOB_TEMPLATES = {
                 "sel_arg": "xi.magic.spell.FLASH",
             },
             {
+                "name": "Provoke for Enmity",
                 "target": "SELF",
                 "condition": "NOT_HAS_TOP_ENMITY",
                 "cond_arg": "0",
@@ -820,6 +825,7 @@ JOB_TEMPLATES = {
                 "sel_arg": "xi.ja.PROVOKE",
             },
             {
+                "name": "Sentinel (Low HP)",
                 "target": "SELF",
                 "condition": "HPP_LT",
                 "cond_arg": "60",
@@ -828,6 +834,7 @@ JOB_TEMPLATES = {
                 "sel_arg": "xi.ja.SENTINEL",
             },
             {
+                "name": "Shield Bash Interrupt",
                 "target": "TARGET",
                 "condition": "CASTING_MA",
                 "cond_arg": "0",
@@ -836,6 +843,7 @@ JOB_TEMPLATES = {
                 "sel_arg": "xi.ja.SHIELD_BASH",
             },
             {
+                "name": "Phalanx Self",
                 "target": "SELF",
                 "condition": "NOT_STATUS",
                 "cond_arg": "xi.effect.PHALANX",
@@ -844,6 +852,7 @@ JOB_TEMPLATES = {
                 "sel_arg": "xi.magic.spellFamily.PHALANX",
             },
             {
+                "name": "Enlight Self",
                 "target": "SELF",
                 "condition": "NOT_STATUS",
                 "cond_arg": "xi.effect.ENLIGHT",
@@ -852,6 +861,7 @@ JOB_TEMPLATES = {
                 "sel_arg": "xi.magic.spellFamily.ENLIGHT",
             },
             {
+                "name": "Protect Party",
                 "target": "PARTY",
                 "condition": "NOT_STATUS",
                 "cond_arg": "xi.effect.PROTECT",
@@ -860,6 +870,7 @@ JOB_TEMPLATES = {
                 "sel_arg": "xi.magic.spellFamily.PROTECT",
             },
             {
+                "name": "Shell Party",
                 "target": "PARTY",
                 "condition": "NOT_STATUS",
                 "cond_arg": "xi.effect.SHELL",
@@ -868,6 +879,7 @@ JOB_TEMPLATES = {
                 "sel_arg": "xi.magic.spellFamily.SHELL",
             },
             {
+                "name": "Cure Master <50%",
                 "target": "MASTER",
                 "condition": "HPP_LT",
                 "cond_arg": "50",
@@ -876,6 +888,7 @@ JOB_TEMPLATES = {
                 "sel_arg": "xi.magic.spellFamily.CURE",
             },
             {
+                "name": "Cure Party <40%",
                 "target": "PARTY",
                 "condition": "HPP_LT",
                 "cond_arg": "40",
@@ -899,6 +912,7 @@ JOB_TEMPLATES = {
         ],
         "gambits": [
             {
+                "name": "Berserk",
                 "target": "SELF",
                 "condition": "NOT_STATUS",
                 "cond_arg": "xi.effect.BERSERK",
@@ -907,6 +921,7 @@ JOB_TEMPLATES = {
                 "sel_arg": "xi.ja.BERSERK",
             },
             {
+                "name": "Defender (Low HP)",
                 "target": "SELF",
                 "condition": "HPP_LT",
                 "cond_arg": "50",
@@ -915,6 +930,7 @@ JOB_TEMPLATES = {
                 "sel_arg": "xi.ja.DEFENDER",
             },
             {
+                "name": "Warcry",
                 "target": "SELF",
                 "condition": "ALWAYS",
                 "cond_arg": "0",
@@ -923,6 +939,7 @@ JOB_TEMPLATES = {
                 "sel_arg": "xi.ja.WARCRY",
             },
             {
+                "name": "Provoke for Enmity",
                 "target": "SELF",
                 "condition": "NOT_HAS_TOP_ENMITY",
                 "cond_arg": "0",
@@ -931,6 +948,7 @@ JOB_TEMPLATES = {
                 "sel_arg": "xi.ja.PROVOKE",
             },
             {
+                "name": "Weapon Skill at 1250 TP",
                 "target": "SELF",
                 "condition": "TP_GTE",
                 "cond_arg": "1250",
@@ -954,6 +972,7 @@ JOB_TEMPLATES = {
         ],
         "gambits": [
             {
+                "name": "Meditate for TP",
                 "target": "SELF",
                 "condition": "TP_LT",
                 "cond_arg": "1000",
@@ -962,6 +981,7 @@ JOB_TEMPLATES = {
                 "sel_arg": "xi.ja.MEDITATE",
             },
             {
+                "name": "Hasso Stance",
                 "target": "SELF",
                 "condition": "NOT_STATUS",
                 "cond_arg": "xi.effect.HASSO",
@@ -970,6 +990,7 @@ JOB_TEMPLATES = {
                 "sel_arg": "xi.ja.HASSO",
             },
             {
+                "name": "Weapon Skill at 1500 TP",
                 "target": "SELF",
                 "condition": "TP_GTE",
                 "cond_arg": "1500",
@@ -993,6 +1014,7 @@ JOB_TEMPLATES = {
         ],
         "gambits": [
             {
+                "name": "Utsusemi Self",
                 "target": "SELF",
                 "condition": "NOT_STATUS",
                 "cond_arg": "xi.effect.COPY_IMAGE",
@@ -1001,6 +1023,7 @@ JOB_TEMPLATES = {
                 "sel_arg": "xi.magic.spellFamily.UTSUSEMI",
             },
             {
+                "name": "Paralyze Target",
                 "target": "TARGET",
                 "condition": "NOT_STATUS",
                 "cond_arg": "xi.effect.PARALYSIS",
@@ -1009,6 +1032,7 @@ JOB_TEMPLATES = {
                 "sel_arg": "xi.magic.spellFamily.PARALYZE",
             },
             {
+                "name": "Blind Target",
                 "target": "TARGET",
                 "condition": "NOT_STATUS",
                 "cond_arg": "xi.effect.BLINDNESS",
@@ -1017,6 +1041,7 @@ JOB_TEMPLATES = {
                 "sel_arg": "xi.magic.spellFamily.BLIND",
             },
             {
+                "name": "Weapon Skill at 1250 TP",
                 "target": "SELF",
                 "condition": "TP_GTE",
                 "cond_arg": "1250",
@@ -1040,6 +1065,7 @@ JOB_TEMPLATES = {
         ],
         "gambits": [
             {
+                "name": "Last Resort",
                 "target": "SELF",
                 "condition": "NOT_STATUS",
                 "cond_arg": "xi.effect.LAST_RESORT",
@@ -1048,6 +1074,7 @@ JOB_TEMPLATES = {
                 "sel_arg": "xi.ja.LAST_RESORT",
             },
             {
+                "name": "Souleater (High HP)",
                 "target": "SELF",
                 "condition": "HPP_GTE",
                 "cond_arg": "60",
@@ -1056,6 +1083,7 @@ JOB_TEMPLATES = {
                 "sel_arg": "xi.ja.SOULEATER",
             },
             {
+                "name": "Absorb Target <60%",
                 "target": "TARGET",
                 "condition": "HPP_LT",
                 "cond_arg": "60",
@@ -1064,6 +1092,7 @@ JOB_TEMPLATES = {
                 "sel_arg": "xi.magic.spellFamily.ABSORB",
             },
             {
+                "name": "Sleep II Target (High HP)",
                 "target": "TARGET",
                 "condition": "HPP_GTE",
                 "cond_arg": "80",
@@ -1072,6 +1101,7 @@ JOB_TEMPLATES = {
                 "sel_arg": "xi.magic.spell.SLEEP_II",
             },
             {
+                "name": "Weapon Skill at 1250 TP",
                 "target": "SELF",
                 "condition": "TP_GTE",
                 "cond_arg": "1250",
@@ -1097,6 +1127,7 @@ JOB_TEMPLATES = {
         ],
         "gambits": [
             {
+                "name": "Cure Party <75%",
                 "target": "PARTY",
                 "condition": "HPP_LT",
                 "cond_arg": "75",
@@ -1105,6 +1136,7 @@ JOB_TEMPLATES = {
                 "sel_arg": "xi.magic.spellFamily.CURE",
             },
             {
+                "name": "Curaga Party <45%",
                 "target": "PARTY",
                 "condition": "HPP_LT",
                 "cond_arg": "45",
@@ -1113,6 +1145,7 @@ JOB_TEMPLATES = {
                 "sel_arg": "xi.magic.spellFamily.CURAGA",
             },
             {
+                "name": "Erase Party",
                 "target": "PARTY",
                 "condition": "STATUS_FLAG",
                 "cond_arg": "xi.effectFlag.ERASABLE",
@@ -1121,6 +1154,7 @@ JOB_TEMPLATES = {
                 "sel_arg": "xi.magic.spell.ERASE",
             },
             {
+                "name": "Poisona Party",
                 "target": "PARTY",
                 "condition": "STATUS",
                 "cond_arg": "xi.effect.POISON",
@@ -1129,6 +1163,7 @@ JOB_TEMPLATES = {
                 "sel_arg": "xi.magic.spell.POISONA",
             },
             {
+                "name": "Paralyna Party",
                 "target": "PARTY",
                 "condition": "STATUS",
                 "cond_arg": "xi.effect.PARALYSIS",
@@ -1137,6 +1172,7 @@ JOB_TEMPLATES = {
                 "sel_arg": "xi.magic.spell.PARALYNA",
             },
             {
+                "name": "Silena Party",
                 "target": "PARTY",
                 "condition": "STATUS",
                 "cond_arg": "xi.effect.SILENCE",
@@ -1145,6 +1181,7 @@ JOB_TEMPLATES = {
                 "sel_arg": "xi.magic.spell.SILENA",
             },
             {
+                "name": "Viruna Party",
                 "target": "PARTY",
                 "condition": "STATUS",
                 "cond_arg": "xi.effect.DISEASE",
@@ -1153,6 +1190,7 @@ JOB_TEMPLATES = {
                 "sel_arg": "xi.magic.spell.VIRUNA",
             },
             {
+                "name": "Stona Party",
                 "target": "PARTY",
                 "condition": "STATUS",
                 "cond_arg": "xi.effect.PETRIFICATION",
@@ -1161,6 +1199,7 @@ JOB_TEMPLATES = {
                 "sel_arg": "xi.magic.spell.STONA",
             },
             {
+                "name": "Haste Party",
                 "target": "PARTY",
                 "condition": "NOT_STATUS",
                 "cond_arg": "xi.effect.HASTE",
@@ -1169,6 +1208,7 @@ JOB_TEMPLATES = {
                 "sel_arg": "xi.magic.spellFamily.HASTE",
             },
             {
+                "name": "Regen Party",
                 "target": "PARTY",
                 "condition": "NOT_STATUS",
                 "cond_arg": "xi.effect.REGEN",
@@ -1177,6 +1217,7 @@ JOB_TEMPLATES = {
                 "sel_arg": "xi.magic.spellFamily.REGEN",
             },
             {
+                "name": "Protect Party",
                 "target": "PARTY",
                 "condition": "NOT_STATUS",
                 "cond_arg": "xi.effect.PROTECT",
@@ -1185,6 +1226,7 @@ JOB_TEMPLATES = {
                 "sel_arg": "xi.magic.spellFamily.PROTECT",
             },
             {
+                "name": "Shell Party",
                 "target": "PARTY",
                 "condition": "NOT_STATUS",
                 "cond_arg": "xi.effect.SHELL",
@@ -1203,6 +1245,7 @@ JOB_TEMPLATES = {
         ],
         "gambits": [
             {
+                "name": "Haste Party",
                 "target": "PARTY",
                 "condition": "NOT_STATUS",
                 "cond_arg": "xi.effect.HASTE",
@@ -1211,6 +1254,7 @@ JOB_TEMPLATES = {
                 "sel_arg": "xi.magic.spellFamily.HASTE",
             },
             {
+                "name": "Refresh Party",
                 "target": "PARTY",
                 "condition": "NOT_STATUS",
                 "cond_arg": "xi.effect.REFRESH",
@@ -1219,6 +1263,7 @@ JOB_TEMPLATES = {
                 "sel_arg": "xi.magic.spellFamily.REFRESH",
             },
             {
+                "name": "Phalanx Self",
                 "target": "SELF",
                 "condition": "NOT_STATUS",
                 "cond_arg": "xi.effect.PHALANX",
@@ -1227,6 +1272,7 @@ JOB_TEMPLATES = {
                 "sel_arg": "xi.magic.spellFamily.PHALANX",
             },
             {
+                "name": "Dia Target",
                 "target": "TARGET",
                 "condition": "NOT_STATUS",
                 "cond_arg": "xi.effect.DIA",
@@ -1235,6 +1281,7 @@ JOB_TEMPLATES = {
                 "sel_arg": "xi.magic.spellFamily.DIA",
             },
             {
+                "name": "Slow Target",
                 "target": "TARGET",
                 "condition": "NOT_STATUS",
                 "cond_arg": "xi.effect.SLOW",
@@ -1243,6 +1290,7 @@ JOB_TEMPLATES = {
                 "sel_arg": "xi.magic.spellFamily.SLOW",
             },
             {
+                "name": "Paralyze Target",
                 "target": "TARGET",
                 "condition": "NOT_STATUS",
                 "cond_arg": "xi.effect.PARALYSIS",
@@ -1251,6 +1299,7 @@ JOB_TEMPLATES = {
                 "sel_arg": "xi.magic.spellFamily.PARALYZE",
             },
             {
+                "name": "Dispel Target",
                 "target": "TARGET",
                 "condition": "STATUS_FLAG",
                 "cond_arg": "xi.effectFlag.DISPELABLE",
@@ -1259,6 +1308,7 @@ JOB_TEMPLATES = {
                 "sel_arg": "xi.magic.spell.DISPEL",
             },
             {
+                "name": "Gravity Target",
                 "target": "TARGET",
                 "condition": "NOT_STATUS",
                 "cond_arg": "xi.effect.GRAVITY",
@@ -1267,6 +1317,7 @@ JOB_TEMPLATES = {
                 "sel_arg": "xi.magic.spellFamily.GRAVITY",
             },
             {
+                "name": "Cure Party <70%",
                 "target": "PARTY",
                 "condition": "HPP_LT",
                 "cond_arg": "70",
@@ -1285,6 +1336,7 @@ JOB_TEMPLATES = {
         ],
         "gambits": [
             {
+                "name": "Sleep II Target (High HP)",
                 "target": "TARGET",
                 "condition": "HPP_GTE",
                 "cond_arg": "80",
@@ -1293,6 +1345,7 @@ JOB_TEMPLATES = {
                 "sel_arg": "xi.magic.spell.SLEEP_II",
             },
             {
+                "name": "Magic Burst",
                 "target": "TARGET",
                 "condition": "MB_AVAILABLE",
                 "cond_arg": "0",
@@ -1301,6 +1354,7 @@ JOB_TEMPLATES = {
                 "sel_arg": "xi.magic.spellFamily.NONE",
             },
             {
+                "name": "Nuke (Best vs Target)",
                 "target": "TARGET",
                 "condition": "NOT_SC_AVAILABLE",
                 "cond_arg": "0",
@@ -1309,6 +1363,7 @@ JOB_TEMPLATES = {
                 "sel_arg": "0",
             },
             {
+                "name": "Fire Nuke",
                 "target": "TARGET",
                 "condition": "ALWAYS",
                 "cond_arg": "0",
@@ -1323,6 +1378,7 @@ JOB_TEMPLATES = {
         "mods": [{"name": "CHR", "value": "20"}, {"name": "FASTCAST", "value": "10"}],
         "gambits": [
             {
+                "name": "Mage's Ballad Party",
                 "target": "PARTY",
                 "condition": "NOT_STATUS",
                 "cond_arg": "xi.effect.BALLAD",
@@ -1331,6 +1387,7 @@ JOB_TEMPLATES = {
                 "sel_arg": "xi.magic.spell.MAGES_BALLAD_II",
             },
             {
+                "name": "Valor Minuet Party",
                 "target": "PARTY",
                 "condition": "NOT_STATUS",
                 "cond_arg": "xi.effect.MINUET",
@@ -1339,6 +1396,7 @@ JOB_TEMPLATES = {
                 "sel_arg": "xi.magic.spell.VALOR_MINUET_IV",
             },
             {
+                "name": "Sword Madrigal Party",
                 "target": "PARTY",
                 "condition": "NOT_STATUS",
                 "cond_arg": "xi.effect.MADRIGAL",
@@ -1347,6 +1405,7 @@ JOB_TEMPLATES = {
                 "sel_arg": "xi.magic.spell.SWORD_MADRIGAL",
             },
             {
+                "name": "Cure Party <60%",
                 "target": "PARTY",
                 "condition": "HPP_LT",
                 "cond_arg": "60",
@@ -1365,6 +1424,7 @@ JOB_TEMPLATES = {
         ],
         "gambits": [
             {
+                "name": "Chaos Roll Party",
                 "target": "PARTY",
                 "condition": "NOT_STATUS",
                 "cond_arg": "xi.effect.CHAOS_ROLL",
@@ -1373,6 +1433,7 @@ JOB_TEMPLATES = {
                 "sel_arg": "xi.ja.CHAOS_ROLL",
             },
             {
+                "name": "Hunter's Roll Party",
                 "target": "PARTY",
                 "condition": "NOT_STATUS",
                 "cond_arg": "xi.effect.HUNTERS_ROLL",
@@ -1381,6 +1442,7 @@ JOB_TEMPLATES = {
                 "sel_arg": "xi.ja.HUNTERS_ROLL",
             },
             {
+                "name": "Dia Target",
                 "target": "TARGET",
                 "condition": "NOT_STATUS",
                 "cond_arg": "xi.effect.DIA",
@@ -1389,6 +1451,7 @@ JOB_TEMPLATES = {
                 "sel_arg": "xi.magic.spellFamily.DIA",
             },
             {
+                "name": "Weapon Skill at 1500 TP",
                 "target": "SELF",
                 "condition": "TP_GTE",
                 "cond_arg": "1500",
@@ -1412,6 +1475,7 @@ JOB_TEMPLATES = {
         ],
         "gambits": [
             {
+                "name": "Samba (Best)",
                 "target": "TARGET",
                 "condition": "NO_SAMBA",
                 "cond_arg": "0",
@@ -1420,6 +1484,7 @@ JOB_TEMPLATES = {
                 "sel_arg": "0",
             },
             {
+                "name": "Box Step",
                 "target": "TARGET",
                 "condition": "ALWAYS",
                 "cond_arg": "0",
@@ -1428,6 +1493,7 @@ JOB_TEMPLATES = {
                 "sel_arg": "xi.ja.BOX_STEP",
             },
             {
+                "name": "Curing Waltz Party <55%",
                 "target": "PARTY",
                 "condition": "HPP_LT",
                 "cond_arg": "55",
@@ -1436,6 +1502,7 @@ JOB_TEMPLATES = {
                 "sel_arg": "xi.ja.CURING_WALTZ_IV",
             },
             {
+                "name": "Weapon Skill at 1250 TP",
                 "target": "SELF",
                 "condition": "TP_GTE",
                 "cond_arg": "1250",
@@ -1459,6 +1526,7 @@ JOB_TEMPLATES = {
         ],
         "gambits": [
             {
+                "name": "Ranged Attack",
                 "target": "TARGET",
                 "condition": "ALWAYS",
                 "cond_arg": "0",
@@ -1467,6 +1535,7 @@ JOB_TEMPLATES = {
                 "sel_arg": "0",
             },
             {
+                "name": "Sharpshot",
                 "target": "SELF",
                 "condition": "NOT_STATUS",
                 "cond_arg": "xi.effect.SHARPSHOT",
@@ -1475,6 +1544,7 @@ JOB_TEMPLATES = {
                 "sel_arg": "xi.ja.SHARPSHOT",
             },
             {
+                "name": "Barrage",
                 "target": "SELF",
                 "condition": "ALWAYS",
                 "cond_arg": "0",
@@ -1483,6 +1553,7 @@ JOB_TEMPLATES = {
                 "sel_arg": "xi.ja.BARRAGE",
             },
             {
+                "name": "Weapon Skill at 1500 TP",
                 "target": "SELF",
                 "condition": "TP_GTE",
                 "cond_arg": "1500",
@@ -1498,6 +1569,7 @@ JOB_TEMPLATES = {
         "mods": [{"name": "ATT", "value": "25"}, {"name": "ACC", "value": "20"}],
         "gambits": [
             {
+                "name": "Jump",
                 "target": "TARGET",
                 "condition": "ALWAYS",
                 "cond_arg": "0",
@@ -1506,6 +1578,7 @@ JOB_TEMPLATES = {
                 "sel_arg": "xi.ja.JUMP",
             },
             {
+                "name": "High Jump (Target HP >=50%)",
                 "target": "TARGET",
                 "condition": "HPP_GTE",
                 "cond_arg": "50",
@@ -1514,6 +1587,7 @@ JOB_TEMPLATES = {
                 "sel_arg": "xi.ja.HIGH_JUMP",
             },
             {
+                "name": "Weapon Skill at 1500 TP",
                 "target": "SELF",
                 "condition": "TP_GTE",
                 "cond_arg": "1500",
@@ -1534,6 +1608,7 @@ JOB_SUB_TEMPLATES = {
     ("PLD", "WAR"): {
         "gambits": [
             {
+                "name": "Warcry",
                 "target": "SELF",
                 "condition": "ALWAYS",
                 "cond_arg": "0",
@@ -1546,6 +1621,7 @@ JOB_SUB_TEMPLATES = {
     ("WAR", "NIN"): {
         "gambits": [
             {
+                "name": "Utsusemi",
                 "target": "SELF",
                 "condition": "NOT_STATUS",
                 "cond_arg": "xi.effect.COPY_IMAGE",
@@ -1558,6 +1634,7 @@ JOB_SUB_TEMPLATES = {
     ("SAM", "WAR"): {
         "gambits": [
             {
+                "name": "Berserk",
                 "target": "SELF",
                 "condition": "NOT_STATUS",
                 "cond_arg": "xi.effect.BERSERK",
@@ -1570,6 +1647,7 @@ JOB_SUB_TEMPLATES = {
     ("BLM", "RDM"): {
         "gambits": [
             {
+                "name": "Stoneskin",
                 "target": "SELF",
                 "condition": "NOT_STATUS",
                 "cond_arg": "xi.effect.STONESKIN",
@@ -1582,6 +1660,7 @@ JOB_SUB_TEMPLATES = {
     ("RNG", "NIN"): {
         "gambits": [
             {
+                "name": "Utsusemi",
                 "target": "SELF",
                 "condition": "NOT_STATUS",
                 "cond_arg": "xi.effect.COPY_IMAGE",
@@ -1594,6 +1673,7 @@ JOB_SUB_TEMPLATES = {
     ("DNC", "WAR"): {
         "gambits": [
             {
+                "name": "Provoke for Enmity",
                 "target": "SELF",
                 "condition": "NOT_HAS_TOP_ENMITY",
                 "cond_arg": "0",
@@ -1603,12 +1683,126 @@ JOB_SUB_TEMPLATES = {
             }
         ],
     },
+    ("MNK", "WAR"): {
+        "gambits": [
+            {
+                "name": "Berserk",
+                "target": "SELF",
+                "condition": "NOT_STATUS",
+                "cond_arg": "xi.effect.BERSERK",
+                "reaction": "JA",
+                "selector": "SPECIFIC",
+                "sel_arg": "xi.ja.BERSERK",
+            }
+        ],
+    },
+    ("THF", "NIN"): {
+        "gambits": [
+            {
+                "name": "Utsusemi",
+                "target": "SELF",
+                "condition": "NOT_STATUS",
+                "cond_arg": "xi.effect.COPY_IMAGE",
+                "reaction": "MA",
+                "selector": "HIGHEST",
+                "sel_arg": "xi.magic.spellFamily.UTSUSEMI",
+            }
+        ],
+    },
+    ("DRK", "SAM"): {
+        "gambits": [
+            {
+                "name": "Meditate for TP",
+                "target": "SELF",
+                "condition": "TP_LT",
+                "cond_arg": "1000",
+                "reaction": "JA",
+                "selector": "SPECIFIC",
+                "sel_arg": "xi.ja.MEDITATE",
+            },
+            {
+                "name": "Hasso Stance",
+                "target": "SELF",
+                "condition": "NOT_STATUS",
+                "cond_arg": "xi.effect.HASSO",
+                "reaction": "JA",
+                "selector": "SPECIFIC",
+                "sel_arg": "xi.ja.HASSO",
+            }
+        ],
+    },
+    ("DRK", "WAR"): {
+        "gambits": [
+            {
+                "name": "Berserk",
+                "target": "SELF",
+                "condition": "NOT_STATUS",
+                "cond_arg": "xi.effect.BERSERK",
+                "reaction": "JA",
+                "selector": "SPECIFIC",
+                "sel_arg": "xi.ja.BERSERK",
+            }
+        ],
+    },
+    ("WHM", "RDM"): {
+        "gambits": [
+            {
+                "name": "Refresh Party",
+                "target": "PARTY",
+                "condition": "NOT_STATUS",
+                "cond_arg": "xi.effect.REFRESH",
+                "reaction": "MA",
+                "selector": "HIGHEST",
+                "sel_arg": "xi.magic.spellFamily.REFRESH",
+            }
+        ],
+    },
+    ("RDM", "WHM"): {
+        "gambits": [
+            {
+                "name": "Cure Party <70%",
+                "target": "PARTY",
+                "condition": "HPP_LT",
+                "cond_arg": "70",
+                "reaction": "MA",
+                "selector": "HIGHEST",
+                "sel_arg": "xi.magic.spellFamily.CURE",
+            }
+        ],
+    },
+    ("BRD", "WHM"): {
+        "gambits": [
+            {
+                "name": "Cure Party <60%",
+                "target": "PARTY",
+                "condition": "HPP_LT",
+                "cond_arg": "60",
+                "reaction": "MA",
+                "selector": "HIGHEST",
+                "sel_arg": "xi.magic.spellFamily.CURE",
+            }
+        ],
+    },
+    ("DNC", "NIN"): {
+        "gambits": [
+            {
+                "name": "Utsusemi",
+                "target": "SELF",
+                "condition": "NOT_STATUS",
+                "cond_arg": "xi.effect.COPY_IMAGE",
+                "reaction": "MA",
+                "selector": "HIGHEST",
+                "sel_arg": "xi.magic.spellFamily.UTSUSEMI",
+            }
+        ],
+    },
 }
 
 SUB_JOB_EXTRAS = {
     "NIN": {
         "gambits": [
             {
+                "name": "Utsusemi",
                 "target": "SELF",
                 "condition": "NOT_STATUS",
                 "cond_arg": "xi.effect.COPY_IMAGE",
@@ -1626,6 +1820,7 @@ SUB_JOB_EXTRAS = {
     "WAR": {
         "gambits": [
             {
+                "name": "Provoke for Enmity",
                 "target": "SELF",
                 "condition": "NOT_HAS_TOP_ENMITY",
                 "cond_arg": "0",
@@ -1634,6 +1829,7 @@ SUB_JOB_EXTRAS = {
                 "sel_arg": "xi.ja.PROVOKE",
             },
             {
+                "name": "Berserk",
                 "target": "SELF",
                 "condition": "NOT_STATUS",
                 "cond_arg": "xi.effect.BERSERK",
@@ -1646,6 +1842,7 @@ SUB_JOB_EXTRAS = {
     "DNC": {
         "gambits": [
             {
+                "name": "Curing Waltz III on Party",
                 "target": "PARTY",
                 "condition": "HPP_LT",
                 "cond_arg": "60",
@@ -1654,6 +1851,7 @@ SUB_JOB_EXTRAS = {
                 "sel_arg": "xi.ja.CURING_WALTZ_III",
             },
             {
+                "name": "Apply Samba",
                 "target": "TARGET",
                 "condition": "NO_SAMBA",
                 "cond_arg": "0",
@@ -1667,6 +1865,7 @@ SUB_JOB_EXTRAS = {
         "mods": [{"name": "CURE_POTENCY", "value": "10"}],
         "gambits": [
             {
+                "name": "Cure Party",
                 "target": "PARTY",
                 "condition": "HPP_LT",
                 "cond_arg": "60",
@@ -1679,6 +1878,7 @@ SUB_JOB_EXTRAS = {
     "SAM": {
         "gambits": [
             {
+                "name": "Meditate for TP",
                 "target": "SELF",
                 "condition": "TP_LT",
                 "cond_arg": "1000",
@@ -1692,6 +1892,7 @@ SUB_JOB_EXTRAS = {
         "mods": [{"name": "FASTCAST", "value": "10"}],
         "gambits": [
             {
+                "name": "Refresh Party",
                 "target": "PARTY",
                 "condition": "NOT_STATUS",
                 "cond_arg": "xi.effect.REFRESH",
@@ -3511,7 +3712,7 @@ class TrustEditor(tk.Tk):
         # Also add manual mods from the Mods tab
         if hasattr(self, "mod_rows"):
             manual_mods = []
-            for _, mod_var, val_entry in self.mod_rows:
+            for _, mod_var, val_entry, _, _ in self.mod_rows:
                 mod_name = mod_var.get()
                 if mod_name:
                     try:
@@ -4899,14 +5100,31 @@ class TrustEditor(tk.Tk):
         r="",
         s="",
         s_arg="",
+        name="",
         locked=False,
         dynamic=False,
         or_conditions=None,
     ):
         """Legacy method for backwards compatibility - delegates to new add_gambit."""
-        # This is now handled by the new structure
-        # Just add to gambit_data directly
-        pass
+        # Add to gambit_data structure
+        gambit_entry = {
+            "name": name,
+            "target": t,
+            "condition": c,
+            "cond_arg": c_arg,
+            "reaction": r,
+            "selector": s,
+            "sel_arg": s_arg,
+            "locked": locked,
+            "dynamic": dynamic,
+            "enabled": True,
+            "or_conditions": or_conditions
+        }
+        self.gambit_data.append(gambit_entry)
+
+        # Refresh the UI if we're on the gambits tab
+        if hasattr(self, 'refresh_gambit_list'):
+            self.refresh_gambit_list()
 
     def remove_gambit_row(self, row_frame):
         """Legacy method for backwards compatibility."""
@@ -5390,6 +5608,15 @@ class TrustEditor(tk.Tk):
         for row_data in list(self.gambit_rows):
             self.remove_gambit_row(row_data[0])
 
+        # Clear new gambit structure
+        if hasattr(self, 'gambit_data'):
+            self.gambit_data = []
+            self.selected_gambit_index = None
+            if hasattr(self, 'refresh_gambit_list'):
+                self.refresh_gambit_list()
+            if hasattr(self, 'set_editor_state'):
+                self.set_editor_state("disabled")
+
         for frame, _, _, _ in list(self.effect_rows):
             self.remove_effect_row(frame)
 
@@ -5723,6 +5950,8 @@ class TrustEditor(tk.Tk):
                 g.get("reaction", ""),
                 g.get("selector", ""),
                 g.get("sel_arg", ""),
+                name=g.get("name", ""),
+                locked=g.get("locked", False),
                 or_conditions=g.get("or_conditions"),
                 dynamic=g.get("dynamic", False),
             )
@@ -5866,6 +6095,10 @@ class TrustEditor(tk.Tk):
         if not filename:
             return
 
+        # Strip placeholder prefix "* " if present (for files marked as placeholders)
+        if filename.startswith("* "):
+            filename = filename[2:]
+
         # Strip .lua extension if present to get the base name
         base_name = filename.replace(".lua", "")
 
@@ -5918,6 +6151,7 @@ class TrustEditor(tk.Tk):
             # Only save enabled gambits (disabled ones are stored but not exported)
             if gambit.get("enabled", True):
                 gambit_entry = {
+                    "name": gambit.get("name", "TODO"),
                     "target": gambit.get("target", ""),
                     "condition": gambit.get("condition", ""),
                     "cond_arg": gambit.get("cond_arg", ""),
@@ -5925,8 +6159,6 @@ class TrustEditor(tk.Tk):
                     "selector": gambit.get("selector", ""),
                     "sel_arg": gambit.get("sel_arg", ""),
                 }
-                if gambit.get("name"):
-                    gambit_entry["name"] = gambit["name"]
                 if gambit.get("locked"):
                     gambit_entry["locked"] = True
                 if gambit.get("dynamic"):
@@ -5980,6 +6212,10 @@ class TrustEditor(tk.Tk):
             messagebox.showwarning("No Trust Selected", "Please select a trust first.")
             return
 
+        # Strip placeholder prefix "* " if present (for files marked as placeholders)
+        if filename.startswith("* "):
+            filename = filename[2:]
+
         # Strip .lua extension if present to get the base name
         base_name = filename.replace(".lua", "")
 
@@ -6016,6 +6252,10 @@ class TrustEditor(tk.Tk):
         if not filename:
             messagebox.showwarning("No Trust Selected", "Please select a trust first.")
             return
+
+        # Strip placeholder prefix "* " if present (for files marked as placeholders)
+        if filename.startswith("* "):
+            filename = filename[2:]
 
         # Strip .lua extension if present to get the base name
         base_name = filename.replace(".lua", "")
@@ -6265,8 +6505,13 @@ return spellObject
             f.write(lua_content)
 
     def restore_action(self):
-        if not self.current_trust.get():
+        filename = self.current_trust.get()
+        if not filename:
             return
+
+        # Strip placeholder prefix "* " if present (for files marked as placeholders)
+        if filename.startswith("* "):
+            filename = filename[2:]
 
         choice = messagebox.askyesnocancel(
             "Restore Default",
@@ -6276,7 +6521,7 @@ return spellObject
             return
 
         if choice:  # Yes = All
-            self.load_trust_data(self.current_trust.get())
+            self.load_trust_data(filename)
         else:  # No = Current Tab
             self.restore_current_tab()
 
@@ -6285,6 +6530,10 @@ return spellObject
         trust_name = self.current_trust.get()
         if not trust_name:
             return
+
+        # Strip placeholder prefix "* " if present (for files marked as placeholders)
+        if trust_name.startswith("* "):
+            trust_name = trust_name[2:]
 
         # We need to parse the file again
         # Reuse logic from load_trust_data but split it
