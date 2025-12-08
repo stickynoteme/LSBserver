@@ -1123,6 +1123,7 @@ GAMBIT_PALETTE = {
     ],
     "Job Abilities - Summoner": [
         {"name": "Astral Flow", "desc": "Use Astral Flow 2-hour", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.ASTRAL_FLOW"},
+        {"name": "Avatar's Favor (Not Active)", "desc": "Keep Avatar's Favor active for bonus stats", "t": "SELF", "c": "NOT_STATUS", "c_arg": "xi.effect.AVATARS_FAVOR", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.AVATARS_FAVOR"},
         {"name": "Elemental Siphon", "desc": "Use Elemental Siphon for MP", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.ELEMENTAL_SIPHON"},
         {"name": "Mana Cede", "desc": "Use Mana Cede to share MP", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.MANA_CEDE"},
         {"name": "Apogee", "desc": "Use Apogee for stronger avatar", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.APOGEE"},
