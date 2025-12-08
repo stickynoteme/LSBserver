@@ -906,11 +906,8 @@ GAMBIT_PALETTE = {
     ],
     "Dancer Abilities": [
         {"name": "Best Samba (No Samba)", "desc": "Use the best Samba for the situation", "t": "SELF", "c": "NO_SAMBA", "c_arg": "0", "r": "JA", "s": "BEST_SAMBA", "s_arg": "xi.ja.DRAIN_SAMBA", "dynamic": True},
-        {"name": "Drain Samba (Not Active)", "desc": "Use Drain Samba to drain HP", "t": "SELF", "c": "NOT_STATUS", "c_arg": "xi.effect.DRAIN_SAMBA", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.DRAIN_SAMBA"},
-        {"name": "Drain Samba II (Not Active)", "desc": "Use Drain Samba II for better HP drain", "t": "SELF", "c": "NOT_STATUS", "c_arg": "xi.effect.DRAIN_SAMBA", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.DRAIN_SAMBA_II"},
-        {"name": "Drain Samba III (Not Active)", "desc": "Use Drain Samba III for strongest HP drain", "t": "SELF", "c": "NOT_STATUS", "c_arg": "xi.effect.DRAIN_SAMBA", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.DRAIN_SAMBA_III"},
-        {"name": "Aspir Samba (Not Active)", "desc": "Use Aspir Samba to drain MP", "t": "SELF", "c": "NOT_STATUS", "c_arg": "xi.effect.ASPIR_SAMBA", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.ASPIR_SAMBA"},
-        {"name": "Aspir Samba II (Not Active)", "desc": "Use Aspir Samba II for better MP drain", "t": "SELF", "c": "NOT_STATUS", "c_arg": "xi.effect.ASPIR_SAMBA", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.ASPIR_SAMBA_II"},
+        {"name": "Drain Samba III (Not Active)", "desc": "Use Drain Samba III for HP drain", "t": "SELF", "c": "NOT_STATUS", "c_arg": "xi.effect.DRAIN_SAMBA", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.DRAIN_SAMBA_III"},
+        {"name": "Aspir Samba II (Not Active)", "desc": "Use Aspir Samba II for MP drain", "t": "SELF", "c": "NOT_STATUS", "c_arg": "xi.effect.ASPIR_SAMBA", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.ASPIR_SAMBA_II"},
         {"name": "Haste Samba (Not Active)", "desc": "Use Haste Samba to increase attack speed", "t": "SELF", "c": "NOT_STATUS", "c_arg": "xi.effect.HASTE_SAMBA", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.HASTE_SAMBA"},
         {"name": "Haste Samba (vs Undead)", "desc": "Use Haste Samba when fighting undead", "t": "TARGET", "c": "IS_ECOSYSTEM", "c_arg": "xi.ecosystem.UNDEAD", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.HASTE_SAMBA"},
         {"name": "Quickstep (No Daze)", "desc": "Use Quickstep to apply Lethargic Daze", "t": "TARGET", "c": "NOT_STATUS", "c_arg": "xi.effect.LETHARGIC_DAZE_5", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.QUICKSTEP"},
