@@ -925,6 +925,10 @@ GAMBIT_PALETTE = {
         {"name": "Striking Flourish (Always)", "desc": "Use Striking Flourish to boost critical hit rate", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.STRIKING_FLOURISH"},
         {"name": "Ternary Flourish (Always)", "desc": "Use Ternary Flourish to reduce enemy TP", "t": "TARGET", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.TERNARY_FLOURISH"},
         {"name": "Saber Dance (Not Active)", "desc": "Keep Saber Dance active", "t": "SELF", "c": "NOT_STATUS", "c_arg": "xi.effect.SABER_DANCE", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.SABER_DANCE"},
+        {"name": "Fan Dance (Not Active)", "desc": "Keep Fan Dance active to counter attacks", "t": "SELF", "c": "NOT_STATUS", "c_arg": "xi.effect.FAN_DANCE", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.FAN_DANCE"},
+        {"name": "Spectral Jig (Always)", "desc": "Use Spectral Jig for invisible status", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.SPECTRAL_JIG"},
+        {"name": "Chocobo Jig (Always)", "desc": "Use Chocobo Jig for movement speed", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.CHOCOBO_JIG"},
+        {"name": "Chocobo Jig II (Always)", "desc": "Use Chocobo Jig II for better movement speed", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.CHOCOBO_JIG_II"},
     ],
     "Geomancer Abilities": [
         {"name": "Best Indi Buff", "desc": "Cast best Indi spell for situation", "t": "SELF", "c": "NOT_STATUS", "c_arg": "xi.effect.COLURE_ACTIVE", "r": "MA", "s": "BEST_INDI", "s_arg": "xi.magic.spellFamily.NONE", "dynamic": True},
