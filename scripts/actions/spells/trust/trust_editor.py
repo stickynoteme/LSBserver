@@ -881,6 +881,378 @@ GAMBIT_PALETTE = {
         {"name": "Despoil (Always)", "desc": "Use Despoil to steal items", "t": "TARGET", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.DESPOIL"},
         {"name": "Retaliation (No Tank)", "desc": "Use Retaliation when no tank in party", "t": "SELF", "c": "NOT_PT_HAS_TANK", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.RETALIATION"},
     ],
+    "Job Abilities - Warrior": [
+        {"name": "Mighty Strikes", "desc": "Use Mighty Strikes 2-hour ability", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.MIGHTY_STRIKES"},
+        {"name": "Retaliation", "desc": "Activate Retaliation to counter attacks", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.RETALIATION"},
+        {"name": "Warriors Charge", "desc": "Use Warrior's Charge to boost offense", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.WARRIORS_CHARGE"},
+        {"name": "Tomahawk", "desc": "Use Tomahawk to bind target", "t": "TARGET", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.TOMAHAWK"}
+    ],
+    "Job Abilities - Monk": [
+        {"name": "Hundred Fists", "desc": "Use Hundred Fists 2-hour ability", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.HUNDRED_FISTS"},
+        {"name": "Boost", "desc": "Use Boost to power up attack", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.BOOST"},
+        {"name": "Chi Blast", "desc": "Use Chi Blast with TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1000", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.CHI_BLAST"},
+        {"name": "Footwork", "desc": "Keep Footwork active", "t": "SELF", "c": "NOT_STATUS", "c_arg": "xi.effect.FOOTWORK", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.FOOTWORK"},
+        {"name": "Formless Strikes", "desc": "Keep Formless Strikes active", "t": "SELF", "c": "NOT_STATUS", "c_arg": "xi.effect.FORMLESS_STRIKES", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.FORMLESS_STRIKES"},
+        {"name": "Perfect Counter", "desc": "Use Perfect Counter when tanking", "t": "TANK", "c": "HAS_TOP_ENMITY", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.PERFECT_COUNTER"}
+    ],
+    "Job Abilities - White Mage": [
+        {"name": "Benediction", "desc": "Use Benediction emergency heal", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.BENEDICTION"},
+        {"name": "Devotion", "desc": "Use Devotion to restore MP when low", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.DEVOTION"},
+        {"name": "Afflatus Misery", "desc": "Activate Afflatus: Misery for damage", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.AFFLATUS_MISERY"},
+        {"name": "Sacrosanctity", "desc": "Use Sacrosanctity when HP critical", "t": "SELF", "c": "HPP_LT", "c_arg": "25", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.SACROSANCTITY"},
+        {"name": "Asylum", "desc": "Use Asylum for AoE healing", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.ASYLUM"}
+    ],
+    "Job Abilities - Black Mage": [
+        {"name": "Manafont", "desc": "Use Manafont to recover MP", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.MANAFONT"},
+        {"name": "Manawell", "desc": "Use Manawell before expensive spell", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.MANAWELL"},
+        {"name": "Enmity Douse", "desc": "Use Enmity Douse to shed hate", "t": "SELF", "c": "HAS_TOP_ENMITY", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.ENMITY_DOUSE"},
+        {"name": "Mana Wall", "desc": "Use Mana Wall for protection", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.MANA_WALL"},
+        {"name": "Cascade", "desc": "Use Cascade to speed up casting", "t": "SELF", "c": "CASTING_MA", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.CASCADE"}
+    ],
+    "Job Abilities - Red Mage": [
+        {"name": "Chainspell", "desc": "Use Chainspell 2-hour ability", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.CHAINSPELL"},
+        {"name": "Composure", "desc": "Keep Composure active", "t": "SELF", "c": "NOT_STATUS", "c_arg": "xi.effect.COMPOSURE", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.COMPOSURE"},
+        {"name": "Saboteur", "desc": "Use Saboteur before enfeebles", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.SABOTEUR"},
+        {"name": "Stymie", "desc": "Use Stymie for guaranteed enfeeble", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.STYMIE"}
+    ],
+    "Job Abilities - Thief": [
+        {"name": "Perfect Dodge", "desc": "Use Perfect Dodge emergency", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.PERFECT_DODGE"},
+        {"name": "Mug", "desc": "Use Mug to steal gil", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.MUG"},
+        {"name": "Conspirator", "desc": "Use Conspirator to shed hate", "t": "SELF", "c": "HAS_TOP_ENMITY", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.CONSPIRATOR"},
+        {"name": "Collaborator", "desc": "Use Collaborator to help tank", "t": "TANK", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.COLLABORATOR"},
+        {"name": "Feint", "desc": "Use Feint to lower enemy evasion", "t": "TARGET", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.FEINT"},
+        {"name": "Assassins Charge", "desc": "Use Assassin's Charge before SA/TA", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.ASSASSINS_CHARGE"}
+    ],
+    "Job Abilities - Paladin": [
+        {"name": "Invincible", "desc": "Use Invincible emergency", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.INVINCIBLE"},
+        {"name": "Fealty", "desc": "Use Fealty to protect master", "t": "MASTER", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.FEALTY"},
+        {"name": "Majesty", "desc": "Use Majesty to gain aggro", "t": "SELF", "c": "HAS_TOP_ENMITY", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.MAJESTY"},
+        {"name": "Sepulcher", "desc": "Use Sepulcher for party defense", "t": "PARTY", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.SEPULCHER"},
+        {"name": "Palisade", "desc": "Keep Palisade active", "t": "SELF", "c": "NOT_STATUS", "c_arg": "xi.effect.PALISADE", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.PALISADE"}
+    ],
+    "Job Abilities - Dark Knight": [
+        {"name": "Blood Weapon", "desc": "Use Blood Weapon 2-hour ability", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.BLOOD_WEAPON"},
+        {"name": "Arcane Crest", "desc": "Use Arcane Crest before nukes", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.ARCANE_CREST"},
+        {"name": "Dark Seal", "desc": "Use Dark Seal before drain/aspir", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.DARK_SEAL"},
+        {"name": "Diabolic Eye", "desc": "Use Diabolic Eye for magic bursts", "t": "SELF", "c": "MB_AVAILABLE", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.DIABOLIC_EYE"},
+        {"name": "Nether Void", "desc": "Use Nether Void to absorb spells", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.NETHER_VOID"},
+        {"name": "Scarlet Delirium", "desc": "Use Scarlet Delirium for offense", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.SCARLET_DELIRIUM"}
+    ],
+    "Job Abilities - Beastmaster": [
+        {"name": "Familiar", "desc": "Use Familiar 2-hour ability", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.FAMILIAR"},
+        {"name": "Tame", "desc": "Use Tame to charm target", "t": "TARGET", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.TAME"},
+        {"name": "Call Beast", "desc": "Use Call Beast to summon pet", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.CALL_BEAST"},
+        {"name": "Feral Howl", "desc": "Use Feral Howl for party buff", "t": "PARTY", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.FERAL_HOWL"},
+        {"name": "Killer Instinct", "desc": "Use Killer Instinct for intimidation", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.KILLER_INSTINCT"}
+    ],
+    "Job Abilities - Bard": [
+        {"name": "Soul Voice", "desc": "Use Soul Voice 2-hour ability", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.SOUL_VOICE"},
+        {"name": "Pianissimo", "desc": "Use Pianissimo for targeted song", "t": "TARGET", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.PIANISSIMO"},
+        {"name": "Nightingale", "desc": "Use Nightingale before songs", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.NIGHTINGALE"},
+        {"name": "Troubadour", "desc": "Use Troubadour to extend songs", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.TROUBADOUR"},
+        {"name": "Marcato", "desc": "Use Marcato before important song", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.MARCATO"},
+        {"name": "Clarion Call", "desc": "Use Clarion Call for extra song", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.CLARION_CALL"}
+    ],
+    "Job Abilities - Ranger": [
+        {"name": "Eagle Eye Shot", "desc": "Use Eagle Eye Shot 2-hour", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.EAGLE_EYE_SHOT"},
+        {"name": "Scavenge", "desc": "Use Scavenge to recover ammo", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.SCAVENGE"},
+        {"name": "Velocity Shot", "desc": "Use Velocity Shot for DPS", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.VELOCITY_SHOT"},
+        {"name": "Bounty Shot", "desc": "Use Bounty Shot for loot", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.BOUNTY_SHOT"},
+        {"name": "Shadowbind", "desc": "Use Shadowbind to immobilize", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.SHADOWBIND"},
+        {"name": "Flashy Shot", "desc": "Use Flashy Shot for blind", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.FLASHY_SHOT"}
+    ],
+    "Job Abilities - Samurai": [
+        {"name": "Meikyo Shisui", "desc": "Use Meikyo Shisui 2-hour", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.MEIKYO_SHISUI"},
+        {"name": "Sekkanoki", "desc": "Use Sekkanoki for follow-up WS", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.SEKKANOKI"},
+        {"name": "Sengikori", "desc": "Use Sengikori during skillchain", "t": "SELF", "c": "SC_AVAILABLE", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.SENGIKORI"},
+        {"name": "Hagakure", "desc": "Use Hagakure for TP efficiency", "t": "SELF", "c": "TP_GTE", "c_arg": "1000", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.HAGAKURE"},
+        {"name": "Yaegasumi", "desc": "Use Yaegasumi vs magic", "t": "SELF", "c": "CASTING_MA", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.YAEGASUMI"}
+    ],
+    "Job Abilities - Ninja": [
+        {"name": "Mijin Gakure", "desc": "Use Mijin Gakure last resort", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.MIJIN_GAKURE"},
+        {"name": "Futae", "desc": "Use Futae before ninjutsu", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.FUTAE"},
+        {"name": "Sange", "desc": "Use Sange before attack", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.SANGE"},
+        {"name": "Issekigan", "desc": "Use Issekigan when tanking", "t": "TANK", "c": "HAS_TOP_ENMITY", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.ISSEKIGAN"}
+    ],
+    "Job Abilities - Dragoon": [
+        {"name": "Spirit Surge", "desc": "Use Spirit Surge 2-hour", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.SPIRIT_SURGE"},
+        {"name": "Call Wyvern", "desc": "Use Call Wyvern to summon pet", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.CALL_WYVERN"},
+        {"name": "Spirit Bond", "desc": "Use Spirit Bond for wyvern", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.SPIRIT_BOND"},
+        {"name": "Angon", "desc": "Use Angon to lower defense", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.ANGON"},
+        {"name": "Empathy", "desc": "Use Empathy to gain TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1000", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.EMPATHY"}
+    ],
+    "Job Abilities - Summoner": [
+        {"name": "Astral Flow", "desc": "Use Astral Flow 2-hour", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.ASTRAL_FLOW"},
+        {"name": "Elemental Siphon", "desc": "Use Elemental Siphon for MP", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.ELEMENTAL_SIPHON"},
+        {"name": "Mana Cede", "desc": "Use Mana Cede to share MP", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.MANA_CEDE"},
+        {"name": "Apogee", "desc": "Use Apogee for stronger avatar", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.APOGEE"},
+        {"name": "Astral Conduit", "desc": "Use Astral Conduit for spam", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.ASTRAL_CONDUIT"}
+    ],
+    "Job Abilities - Blue Mage": [
+        {"name": "Azure Lore", "desc": "Use Azure Lore 2-hour", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.AZURE_LORE"},
+        {"name": "Chain Affinity", "desc": "Use Chain Affinity for skillchain", "t": "SELF", "c": "SC_AVAILABLE", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.CHAIN_AFFINITY"},
+        {"name": "Burst Affinity", "desc": "Use Burst Affinity for MB", "t": "SELF", "c": "MB_AVAILABLE", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.BURST_AFFINITY"},
+        {"name": "Diffusion", "desc": "Use Diffusion for party buffs", "t": "PARTY", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.DIFFUSION"},
+        {"name": "Convergence", "desc": "Use Convergence for damage", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.CONVERGENCE"},
+        {"name": "Efflux", "desc": "Use Efflux for physical spells", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.EFFLUX"},
+        {"name": "Unbridled Learning", "desc": "Use Unbridled Learning for ultimates", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.UNBRIDLED_LEARNING"}
+    ],
+    "Job Abilities - Corsair": [
+        {"name": "Wild Card", "desc": "Use Wild Card 2-hour", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.WILD_CARD"},
+        {"name": "Quick Draw", "desc": "Use Quick Draw for damage", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.QUICK_DRAW"},
+        {"name": "Fold", "desc": "Use Fold to reset rolls", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.FOLD"},
+        {"name": "Double Up", "desc": "Use Double-Up to boost roll", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.DOUBLE_UP"},
+        {"name": "Random Deal", "desc": "Use Random Deal for party", "t": "PARTY", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.RANDOM_DEAL"}
+    ],
+    "Job Abilities - Puppetmaster": [
+        {"name": "Overdrive", "desc": "Use Overdrive 2-hour", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.OVERDRIVE"},
+        {"name": "Activate", "desc": "Use Activate to summon puppet", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.ACTIVATE"},
+        {"name": "Deus Ex Automata", "desc": "Use Deus Ex Automata emergency", "t": "SELF", "c": "HPP_LT", "c_arg": "25", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.DEUS_EX_AUTOMATA"},
+        {"name": "Heady Artifice", "desc": "Use Heady Artifice for hate", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.HEADY_ARTIFICE"},
+        {"name": "Ventriloquy", "desc": "Use Ventriloquy to puppet", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.VENTRILOQUY"}
+    ],
+    "Job Abilities - Dancer": [
+        {"name": "Trance", "desc": "Use Trance 2-hour", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.TRANCE"},
+        {"name": "Animated Flourish", "desc": "Use Animated Flourish for hate", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.ANIMATED_FLOURISH"},
+        {"name": "Desperate Flourish", "desc": "Use Desperate Flourish to stun", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.DESPERATE_FLOURISH"},
+        {"name": "Building Flourish", "desc": "Use Building Flourish for FM", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.BUILDING_FLOURISH"},
+        {"name": "Wild Flourish", "desc": "Use Wild Flourish for FM", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.WILD_FLOURISH"},
+        {"name": "Presto", "desc": "Use Presto for instant FM", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.PRESTO"},
+        {"name": "No Foot Rise", "desc": "Use No Foot Rise before WS", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.NO_FOOT_RISE"}
+    ],
+    "Job Abilities - Scholar": [
+        {"name": "Tabula Rasa", "desc": "Use Tabula Rasa 2-hour", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.TABULA_RASA"},
+        {"name": "Accession", "desc": "Use Accession for party buffs", "t": "PARTY", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.ACCESSION"},
+        {"name": "Celerity", "desc": "Use Celerity for faster casting", "t": "SELF", "c": "CASTING_MA", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.CELERITY"},
+        {"name": "Rapture", "desc": "Use Rapture for stronger heals", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.RAPTURE"},
+        {"name": "Penury", "desc": "Use Penury to save MP", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.PENURY"},
+        {"name": "Manifestation", "desc": "Use Manifestation for AoE damage", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.MANIFESTATION"},
+        {"name": "Alacrity", "desc": "Use Alacrity for faster nukes", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.ALACRITY"},
+        {"name": "Ebullience", "desc": "Use Ebullience for damage", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.EBULLIENCE"},
+        {"name": "Parsimony", "desc": "Use Parsimony to save MP", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.PARSIMONY"},
+        {"name": "Perpetuance", "desc": "Use Perpetuance for long buffs", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.PERPETUANCE"},
+        {"name": "Immanence", "desc": "Use Immanence with TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1000", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.IMMANENCE"},
+        {"name": "Klimaform", "desc": "Use Klimaform for weather", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.KLIMAFORM"}
+    ],
+    "Job Abilities - Geomancer": [
+        {"name": "Bolster", "desc": "Use Bolster 2-hour", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.BOLSTER"},
+        {"name": "Full Circle", "desc": "Use Full Circle to resummon", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.FULL_CIRCLE"},
+        {"name": "Ecliptic Attrition", "desc": "Use Ecliptic Attrition for damage", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.ECLIPTIC_ATTRITION"},
+        {"name": "Life Cycle", "desc": "Use Life Cycle for healing", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.LIFE_CYCLE"},
+        {"name": "Blaze Of Glory", "desc": "Use Blaze of Glory for burst", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.BLAZE_OF_GLORY"},
+        {"name": "Dematerialize", "desc": "Use Dematerialize for safety", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.DEMATERIALIZE"},
+        {"name": "Theurgic Focus", "desc": "Use Theurgic Focus for duration", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.THEURGIC_FOCUS"}
+    ],
+    "Job Abilities - Rune Fencer": [
+        {"name": "Elemental Sforzo", "desc": "Use Elemental Sforzo vs magic", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.ELEMENTAL_SFORZO"},
+        {"name": "Pflug", "desc": "Use Pflug when tanking", "t": "TANK", "c": "HAS_TOP_ENMITY", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.PFLUG"},
+        {"name": "Battuta", "desc": "Use Battuta when tanking", "t": "TANK", "c": "HAS_TOP_ENMITY", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.BATTUTA"},
+        {"name": "Gambit", "desc": "Use Gambit for TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1000", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.GAMBIT"},
+        {"name": "Rayke", "desc": "Use Rayke before magic", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.RAYKE"},
+        {"name": "Liement", "desc": "Use Liement before WS", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.LIEMENT"},
+        {"name": "One For All", "desc": "Use One for All to protect party", "t": "PARTY", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.ONE_FOR_ALL"},
+        {"name": "Elemental Swipe", "desc": "Use Elemental Swipe for damage", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.ELEMENTAL_SWIPE"},
+        {"name": "Vivacious Pulse", "desc": "Use Vivacious Pulse for healing", "t": "SELF", "c": "ALWAYS", "c_arg": "0", "r": "JA", "s": "SPECIFIC", "s_arg": "xi.ja.VIVACIOUS_PULSE"}
+    ],
+    "Weaponskills - H2H": [
+        {"name": "Combo (1250 TP)", "desc": "Use Combo at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.COMBO"},
+        {"name": "Shoulder Tackle (1250 TP)", "desc": "Use Shoulder Tackle at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.SHOULDER_TACKLE"},
+        {"name": "One Inch Punch (1250 TP)", "desc": "Use One Inch Punch at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.ONE_INCH_PUNCH"},
+        {"name": "Backhand Blow (1250 TP)", "desc": "Use Backhand Blow at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.BACKHAND_BLOW"},
+        {"name": "Raging Fists (1250 TP)", "desc": "Use Raging Fists at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.RAGING_FISTS"},
+        {"name": "Spinning Attack (1250 TP)", "desc": "Use Spinning Attack at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.SPINNING_ATTACK"},
+        {"name": "Howling Fist (1250 TP)", "desc": "Use Howling Fist at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.HOWLING_FIST"},
+        {"name": "Dragon Kick (1250 TP)", "desc": "Use Dragon Kick at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.DRAGON_KICK"},
+        {"name": "Asuran Fists (1250 TP)", "desc": "Use Asuran Fists at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.ASURAN_FISTS"},
+        {"name": "Final Heaven (1250 TP)", "desc": "Use Final Heaven at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.FINAL_HEAVEN"},
+        {"name": "Ascetics Fury (1250 TP)", "desc": "Use Ascetics Fury at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.ASCETICS_FURY"},
+        {"name": "Stringing Pummel (1250 TP)", "desc": "Use Stringing Pummel at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.STRINGING_PUMMEL"},
+        {"name": "Tornado Kick (1250 TP)", "desc": "Use Tornado Kick at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.TORNADO_KICK"},
+        {"name": "Victory Smite (1250 TP)", "desc": "Use Victory Smite at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.VICTORY_SMITE"},
+        {"name": "Shijin Spiral (1250 TP)", "desc": "Use Shijin Spiral at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.SHIJIN_SPIRAL"}
+    ],
+    "Weaponskills - Dagger": [
+        {"name": "Wasp Sting (1250 TP)", "desc": "Use Wasp Sting at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.WASP_STING"},
+        {"name": "Viper Bite (1250 TP)", "desc": "Use Viper Bite at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.VIPER_BITE"},
+        {"name": "Gust Slash (1250 TP)", "desc": "Use Gust Slash at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.GUST_SLASH"},
+        {"name": "Cyclone (1250 TP)", "desc": "Use Cyclone at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.CYCLONE"},
+        {"name": "Energy Steal (1250 TP)", "desc": "Use Energy Steal at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.ENERGY_STEAL"},
+        {"name": "Energy Drain (1250 TP)", "desc": "Use Energy Drain at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.ENERGY_DRAIN"},
+        {"name": "Dancing Edge (1250 TP)", "desc": "Use Dancing Edge at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.DANCING_EDGE"},
+        {"name": "Shark Bite (1250 TP)", "desc": "Use Shark Bite at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.SHARK_BITE"},
+        {"name": "Evisceration (1250 TP)", "desc": "Use Evisceration at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.EVISCERATION"},
+        {"name": "Mercy Stroke (1250 TP)", "desc": "Use Mercy Stroke at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.MERCY_STROKE"},
+        {"name": "Exenterator (1250 TP)", "desc": "Use Exenterator at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.EXENTERATOR"},
+        {"name": "Rudras Storm (1250 TP)", "desc": "Use Rudras Storm at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.RUDRAS_STORM"}
+    ],
+    "Weaponskills - Sword": [
+        {"name": "Fast Blade (1250 TP)", "desc": "Use Fast Blade at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.FAST_BLADE"},
+        {"name": "Burning Blade (1250 TP)", "desc": "Use Burning Blade at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.BURNING_BLADE"},
+        {"name": "Red Lotus Blade (1250 TP)", "desc": "Use Red Lotus Blade at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.RED_LOTUS_BLADE"},
+        {"name": "Flat Blade (1250 TP)", "desc": "Use Flat Blade at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.FLAT_BLADE"},
+        {"name": "Shining Blade (1250 TP)", "desc": "Use Shining Blade at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.SHINING_BLADE"},
+        {"name": "Seraph Blade (1250 TP)", "desc": "Use Seraph Blade at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.SERAPH_BLADE"},
+        {"name": "Vorpal Blade (1250 TP)", "desc": "Use Vorpal Blade at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.VORPAL_BLADE"},
+        {"name": "Swift Blade (1250 TP)", "desc": "Use Swift Blade at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.SWIFT_BLADE"},
+        {"name": "Savage Blade (1250 TP)", "desc": "Use Savage Blade at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.SAVAGE_BLADE"},
+        {"name": "Knights Of Round (1250 TP)", "desc": "Use Knights Of Round at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.KNIGHTS_OF_ROUND"},
+        {"name": "Sanguine Blade (1250 TP)", "desc": "Use Sanguine Blade at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.SANGUINE_BLADE"},
+        {"name": "Requiscat (1250 TP)", "desc": "Use Requiscat at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.REQUISCAT"},
+        {"name": "Chant Du Cygne (1250 TP)", "desc": "Use Chant Du Cygne at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.CHANT_DU_CYGNE"}
+    ],
+    "Weaponskills - Great Sword": [
+        {"name": "Hard Slash (1250 TP)", "desc": "Use Hard Slash at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.HARD_SLASH"},
+        {"name": "Power Slash (1250 TP)", "desc": "Use Power Slash at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.POWER_SLASH"},
+        {"name": "Frostbite (1250 TP)", "desc": "Use Frostbite at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.FROSTBITE"},
+        {"name": "Freezebite (1250 TP)", "desc": "Use Freezebite at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.FREEZEBITE"},
+        {"name": "Shockwave (1250 TP)", "desc": "Use Shockwave at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.SHOCKWAVE"},
+        {"name": "Crescent Moon (1250 TP)", "desc": "Use Crescent Moon at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.CRESCENT_MOON"},
+        {"name": "Sickle Moon (1250 TP)", "desc": "Use Sickle Moon at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.SICKLE_MOON"},
+        {"name": "Spinning Slash (1250 TP)", "desc": "Use Spinning Slash at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.SPINNING_SLASH"},
+        {"name": "Ground Strike (1250 TP)", "desc": "Use Ground Strike at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.GROUND_STRIKE"},
+        {"name": "Scourge (1250 TP)", "desc": "Use Scourge at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.SCOURGE"},
+        {"name": "Resolution (1250 TP)", "desc": "Use Resolution at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.RESOLUTION"},
+        {"name": "Torcleaver (1250 TP)", "desc": "Use Torcleaver at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.TORCLEAVER"}
+    ],
+    "Weaponskills - Axe": [
+        {"name": "Raging Axe (1250 TP)", "desc": "Use Raging Axe at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.RAGING_AXE"},
+        {"name": "Smash Axe (1250 TP)", "desc": "Use Smash Axe at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.SMASH_AXE"},
+        {"name": "Gale Axe (1250 TP)", "desc": "Use Gale Axe at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.GALE_AXE"},
+        {"name": "Avalanche Axe (1250 TP)", "desc": "Use Avalanche Axe at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.AVALANCHE_AXE"},
+        {"name": "Spinning Axe (1250 TP)", "desc": "Use Spinning Axe at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.SPINNING_AXE"},
+        {"name": "Rampage (1250 TP)", "desc": "Use Rampage at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.RAMPAGE"},
+        {"name": "Calamity (1250 TP)", "desc": "Use Calamity at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.CALAMITY"},
+        {"name": "Mistral Axe (1250 TP)", "desc": "Use Mistral Axe at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.MISTRAL_AXE"},
+        {"name": "Decimation (1250 TP)", "desc": "Use Decimation at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.DECIMATION"},
+        {"name": "Cloudsplitter (1250 TP)", "desc": "Use Cloudsplitter at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.CLOUDSPLITTER"}
+    ],
+    "Weaponskills - Great Axe": [
+        {"name": "Shield Break (1250 TP)", "desc": "Use Shield Break at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.SHIELD_BREAK"},
+        {"name": "Iron Tempest (1250 TP)", "desc": "Use Iron Tempest at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.IRON_TEMPEST"},
+        {"name": "Sturmwind (1250 TP)", "desc": "Use Sturmwind at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.STURMWIND"},
+        {"name": "Armor Break (1250 TP)", "desc": "Use Armor Break at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.ARMOR_BREAK"},
+        {"name": "Keen Edge (1250 TP)", "desc": "Use Keen Edge at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.KEEN_EDGE"},
+        {"name": "Weapon Break (1250 TP)", "desc": "Use Weapon Break at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.WEAPON_BREAK"},
+        {"name": "Raging Rush (1250 TP)", "desc": "Use Raging Rush at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.RAGING_RUSH"},
+        {"name": "Full Break (1250 TP)", "desc": "Use Full Break at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.FULL_BREAK"},
+        {"name": "Steel Cyclone (1250 TP)", "desc": "Use Steel Cyclone at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.STEEL_CYCLONE"},
+        {"name": "Fell Cleave (1250 TP)", "desc": "Use Fell Cleave at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.FELL_CLEAVE"},
+        {"name": "Upheaval (1250 TP)", "desc": "Use Upheaval at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.UPHEAVAL"},
+        {"name": "Ukko Fury (1250 TP)", "desc": "Use Ukko Fury at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.UKKO_FURY"}
+    ],
+    "Weaponskills - Scythe": [
+        {"name": "Slice (1250 TP)", "desc": "Use Slice at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.SLICE"},
+        {"name": "Dark Harvest (1250 TP)", "desc": "Use Dark Harvest at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.DARK_HARVEST"},
+        {"name": "Shadow Of Death (1250 TP)", "desc": "Use Shadow Of Death at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.SHADOW_OF_DEATH"},
+        {"name": "Nightmare Scythe (1250 TP)", "desc": "Use Nightmare Scythe at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.NIGHTMARE_SCYTHE"},
+        {"name": "Spinning Scythe (1250 TP)", "desc": "Use Spinning Scythe at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.SPINNING_SCYTHE"},
+        {"name": "Vorpal Scythe (1250 TP)", "desc": "Use Vorpal Scythe at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.VORPAL_SCYTHE"},
+        {"name": "Guillotine (1250 TP)", "desc": "Use Guillotine at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.GUILLOTINE"},
+        {"name": "Cross Reaper (1250 TP)", "desc": "Use Cross Reaper at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.CROSS_REAPER"},
+        {"name": "Spiral Hell (1250 TP)", "desc": "Use Spiral Hell at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.SPIRAL_HELL"},
+        {"name": "Catastrophe (1250 TP)", "desc": "Use Catastrophe at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.CATASTROPHE"},
+        {"name": "Entropy (1250 TP)", "desc": "Use Entropy at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.ENTROPY"}
+    ],
+    "Weaponskills - Polearm": [
+        {"name": "Double Thrust (1250 TP)", "desc": "Use Double Thrust at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.DOUBLE_THRUST"},
+        {"name": "Thunder Thrust (1250 TP)", "desc": "Use Thunder Thrust at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.THUNDER_THRUST"},
+        {"name": "Raiden Thrust (1250 TP)", "desc": "Use Raiden Thrust at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.RAIDEN_THRUST"},
+        {"name": "Leg Sweep (1250 TP)", "desc": "Use Leg Sweep at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.LEG_SWEEP"},
+        {"name": "Penta Thrust (1250 TP)", "desc": "Use Penta Thrust at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.PENTA_THRUST"},
+        {"name": "Vorpal Thrust (1250 TP)", "desc": "Use Vorpal Thrust at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.VORPAL_THRUST"},
+        {"name": "Skewer (1250 TP)", "desc": "Use Skewer at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.SKEWER"},
+        {"name": "Wheeling Thrust (1250 TP)", "desc": "Use Wheeling Thrust at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.WHEELING_THRUST"},
+        {"name": "Impulse Drive (1250 TP)", "desc": "Use Impulse Drive at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.IMPULSE_DRIVE"},
+        {"name": "Stardiver (1250 TP)", "desc": "Use Stardiver at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.STARDIVER"},
+        {"name": "Sonic Thrust (1250 TP)", "desc": "Use Sonic Thrust at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.SONIC_THRUST"},
+        {"name": "Camlann Torment (1250 TP)", "desc": "Use Camlann Torment at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.CAMLANN_TORMENT"}
+    ],
+    "Weaponskills - Katana": [
+        {"name": "Blade Rin (1250 TP)", "desc": "Use Blade Rin at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.BLADE_RIN"},
+        {"name": "Blade Retsu (1250 TP)", "desc": "Use Blade Retsu at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.BLADE_RETSU"},
+        {"name": "Blade Teki (1250 TP)", "desc": "Use Blade Teki at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.BLADE_TEKI"},
+        {"name": "Blade To (1250 TP)", "desc": "Use Blade To at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.BLADE_TO"},
+        {"name": "Blade Chi (1250 TP)", "desc": "Use Blade Chi at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.BLADE_CHI"},
+        {"name": "Blade Ei (1250 TP)", "desc": "Use Blade Ei at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.BLADE_EI"},
+        {"name": "Blade Jin (1250 TP)", "desc": "Use Blade Jin at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.BLADE_JIN"},
+        {"name": "Blade Ten (1250 TP)", "desc": "Use Blade Ten at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.BLADE_TEN"},
+        {"name": "Blade Ku (1250 TP)", "desc": "Use Blade Ku at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.BLADE_KU"},
+        {"name": "Blade Yu (1250 TP)", "desc": "Use Blade Yu at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.BLADE_YU"},
+        {"name": "Blade Shun (1250 TP)", "desc": "Use Blade Shun at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.BLADE_SHUN"},
+        {"name": "Blade Metsu (1250 TP)", "desc": "Use Blade Metsu at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.BLADE_METSU"},
+        {"name": "Blade Kamu (1250 TP)", "desc": "Use Blade Kamu at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.BLADE_KAMU"},
+        {"name": "Blade Hi (1250 TP)", "desc": "Use Blade Hi at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.BLADE_HI"}
+    ],
+    "Weaponskills - Great Katana": [
+        {"name": "Tachi Enpi (1250 TP)", "desc": "Use Tachi Enpi at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.TACHI_ENPI"},
+        {"name": "Tachi Hobaku (1250 TP)", "desc": "Use Tachi Hobaku at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.TACHI_HOBAKU"},
+        {"name": "Tachi Goten (1250 TP)", "desc": "Use Tachi Goten at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.TACHI_GOTEN"},
+        {"name": "Tachi Kagero (1250 TP)", "desc": "Use Tachi Kagero at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.TACHI_KAGERO"},
+        {"name": "Tachi Jinpu (1250 TP)", "desc": "Use Tachi Jinpu at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.TACHI_JINPU"},
+        {"name": "Tachi Koki (1250 TP)", "desc": "Use Tachi Koki at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.TACHI_KOKI"},
+        {"name": "Tachi Yukikaze (1250 TP)", "desc": "Use Tachi Yukikaze at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.TACHI_YUKIKAZE"},
+        {"name": "Tachi Gekko (1250 TP)", "desc": "Use Tachi Gekko at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.TACHI_GEKKO"},
+        {"name": "Tachi Kasha (1250 TP)", "desc": "Use Tachi Kasha at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.TACHI_KASHA"},
+        {"name": "Tachi Shoha (1250 TP)", "desc": "Use Tachi Shoha at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.TACHI_SHOHA"},
+        {"name": "Tachi Rana (1250 TP)", "desc": "Use Tachi Rana at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.TACHI_RANA"},
+        {"name": "Tachi Fudo (1250 TP)", "desc": "Use Tachi Fudo at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.TACHI_FUDO"},
+        {"name": "Tachi Kaiten (1250 TP)", "desc": "Use Tachi Kaiten at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.TACHI_KAITEN"}
+    ],
+    "Weaponskills - Club": [
+        {"name": "Shining Strike (1250 TP)", "desc": "Use Shining Strike at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.SHINING_STRIKE"},
+        {"name": "Seraph Strike (1250 TP)", "desc": "Use Seraph Strike at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.SERAPH_STRIKE"},
+        {"name": "Brainshaker (1250 TP)", "desc": "Use Brainshaker at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.BRAINSHAKER"},
+        {"name": "Starlight (1250 TP)", "desc": "Use Starlight at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.STARLIGHT"},
+        {"name": "Moonlight (1250 TP)", "desc": "Use Moonlight at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.MOONLIGHT"},
+        {"name": "Skullbreaker (1250 TP)", "desc": "Use Skullbreaker at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.SKULLBREAKER"},
+        {"name": "True Strike (1250 TP)", "desc": "Use True Strike at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.TRUE_STRIKE"},
+        {"name": "Judgment (1250 TP)", "desc": "Use Judgment at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.JUDGMENT"},
+        {"name": "Black Halo (1250 TP)", "desc": "Use Black Halo at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.BLACK_HALO"},
+        {"name": "Hexa Strike (1250 TP)", "desc": "Use Hexa Strike at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.HEXA_STRIKE"},
+        {"name": "Randgrith (1250 TP)", "desc": "Use Randgrith at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.RANDGRITH"},
+        {"name": "Realmrazer (1250 TP)", "desc": "Use Realmrazer at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.REALMRAZER"}
+    ],
+    "Weaponskills - Staff": [
+        {"name": "Heavy Swing (1250 TP)", "desc": "Use Heavy Swing at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.HEAVY_SWING"},
+        {"name": "Rock Crusher (1250 TP)", "desc": "Use Rock Crusher at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.ROCK_CRUSHER"},
+        {"name": "Earth Crusher (1250 TP)", "desc": "Use Earth Crusher at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.EARTH_CRUSHER"},
+        {"name": "Starburst (1250 TP)", "desc": "Use Starburst at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.STARBURST"},
+        {"name": "Sunburst (1250 TP)", "desc": "Use Sunburst at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.SUNBURST"},
+        {"name": "Shell Crusher (1250 TP)", "desc": "Use Shell Crusher at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.SHELL_CRUSHER"},
+        {"name": "Full Swing (1250 TP)", "desc": "Use Full Swing at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.FULL_SWING"},
+        {"name": "Spirit Taker (1250 TP)", "desc": "Use Spirit Taker at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.SPIRIT_TAKER"},
+        {"name": "Retribution (1250 TP)", "desc": "Use Retribution at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.RETRIBUTION"},
+        {"name": "Cataclysm (1250 TP)", "desc": "Use Cataclysm at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.CATACLYSM"},
+        {"name": "Shattersoul (1250 TP)", "desc": "Use Shattersoul at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.SHATTERSOUL"},
+        {"name": "Vidohunir (1250 TP)", "desc": "Use Vidohunir at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.VIDOHUNIR"}
+    ],
+    "Weaponskills - Archery": [
+        {"name": "Flaming Arrow (1250 TP)", "desc": "Use Flaming Arrow at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.FLAMING_ARROW"},
+        {"name": "Piercing Arrow (1250 TP)", "desc": "Use Piercing Arrow at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.PIERCING_ARROW"},
+        {"name": "Dulling Arrow (1250 TP)", "desc": "Use Dulling Arrow at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.DULLING_ARROW"},
+        {"name": "Sidewinder (1250 TP)", "desc": "Use Sidewinder at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.SIDEWINDER"},
+        {"name": "Blast Arrow (1250 TP)", "desc": "Use Blast Arrow at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.BLAST_ARROW"},
+        {"name": "Arching Arrow (1250 TP)", "desc": "Use Arching Arrow at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.ARCHING_ARROW"},
+        {"name": "Empyreal Arrow (1250 TP)", "desc": "Use Empyreal Arrow at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.EMPYREAL_ARROW"},
+        {"name": "Namas Arrow (1250 TP)", "desc": "Use Namas Arrow at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.NAMAS_ARROW"},
+        {"name": "Refulgent Arrow (1250 TP)", "desc": "Use Refulgent Arrow at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.REFULGENT_ARROW"},
+        {"name": "Apex Arrow (1250 TP)", "desc": "Use Apex Arrow at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.APEX_ARROW"},
+        {"name": "Jishnus Radiance (1250 TP)", "desc": "Use Jishnus Radiance at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.JISHNUS_RADIANCE"}
+    ],
+    "Weaponskills - Marksmanship": [
+        {"name": "Hot Shot (1250 TP)", "desc": "Use Hot Shot at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.HOT_SHOT"},
+        {"name": "Split Shot (1250 TP)", "desc": "Use Split Shot at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.SPLIT_SHOT"},
+        {"name": "Sniper Shot (1250 TP)", "desc": "Use Sniper Shot at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.SNIPER_SHOT"},
+        {"name": "Slug Shot (1250 TP)", "desc": "Use Slug Shot at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.SLUG_SHOT"},
+        {"name": "Blast Shot (1250 TP)", "desc": "Use Blast Shot at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.BLAST_SHOT"},
+        {"name": "Heavy Shot (1250 TP)", "desc": "Use Heavy Shot at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.HEAVY_SHOT"},
+        {"name": "Detonator (1250 TP)", "desc": "Use Detonator at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.DETONATOR"},
+        {"name": "Coronach (1250 TP)", "desc": "Use Coronach at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.CORONACH"},
+        {"name": "Trueflight (1250 TP)", "desc": "Use Trueflight at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.TRUEFLIGHT"},
+        {"name": "Leaden Salute (1250 TP)", "desc": "Use Leaden Salute at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.LEADEN_SALUTE"},
+        {"name": "Wildfire (1250 TP)", "desc": "Use Wildfire at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.WILDFIRE"},
+        {"name": "Last Stand (1250 TP)", "desc": "Use Last Stand at 1250 TP", "t": "SELF", "c": "TP_GTE", "c_arg": "1250", "r": "WS", "s": "SPECIFIC", "s_arg": "xi.ws.LAST_STAND"}
+    ],
 }
 
 JOB_TEMPLATES = {
