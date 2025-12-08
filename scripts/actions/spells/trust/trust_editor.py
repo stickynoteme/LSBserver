@@ -419,6 +419,86 @@ def parse_nested_lua_enum(file_path, table_name):
     return data
 
 
+def parse_spell_list_names():
+    """Load spell names and families from spell_list.sql."""
+    spell_names = {}
+    spell_families = {}  # Maps spell_id to family_id
+    family_spells = {}   # Maps family_id to set of spell_ids
+    file_path = SQL_DIR / "spell_list.sql"
+    if not file_path.exists():
+        return spell_names, spell_families, family_spells
+    content = file_path.read_text(errors="ignore")
+    # Format: INSERT INTO `spell_list` VALUES (spellid,'name',jobs,group,family,...)
+    # The regex extracts: spellid, name, and family (skipping binary jobs field)
+    for match in re.findall(r"VALUES\s*\((\d+),'([^']*)',[^,]*,\d+,(\d+),", content):
+        spell_id, name, family_id = match
+        spell_id = int(spell_id)
+        family_id = int(family_id)
+        spell_names[spell_id] = name
+        if family_id > 0:
+            spell_families[spell_id] = family_id
+            if family_id not in family_spells:
+                family_spells[family_id] = set()
+            family_spells[family_id].add(spell_id)
+    return spell_names, spell_families, family_spells
+
+
+def parse_mob_spell_lists():
+    """Load spell lists from mob_spell_lists.sql."""
+    spell_lists = {}
+    file_path = SQL_DIR / "mob_spell_lists.sql"
+    if not file_path.exists():
+        return spell_lists
+    content = file_path.read_text(errors="ignore")
+    # Format: INSERT INTO `mob_spell_lists` VALUES ('list_name',list_id,spell_id,min_level,max_level)
+    for match in re.findall(
+        r"INSERT INTO `mob_spell_lists` VALUES \('([^']*)',(\d+),(\d+),(\d+),(\d+)\)",
+        content,
+    ):
+        list_name, list_id, spell_id, min_level, max_level = match
+        list_id = int(list_id)
+        spell_id = int(spell_id)
+        min_level = int(min_level)
+        max_level = int(max_level)
+
+        if list_id not in spell_lists:
+            spell_lists[list_id] = {
+                "name": list_name,
+                "spells": [],
+            }
+
+        spell_lists[list_id]["spells"].append(
+            {"spell_id": spell_id, "min_level": min_level, "max_level": max_level}
+        )
+
+    return spell_lists
+
+
+def parse_job_abilities():
+    """Load job abilities from abilities.sql and map jobs to their abilities."""
+    job_abilities = {}  # job_id -> set of ability_ids
+    ability_names = {}  # ability_id -> name
+    file_path = SQL_DIR / "abilities.sql"
+    if not file_path.exists():
+        return job_abilities, ability_names
+    content = file_path.read_text(errors="ignore")
+    # Format: INSERT INTO `abilities` VALUES (abilityId,'name',job,level,...)
+    for match in re.findall(r"VALUES\s*\((\d+),'([^']*)',(\d+),(\d+),", content):
+        ability_id, name, job_id, level = match
+        ability_id = int(ability_id)
+        job_id = int(job_id)
+        level = int(level)
+        ability_names[ability_id] = name
+
+        # Only add if job_id is not 0 (job 0 is NONE)
+        if job_id > 0:
+            if job_id not in job_abilities:
+                job_abilities[job_id] = set()
+            job_abilities[job_id].add(ability_id)
+
+    return job_abilities, ability_names
+
+
 MAGIC_SPELLS = parse_nested_lua_enum(
     os.path.join(ENUM_DIR, "magic.lua"), "xi.magic.spell"
 )
@@ -453,6 +533,14 @@ SORTED_AI_TP_TRIGGERS = sorted(AI_TP_TRIGGERS.keys())
 SORTED_JOBS = sorted([job for job in JOBS.keys() if job != "NONE"])
 MAIN_JOB_CHOICES = [""] + SORTED_JOBS
 SUBJOB_CHOICES = ["NONE"] + SORTED_JOBS
+
+# Load spell list data
+SPELL_NAMES, SPELL_FAMILIES, FAMILY_SPELLS = parse_spell_list_names()
+MOB_SPELL_LISTS = parse_mob_spell_lists()
+SPELL_LIST_IDS_SORTED = sorted(MOB_SPELL_LISTS.keys())
+
+# Load job abilities data
+JOB_ABILITIES_BY_JOB, ABILITY_NAMES = parse_job_abilities()
 
 ROLE_FALLBACKS = {
     "TANK": {
@@ -3464,6 +3552,8 @@ class TrustEditor(tk.Tk):
         self.main_job_var = tk.StringVar()
         self.sub_job_var = tk.StringVar(value="NONE")
         self.auto_attack_var = tk.BooleanVar(value=True)
+        self.spell_list_var = tk.StringVar(value="")  # Custom spell list ID
+        self.spell_list_status_var = tk.StringVar(value="Current: None")  # Status display
         self.gear_rows = []
 
         # Create a scrollable frame for the general tab
@@ -4040,6 +4130,7 @@ class TrustEditor(tk.Tk):
         list_header_frame = ttk.Frame(left_frame)
         list_header_frame.pack(fill=tk.X, padx=5, pady=5)
         ttk.Label(list_header_frame, text="Gambits", font=("TkDefaultFont", 10, "bold")).pack(side=tk.LEFT)
+        ttk.Button(list_header_frame, text="🔄 Refresh Warnings", command=self.refresh_gambit_list, width=18).pack(side=tk.LEFT, padx=5)
 
         # Gambit treeview with scrollbar and icon columns
         list_container = ttk.Frame(left_frame)
@@ -4051,7 +4142,7 @@ class TrustEditor(tk.Tk):
         # Create treeview with columns for icons
         self.gambits_tree = ttk.Treeview(
             list_container,
-            columns=("lock", "dynamic", "enabled", "name"),
+            columns=("lock", "dynamic", "enabled", "warning", "name"),
             show="headings",
             yscrollcommand=list_scrollbar.set,
             selectmode="browse",
@@ -4063,12 +4154,14 @@ class TrustEditor(tk.Tk):
         self.gambits_tree.column("lock", width=30, anchor="center", stretch=False)
         self.gambits_tree.column("dynamic", width=30, anchor="center", stretch=False)
         self.gambits_tree.column("enabled", width=30, anchor="center", stretch=False)
+        self.gambits_tree.column("warning", width=30, anchor="center", stretch=False)
         self.gambits_tree.column("name", width=200, anchor="w", stretch=True)
 
         # Configure headings
         self.gambits_tree.heading("lock", text="🔒")
         self.gambits_tree.heading("dynamic", text="⚡")
         self.gambits_tree.heading("enabled", text="✓")
+        self.gambits_tree.heading("warning", text="⚠")
         self.gambits_tree.heading("name", text="Name")
 
         self.gambits_tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
@@ -4076,6 +4169,7 @@ class TrustEditor(tk.Tk):
 
         self.gambits_tree.bind("<<TreeviewSelect>>", self.on_gambit_select)
         self.gambits_tree.bind("<Button-1>", self.on_gambit_tree_click)
+        self.gambits_tree.bind("<Motion>", self.on_gambit_tree_motion)
 
         # List controls
         controls_frame = ttk.Frame(left_frame)
@@ -4086,9 +4180,34 @@ class TrustEditor(tk.Tk):
         ttk.Button(controls_frame, text="⬆", command=self.move_gambit_up, width=3).pack(side=tk.LEFT, padx=2)
         ttk.Button(controls_frame, text="⬇", command=self.move_gambit_down, width=3).pack(side=tk.LEFT, padx=2)
 
+        buttons_frame = ttk.Frame(left_frame)
+        buttons_frame.pack(pady=5, fill=tk.X, padx=5)
+
         ttk.Button(
-            left_frame, text="📖 Palette / Examples", command=self.open_gambit_palette
-        ).pack(pady=5)
+            buttons_frame, text="📖 Palette / Examples", command=self.open_gambit_palette
+        ).pack(side=tk.LEFT, padx=2)
+
+        ttk.Button(
+            buttons_frame, text="📋 Spell List Manager", command=self.open_spell_list_manager
+        ).pack(side=tk.LEFT, padx=2)
+
+        # Spell list status
+        status_frame = ttk.Frame(left_frame)
+        status_frame.pack(pady=(0, 5), fill=tk.X, padx=5)
+
+        self.spell_list_status_lbl = ttk.Label(
+            status_frame, textvariable=self.spell_list_status_var, font=("TkDefaultFont", 9, "italic")
+        )
+        self.spell_list_status_lbl.pack(anchor="w")
+
+        # Set up traces to update spell list status when values change
+        self.spell_list_var.trace_add("write", self.update_spell_list_status)
+        self.main_job_var.trace_add("write", self.update_spell_list_status)
+
+        # Set up traces to refresh gambit list when jobs or spell list change (for warning validation)
+        self.spell_list_var.trace_add("write", lambda *args: self.refresh_gambit_list())
+        self.main_job_var.trace_add("write", lambda *args: self.refresh_gambit_list())
+        self.sub_job_var.trace_add("write", lambda *args: self.refresh_gambit_list())
 
         # Right pane: Gambit editor (larger - more typing space)
         right_frame = ttk.Frame(paned)
@@ -4410,10 +4529,204 @@ class TrustEditor(tk.Tk):
         finally:
             self._updating_gambit = False
 
+    def get_gambit_validation_status(self, gambit):
+        """
+        Check if a gambit has any issues based on current job/subjob/spell list.
+        Returns dict with:
+        - warning: error message if there's an issue, None if valid
+        - unchecked_reason: reason why gambit can't be validated, None if it can be/was checked
+        """
+        # Skip validation for dynamic gambits (they have custom logic)
+        if gambit.get("dynamic", False):
+            return {"warning": None, "unchecked_reason": "Dynamic Lua logic (works at runtime)"}
+
+        reaction = gambit.get("reaction", "")
+        selector = gambit.get("selector", "")
+        sel_arg = gambit.get("sel_arg", "")
+
+        main_job = self.main_job_var.get()
+        subjob = self.sub_job_var.get()
+        custom_spell_list = self.spell_list_var.get()
+
+        # Only validate MA (magic) and JA (job ability) reactions
+        if reaction == "MA":
+            # Validate spell is in spell list
+            if not sel_arg or sel_arg == "0":
+                # Empty or placeholder selector, skip validation
+                return {"warning": None, "unchecked_reason": "Template spell (uses dynamic selection)"}
+
+            # Get the spell list ID
+            spell_list_id = None
+            if custom_spell_list:
+                try:
+                    spell_list_id = int(custom_spell_list)
+                except (ValueError, TypeError):
+                    return {"warning": "Invalid custom spell list", "unchecked_reason": None}
+            elif main_job and main_job in JOB_SPELL_LISTS:
+                spell_list_id = JOB_SPELL_LISTS[main_job]
+
+            if not spell_list_id or spell_list_id not in MOB_SPELL_LISTS:
+                return {"warning": "No spell list assigned to trust", "unchecked_reason": None}
+
+            # Get available spells in this list
+            spells_in_list = MOB_SPELL_LISTS[spell_list_id]["spells"]
+            spell_ids_in_list = {s["spell_id"] for s in spells_in_list}
+            list_name = MOB_SPELL_LISTS[spell_list_id]["name"]
+
+            # Handle spell families
+            if sel_arg.startswith("xi.magic.spellFamily."):
+                # Extract family constant name (e.g., "ENLIGHT" from "xi.magic.spellFamily.ENLIGHT")
+                family_name = sel_arg[len("xi.magic.spellFamily."):].upper()
+                family_id = MAGIC_FAMILIES.get(family_name)
+
+                if family_id is None:
+                    # Unknown family, skip validation
+                    return {"warning": None, "unchecked_reason": f"Custom/unknown spell family (validation skipped)"}
+
+                # Get all spells that belong to this family
+                family_spells = FAMILY_SPELLS.get(family_id, set())
+
+                if not family_spells:
+                    # No spells in this family, skip validation
+                    return {"warning": None, "unchecked_reason": f"Spell family validation skipped"}
+
+                # Check if ANY spell from this family is available in the spell list
+                has_any_spell = any(spell_id in spell_ids_in_list for spell_id in family_spells)
+
+                if not has_any_spell:
+                    # Get spell names from the family for error message
+                    spell_names_in_family = [SPELL_NAMES.get(sid, f"Spell({sid})") for sid in list(family_spells)[:3]]
+                    return {"warning": f"No {family_name} spells ({', '.join(spell_names_in_family)}) in {list_name}", "unchecked_reason": None}
+
+            # Handle specific spells
+            else:
+                # Convert constant name to spell ID
+                spell_id = None
+                if sel_arg.startswith("xi.magic.spell."):
+                    # Extract spell constant name (e.g., "CURE" from "xi.magic.spell.CURE")
+                    spell_name = sel_arg[len("xi.magic.spell."):].upper()
+                    spell_id = MAGIC_SPELLS.get(spell_name)
+                else:
+                    # Try parsing as numeric ID
+                    try:
+                        spell_id = int(sel_arg)
+                        if spell_id <= 0:
+                            spell_id = None
+                    except (ValueError, TypeError):
+                        spell_id = None
+
+                if spell_id is None:
+                    # Couldn't resolve spell, skip validation
+                    return {"warning": None, "unchecked_reason": "Custom spell reference (validation skipped)"}
+
+                # Check if spell is in the spell list
+                if spell_id not in spell_ids_in_list:
+                    spell_name = SPELL_NAMES.get(spell_id, f"Spell({spell_id})")
+                    return {"warning": f"Spell '{spell_name}' not in {list_name}", "unchecked_reason": None}
+
+        elif reaction == "JA":
+            # Validate job ability is available to main job or subjob
+            if not sel_arg or sel_arg == "0":
+                # Empty or placeholder selector, skip validation
+                return {"warning": None, "unchecked_reason": "Template ability (uses dynamic selection)"}
+
+            # Convert constant name to ability ID
+            ability_id = None
+            if sel_arg.startswith("xi.ja."):
+                # Extract ability constant name (e.g., "BERSERK" from "xi.ja.BERSERK")
+                ability_name = sel_arg[len("xi.ja."):].upper()
+                ability_id = JOB_ABILITIES.get(ability_name)
+            else:
+                # Try parsing as numeric ID
+                try:
+                    ability_id = int(sel_arg)
+                    if ability_id <= 0:
+                        ability_id = None
+                except (ValueError, TypeError):
+                    ability_id = None
+
+            if ability_id is None:
+                # Couldn't resolve ability, skip validation
+                return {"warning": None, "unchecked_reason": "Custom ability reference (validation skipped)"}
+
+            # Check if ability exists in any job
+            ability_found = False
+            for job_abilities in JOB_ABILITIES_BY_JOB.values():
+                if ability_id in job_abilities:
+                    ability_found = True
+                    break
+            if not ability_found:
+                return {"warning": f"Unknown ability({ability_id})", "unchecked_reason": None}
+
+            # Check if main job or subjob has this ability
+            main_job_has_ability = False
+            subjob_has_ability = False
+
+            if main_job:
+                main_job_id = JOBS.get(main_job)
+                if main_job_id and main_job_id in JOB_ABILITIES_BY_JOB:
+                    main_job_has_ability = ability_id in JOB_ABILITIES_BY_JOB[main_job_id]
+
+            if subjob and subjob != "NONE":
+                subjob_id = JOBS.get(subjob)
+                if subjob_id and subjob_id in JOB_ABILITIES_BY_JOB:
+                    subjob_has_ability = ability_id in JOB_ABILITIES_BY_JOB[subjob_id]
+
+            if not main_job_has_ability and not subjob_has_ability:
+                ability_name = ABILITY_NAMES.get(ability_id, f"Ability({ability_id})")
+                jobs_have_it = []
+                for job_name, job_id in JOBS.items():
+                    if job_name != "NONE" and job_id in JOB_ABILITIES_BY_JOB:
+                        if ability_id in JOB_ABILITIES_BY_JOB[job_id]:
+                            jobs_have_it.append(job_name)
+                if jobs_have_it:
+                    return {"warning": f"{ability_name} only for {', '.join(jobs_have_it[:2])}", "unchecked_reason": None}
+                else:
+                    return {"warning": f"{ability_name} not available to {main_job or 'unknown'}", "unchecked_reason": None}
+
+        # Reaction type can't be validated (not MA or JA)
+        if reaction and reaction not in ("MA", "JA"):
+            return {"warning": None, "unchecked_reason": f"{reaction} reaction (not validated)"}
+
+        return {"warning": None, "unchecked_reason": None}
+
+    def update_spell_list_status(self, *args):
+        """Update the spell list status display."""
+        custom_list = self.spell_list_var.get()
+        main_job = self.main_job_var.get()
+
+        if custom_list:
+            # Custom spell list is set
+            try:
+                list_id = int(custom_list)
+                if list_id in MOB_SPELL_LISTS:
+                    list_name = MOB_SPELL_LISTS[list_id]["name"]
+                    self.spell_list_status_var.set(f"Current: {list_name} [ID: {list_id}] (custom)")
+                else:
+                    self.spell_list_status_var.set(f"Current: Invalid ID {custom_list}")
+            except (ValueError, TypeError):
+                self.spell_list_status_var.set("Current: Invalid spell list")
+        elif main_job and main_job in JOB_SPELL_LISTS:
+            # Using default job-based spell list
+            default_list_id = JOB_SPELL_LISTS[main_job]
+            list_name = MOB_SPELL_LISTS.get(default_list_id, {}).get("name", f"Unknown({default_list_id})")
+            self.spell_list_status_var.set(f"Current: {list_name} [ID: {default_list_id}] (default for {main_job})")
+        else:
+            # No spell list
+            self.spell_list_status_var.set("Current: None")
+
     def refresh_gambit_list(self):
         """Update the treeview with current gambit data."""
         # Save current selection
         current_selection = self.selected_gambit_index
+
+        # Clear old warnings and unchecked reasons
+        if not hasattr(self, 'gambit_warnings'):
+            self.gambit_warnings = {}
+        if not hasattr(self, 'gambit_unchecked'):
+            self.gambit_unchecked = {}
+        self.gambit_warnings.clear()
+        self.gambit_unchecked.clear()
 
         # Clear treeview
         for item in self.gambits_tree.get_children():
@@ -4426,17 +4739,32 @@ class TrustEditor(tk.Tk):
             dynamic = gambit.get("dynamic", False)
             enabled = gambit.get("enabled", True)
 
+            # Get validation status
+            status = self.get_gambit_validation_status(gambit)
+            warning_message = status.get("warning")
+            unchecked_reason = status.get("unchecked_reason")
+
             # Icon display
             lock_icon = "🔒" if locked else ""
             dynamic_icon = "⚡" if dynamic else ""
             enabled_icon = "✓" if enabled else ""
+            # Show ⚠ if there's a warning, ? if unchecked, otherwise empty
+            warning_icon = "⚠" if warning_message else ("?" if unchecked_reason else "")
 
-            self.gambits_tree.insert(
+            item_id = self.gambits_tree.insert(
                 "",
                 "end",
                 iid=str(i),
-                values=(lock_icon, dynamic_icon, enabled_icon, name)
+                values=(lock_icon, dynamic_icon, enabled_icon, warning_icon, name)
             )
+
+            # Store messages for tooltip access
+            if warning_message:
+                self.gambit_warnings[item_id] = warning_message
+                self.gambits_tree.item(item_id, tags=("has_warning",))
+            elif unchecked_reason:
+                self.gambit_unchecked[item_id] = unchecked_reason
+                self.gambits_tree.item(item_id, tags=("unchecked",))
 
         # Restore selection
         if current_selection is not None and current_selection < len(self.gambit_data):
@@ -4490,6 +4818,121 @@ class TrustEditor(tk.Tk):
         # If this is the currently selected gambit, reload it in the editor
         if self.selected_gambit_index == index:
             self.load_gambit_to_editor(index)
+
+    def on_gambit_tree_motion(self, event):
+        """Handle mouse motion over treeview to show warning tooltips."""
+        region = self.gambits_tree.identify_region(event.x, event.y)
+        if region != "cell":
+            # Remove any existing tooltip
+            if hasattr(self, '_tooltip_window') and self._tooltip_window:
+                try:
+                    self._tooltip_window.destroy()
+                except tk.TclError:
+                    pass
+                self._tooltip_window = None
+            return
+
+        column = self.gambits_tree.identify_column(event.x)
+        item = self.gambits_tree.identify_row(event.y)
+
+        # Only show tooltip for warning column (#4)
+        if column != "#4" or not item:
+            # Remove any existing tooltip
+            if hasattr(self, '_tooltip_window') and self._tooltip_window:
+                try:
+                    self._tooltip_window.destroy()
+                except tk.TclError:
+                    pass
+                self._tooltip_window = None
+            return
+
+        # Check if this item has a warning or unchecked reason
+        tooltip_text = None
+        tooltip_type = None
+        if item in self.gambit_warnings:
+            tooltip_text = self.gambit_warnings[item]
+            tooltip_type = "warning"
+        elif item in self.gambit_unchecked:
+            tooltip_text = self.gambit_unchecked[item]
+            tooltip_type = "unchecked"
+
+        if not tooltip_text:
+            # Remove any existing tooltip
+            if hasattr(self, '_tooltip_window') and self._tooltip_window:
+                try:
+                    self._tooltip_window.destroy()
+                except tk.TclError:
+                    pass
+                self._tooltip_window = None
+                self._current_tooltip_item = None
+            return
+
+        # Show tooltip
+        self._show_tooltip(event.x_root, event.y_root, tooltip_text, tooltip_type, item)
+
+    def _show_tooltip(self, x, y, text, tooltip_type="warning", item_id=None):
+        """Show a tooltip at the specified position."""
+        # If we're hovering over a different item, destroy the old tooltip
+        if hasattr(self, '_current_tooltip_item') and self._current_tooltip_item != item_id:
+            if hasattr(self, '_tooltip_window') and self._tooltip_window:
+                try:
+                    self._tooltip_window.destroy()
+                except tk.TclError:
+                    pass
+                self._tooltip_window = None
+
+        # If a tooltip already exists for this item, don't recreate it
+        if hasattr(self, '_tooltip_window') and self._tooltip_window:
+            try:
+                if self._tooltip_window.winfo_exists() and hasattr(self, '_current_tooltip_item') and self._current_tooltip_item == item_id:
+                    return
+            except tk.TclError:
+                pass
+
+        # Create tooltip window
+        self._tooltip_window = tk.Toplevel(self)
+        self._tooltip_window.wm_overrideredirect(True)
+        self._tooltip_window.wm_geometry(f"+{x+10}+{y+10}")
+
+        # Set tooltip colors based on type
+        if tooltip_type == "unchecked":
+            bg_color = "#f0f0f0"  # Light gray for informational
+            text_prefix = "ℹ️ "
+        else:  # warning
+            bg_color = "#ffffe0"  # Light yellow for warnings
+            text_prefix = "⚠️ "
+
+        # Add label with tooltip text
+        label = tk.Label(
+            self._tooltip_window,
+            text=text_prefix + text,
+            background=bg_color,
+            foreground="#000000",
+            relief=tk.SOLID,
+            borderwidth=1,
+            wraplength=250,
+            justify=tk.LEFT,
+            font=("TkDefaultFont", 9),
+            padx=5,
+            pady=3
+        )
+        label.pack()
+
+        # Track which item this tooltip is for
+        self._current_tooltip_item = item_id
+
+        # Schedule tooltip to disappear after 5 seconds
+        self._tooltip_window.after(5000, self._hide_tooltip)
+
+    def _hide_tooltip(self):
+        """Hide the tooltip."""
+        if hasattr(self, '_tooltip_window') and self._tooltip_window:
+            try:
+                self._tooltip_window.destroy()
+            except tk.TclError:
+                pass
+            self._tooltip_window = None
+            self._current_tooltip_item = None
 
     def add_gambit(self):
         """Add a new gambit to the list."""
@@ -4766,6 +5209,189 @@ class TrustEditor(tk.Tk):
         ttk.Button(btn_frame, text="Close", command=win.destroy).pack(
             side=tk.RIGHT, padx=5
         )
+
+    def open_spell_list_manager(self):
+        """Open a window to browse and select spell lists."""
+        win = tk.Toplevel(self)
+        win.title("📋 Spell List Manager")
+        win.geometry("900x600")
+
+        # Configure grid
+        win.columnconfigure(0, weight=1)
+        win.columnconfigure(1, weight=2)
+        win.rowconfigure(0, weight=1)
+
+        # Left: Spell List Browser
+        left_frame = ttk.Frame(win, padding=5)
+        left_frame.grid(row=0, column=0, sticky="nsew")
+
+        # Search box
+        search_frame = ttk.Frame(left_frame)
+        search_frame.pack(fill=tk.X, pady=(0, 5))
+
+        ttk.Label(search_frame, text="🔍 Search:").pack(side=tk.LEFT, padx=(0, 5))
+        search_var = tk.StringVar()
+        search_entry = ttk.Entry(search_frame, textvariable=search_var)
+        search_entry.pack(side=tk.LEFT, fill=tk.X, expand=True)
+
+        # Spell list listbox
+        list_frame = ttk.Frame(left_frame)
+        list_frame.pack(fill=tk.BOTH, expand=True)
+
+        list_scroll = ttk.Scrollbar(list_frame)
+        list_scroll.pack(side=tk.RIGHT, fill=tk.Y)
+
+        spell_list_box = tk.Listbox(list_frame, yscrollcommand=list_scroll.set)
+        spell_list_box.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        list_scroll.config(command=spell_list_box.yview)
+
+        # Counter label
+        count_label = ttk.Label(left_frame, text="", font=("TkDefaultFont", 9, "italic"))
+        count_label.pack(anchor="w", pady=(5, 0))
+
+        # Right: Spell Preview
+        right_frame = ttk.Frame(win, padding=10)
+        right_frame.grid(row=0, column=1, sticky="nsew")
+
+        info_lbl = ttk.Label(
+            right_frame, text="👈 Select a spell list to preview spells", font=("TkDefaultFont", 12, "bold")
+        )
+        info_lbl.pack(anchor="w", pady=(0, 10))
+
+        # Spell preview with scrollbar
+        preview_frame = ttk.Frame(right_frame)
+        preview_frame.pack(fill=tk.BOTH, expand=True, pady=(0, 10))
+
+        preview_scroll = ttk.Scrollbar(preview_frame)
+        preview_scroll.pack(side=tk.RIGHT, fill=tk.Y)
+
+        spell_preview = tk.Listbox(preview_frame, yscrollcommand=preview_scroll.set)
+        spell_preview.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        preview_scroll.config(command=spell_preview.yview)
+
+        # Selected list display
+        selected_id_frame = ttk.Frame(right_frame)
+        selected_id_frame.pack(fill=tk.X, pady=(0, 10))
+
+        ttk.Label(selected_id_frame, text="Selected Spell List ID:").pack(side=tk.LEFT, padx=(0, 5))
+        selected_id_var = tk.StringVar(value="(none selected)")
+        selected_id_lbl = ttk.Label(selected_id_frame, textvariable=selected_id_var, font=("TkDefaultFont", 11, "bold"))
+        selected_id_lbl.pack(side=tk.LEFT)
+
+        # Populate spell list box
+        all_spell_lists = []
+        def populate_spell_list(filter_text=""):
+            spell_list_box.delete(0, tk.END)
+            all_spell_lists.clear()
+
+            filter_lower = filter_text.lower()
+            matching_count = 0
+
+            for list_id in SPELL_LIST_IDS_SORTED:
+                list_info = MOB_SPELL_LISTS[list_id]
+                list_name = list_info["name"]
+                spells = list_info.get("spells", [])
+                spell_count = len(spells)
+                display_text = f"[{spell_count:3}] {list_name} [ID: {list_id}]"
+
+                if not filter_text or filter_lower in list_name.lower() or filter_lower in str(list_id):
+                    spell_list_box.insert(tk.END, display_text)
+                    all_spell_lists.append((list_id, list_name, list_info))
+                    matching_count += 1
+
+            count_label.configure(text=f"Found {matching_count} spell lists")
+
+        populate_spell_list()
+
+        # Search callback
+        def on_search(*args):
+            populate_spell_list(search_var.get())
+
+        search_var.trace_add("write", on_search)
+
+        # Selection callback
+        def on_spell_list_select(event=None):
+            selection = spell_list_box.curselection()
+            if not selection:
+                return
+
+            index = selection[0]
+            if index < len(all_spell_lists):
+                list_id, list_name, list_info = all_spell_lists[index]
+
+                # Update info
+                info_lbl.configure(text=f"✓ {list_name}")
+                selected_id_var.set(str(list_id))
+
+                # Populate spell preview
+                spell_preview.delete(0, tk.END)
+                spells = list_info.get("spells", [])
+
+                if spells:
+                    for spell in spells:
+                        spell_id = spell.get("spell_id")
+                        spell_name = SPELL_NAMES.get(spell_id, f"Unknown({spell_id})")
+                        min_lvl = spell.get("min_level", "?")
+                        max_lvl = spell.get("max_level", "?")
+                        spell_preview.insert(tk.END, f"{spell_name:30} Lv {min_lvl:3} - {max_lvl:3}")
+                else:
+                    spell_preview.insert(tk.END, "(no spells in this list)")
+
+        spell_list_box.bind("<<ListboxSelect>>", on_spell_list_select)
+
+        # Auto-select current spell list if one is assigned
+        current_list_id = None
+        custom_list = self.spell_list_var.get()
+        if custom_list:
+            try:
+                current_list_id = int(custom_list)
+            except (ValueError, TypeError):
+                pass
+        elif self.main_job_var.get() and self.main_job_var.get() in JOB_SPELL_LISTS:
+            # Use the default spell list for the main job
+            current_list_id = JOB_SPELL_LISTS[self.main_job_var.get()]
+
+        if current_list_id is not None:
+            # Find the index of this list in all_spell_lists and select it
+            for idx, (list_id, list_name, list_info) in enumerate(all_spell_lists):
+                if list_id == current_list_id:
+                    spell_list_box.selection_set(idx)
+                    spell_list_box.see(idx)
+                    # Trigger the select callback to populate the preview
+                    on_spell_list_select()
+                    break
+
+        # Buttons
+        btn_frame = ttk.Frame(right_frame)
+        btn_frame.pack(side=tk.BOTTOM, fill=tk.X, pady=5)
+
+        def apply_selection(close_window=True):
+            selection = spell_list_box.curselection()
+            if not selection:
+                messagebox.showwarning("No Selection", "Please select a spell list first.")
+                return
+
+            index = selection[0]
+            if index < len(all_spell_lists):
+                list_id, list_name, _ = all_spell_lists[index]
+                self.spell_list_var.set(str(list_id))
+                if close_window:
+                    win.destroy()
+
+        def on_double_click(event):
+            """Double-click to apply and close."""
+            apply_selection(close_window=True)
+
+        spell_list_box.bind("<Double-Button-1>", on_double_click)
+
+        def on_escape(event):
+            """Esc key to close window."""
+            win.destroy()
+
+        win.bind("<Escape>", on_escape)
+
+        ttk.Button(btn_frame, text="Apply Selection", command=lambda: apply_selection(close_window=True)).pack(side=tk.RIGHT, padx=2)
+        ttk.Button(btn_frame, text="Close", command=win.destroy).pack(side=tk.RIGHT, padx=2)
 
     def open_listener_palette(self):
         """Open a window with listener templates and examples."""
@@ -5595,6 +6221,7 @@ class TrustEditor(tk.Tk):
         self.auto_attack_var.set(True)
         self.main_job_var.set("")
         self.sub_job_var.set("NONE")
+        self.spell_list_var.set("")
         self.tp_trigger_var.set("")
         self.tp_select_var.set("")
         self.tp_value_var.set("")
@@ -5637,6 +6264,7 @@ class TrustEditor(tk.Tk):
         tpl.setdefault("main_job", "")
         tpl.setdefault("sub_job", "NONE")
         tpl.setdefault("gear", [])
+        tpl.setdefault("spell_list", "")  # Optional custom spell list ID
         tp = tpl.get("tp_settings", {}) or {}
         tpl["tp_settings"] = {
             "trigger": tp.get("trigger", ""),
@@ -5918,6 +6546,7 @@ class TrustEditor(tk.Tk):
         self.auto_attack_var.set(data.get("auto_attack", True))
         self.main_job_var.set(data.get("main_job", ""))
         self.sub_job_var.set(data.get("sub_job", "NONE") or "NONE")
+        self.spell_list_var.set(str(data.get("spell_list", "")))
         gear_map = {g.get("slot"): g for g in data.get("gear", [])}
         for row in self.gear_rows:
             slot = row["slot"]
@@ -5974,9 +6603,10 @@ class TrustEditor(tk.Tk):
         if data.get("custom_code"):
             self.custom_code.insert("1.0", data.get("custom_code", ""))
 
-        # Refresh stats preview
+        # Refresh stats preview and spell list status
         if hasattr(self, "refresh_stats_preview"):
             self.refresh_stats_preview()
+        self.update_spell_list_status()
 
     def is_form_dirty(self):
         if self.main_job_var.get() or (
@@ -6107,6 +6737,7 @@ class TrustEditor(tk.Tk):
             "main_job": self.main_job_var.get(),
             "sub_job": self.sub_job_var.get(),
             "auto_attack": self.auto_attack_var.get(),
+            "spell_list": self.spell_list_var.get(),
             "gear": [],
             "mods": [],
             "gambits": [],
@@ -6307,8 +6938,18 @@ class TrustEditor(tk.Tk):
             if sub_job and sub_job != "NONE":
                 job_change_str += f"    mob:changesJob(xi.job.{sub_job})\n"
 
-            # Set spell list if available
-            if main_job in JOB_SPELL_LISTS:
+            # Set spell list: use custom if provided, otherwise use job default
+            spell_list_id = data.get("spell_list", "")
+            if spell_list_id:
+                # Custom spell list specified
+                try:
+                    list_id = int(spell_list_id)
+                    if list_id in MOB_SPELL_LISTS:
+                        job_change_str += f"    mob:setSpellList({list_id})\n"
+                except (ValueError, TypeError):
+                    pass
+            elif main_job in JOB_SPELL_LISTS:
+                # Use default job-based spell list
                 job_change_str += f"    mob:setSpellList({JOB_SPELL_LISTS[main_job]})\n"
 
         # Aggregate mods
