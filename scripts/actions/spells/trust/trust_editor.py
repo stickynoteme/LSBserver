@@ -538,6 +538,23 @@ SUBJOB_CHOICES = ["NONE"] + SORTED_JOBS
 COND_ARG_EFFECTS = sorted([f"xi.effect.{k}" for k in EFFECTS.keys()])
 COND_ARG_EFFECT_FLAGS = sorted([f"xi.effectFlag.{k}" for k in EFFECT_FLAGS.keys()])
 
+# Dynamic lists for selector arguments (based on selector type)
+SEL_ARG_MAGIC_FAMILIES = sorted([f"xi.magic.spellFamily.{k}" for k in MAGIC_FAMILIES.keys()])
+SEL_ARG_MAGIC_SPELLS = sorted([f"xi.magic.spell.{k}" for k in MAGIC_SPELLS.keys()])
+SEL_ARG_JOB_ABILITIES = sorted([f"xi.ja.{k}" for k in JOB_ABILITIES.keys()])
+SEL_ARG_WEAPONSKILLS = sorted([f"xi.ws.{k}" for k in WEAPONSKILLS.keys()])
+SEL_ARG_INDI_FAMILIES = sorted([f"xi.magic.spellFamily.{k}" for k in MAGIC_FAMILIES.keys() if k.startswith("INDI_")])
+SEL_ARG_STORM_FAMILIES = sorted([f"xi.magic.spellFamily.{k}" for k in MAGIC_FAMILIES.keys() if "STORM" in k.upper()])
+SEL_ARG_HELIX_FAMILIES = sorted([f"xi.magic.spellFamily.{k}" for k in MAGIC_FAMILIES.keys() if "HELIX" in k.upper()])
+
+# For SPECIFIC selector, include all types
+SEL_ARG_SPECIFIC = sorted(
+    SEL_ARG_MAGIC_FAMILIES +
+    SEL_ARG_MAGIC_SPELLS +
+    SEL_ARG_JOB_ABILITIES +
+    SEL_ARG_WEAPONSKILLS
+)
+
 # Load spell list data
 SPELL_NAMES, SPELL_FAMILIES, FAMILY_SPELLS = parse_spell_list_names()
 MOB_SPELL_LISTS = parse_mob_spell_lists()
@@ -5009,29 +5026,27 @@ class TrustEditor(tk.Tk):
         self.gambit_selector_var = tk.StringVar()
         ttk.Entry(selector_frame, textvariable=self.gambit_selector_var).pack(fill=tk.X, expand=True, padx=10, pady=5)
 
-        # Selector Arg - with picker button by label
+        # Selector Arg - with dynamic picker/info button by label
         sel_arg_label_frame = ttk.Frame(self.gambit_editor_frame)
         sel_arg_label_frame.pack(fill=tk.X, padx=10, pady=(5, 0))
 
         ttk.Label(sel_arg_label_frame, text="📝 Selector Argument", font=("TkDefaultFont", 11, "bold")).pack(side=tk.LEFT)
-        ttk.Button(
+        self.sel_arg_button = ttk.Button(
             sel_arg_label_frame,
             text="...",
             width=3,
-            command=lambda: self.open_filter_list_dialog(
-                ALL_CONSTANTS,
-                self.gambit_sel_arg_var,
-                title="Pick Selector Arg",
-                help_category="SEL_ARG",
-                selector_var=self.gambit_selector_var
-            )
-        ).pack(side=tk.LEFT, padx=5)
+            command=self.on_sel_arg_button_click
+        )
+        self.sel_arg_button.pack(side=tk.LEFT, padx=5)
+        self.sel_arg_button.pack_forget()  # Hidden by default
 
         sel_arg_frame = ttk.Frame(self.gambit_editor_frame)
         sel_arg_frame.pack(fill=tk.X, padx=10, pady=(0, 5))
 
         self.gambit_sel_arg_var = tk.StringVar()
         ttk.Entry(sel_arg_frame, textvariable=self.gambit_sel_arg_var).pack(fill=tk.X, expand=True, padx=10, pady=5)
+        # Trace selector changes to update button visibility and type
+        self.gambit_selector_var.trace_add("write", self.update_sel_arg_button)
 
         # Add help text for the icon meanings
         icons_help_frame = ttk.LabelFrame(self.gambit_editor_frame, text="List Icon Meanings", padding=5)
@@ -5233,6 +5248,110 @@ class TrustEditor(tk.Tk):
 
         message = info_map.get(condition, f"Condition: {condition}\n\nNo information available.")
         messagebox.showinfo(f"Condition Help - {condition}", message)
+
+    def update_sel_arg_button(self, *args):
+        """Show/hide selector argument button based on selected selector."""
+        selector = self.gambit_selector_var.get()
+        # All selectors have some help information
+        if selector in SORTED_AI_SELECTS:
+            self.sel_arg_button.pack(side=tk.LEFT, padx=5)
+            # Selectors that take specific options get "..." button
+            # Selectors that only take 0 or simple values get "?" button
+            if selector in ("HIGHEST", "LOWEST", "RANDOM", "BEST_SAMBA", "HIGHEST_WALTZ",
+                           "ENTRUSTED", "EN_MOB_WEAKNESS", "STORM_MOB_WEAKNESS", "HELIX_MOB_WEAKNESS"):
+                self.sel_arg_button.config(text="?")
+            else:
+                self.sel_arg_button.config(text="...")
+        else:
+            self.sel_arg_button.pack_forget()
+
+    def on_sel_arg_button_click(self):
+        """Handle selector argument button click - either picker or info."""
+        selector = self.gambit_selector_var.get()
+
+        # Selectors with picker dialogs (that have interesting options)
+        if selector == "SPECIFIC":
+            self.open_filter_list_dialog(
+                SEL_ARG_SPECIFIC,
+                self.gambit_sel_arg_var,
+                title="Pick Specific Action (SPECIFIC)",
+                help_category="SEL_ARG_SPECIFIC"
+            )
+        elif selector == "MB_ELEMENT":
+            options = ["0"] + SEL_ARG_MAGIC_FAMILIES
+            self.open_filter_list_dialog(
+                options,
+                self.gambit_sel_arg_var,
+                title="Pick Element Family (MB_ELEMENT)",
+                help_category="SEL_ARG_MB_ELEMENT"
+            )
+        elif selector == "BEST_AGAINST_TARGET":
+            options = ["0"] + SEL_ARG_MAGIC_FAMILIES
+            self.open_filter_list_dialog(
+                options,
+                self.gambit_sel_arg_var,
+                title="Pick Element Family (BEST_AGAINST_TARGET)",
+                help_category="SEL_ARG_BEST_AGAINST_TARGET"
+            )
+        elif selector == "BEST_INDI":
+            self.open_filter_list_dialog(
+                SEL_ARG_INDI_FAMILIES,
+                self.gambit_sel_arg_var,
+                title="Pick Indi Family (BEST_INDI)",
+                help_category="SEL_ARG_BEST_INDI"
+            )
+        elif selector == "STORM_DAY":
+            options = ["0"] + SEL_ARG_STORM_FAMILIES
+            self.open_filter_list_dialog(
+                options,
+                self.gambit_sel_arg_var,
+                title="Pick Storm Family (STORM_DAY)",
+                help_category="SEL_ARG_STORM_DAY"
+            )
+        elif selector == "HELIX_DAY":
+            options = ["0"] + SEL_ARG_HELIX_FAMILIES
+            self.open_filter_list_dialog(
+                options,
+                self.gambit_sel_arg_var,
+                title="Pick Helix Family (HELIX_DAY)",
+                help_category="SEL_ARG_HELIX_DAY"
+            )
+        elif selector == "SPECIAL_AYAME":
+            options = ["0"] + SEL_ARG_WEAPONSKILLS
+            self.open_filter_list_dialog(
+                options,
+                self.gambit_sel_arg_var,
+                title="Pick Weaponskill (SPECIAL_AYAME)",
+                help_category="SEL_ARG_SPECIAL_AYAME"
+            )
+        else:
+            # Info dialog for selectors that only take 0 or simple values
+            self.show_selector_info(selector)
+
+    def show_selector_info(self, selector):
+        """Show a gamer-friendly explanation of the selector."""
+        info_map = {
+            "HIGHEST": "Highest Rated Choice\n\nSelects the single best option from available choices, rated by effectiveness.\n\nArgument: Use 0 - no specific override needed",
+
+            "LOWEST": "Lowest Rated Choice\n\nSelects the weakest option from available choices.\n\nArgument: Use 0 - typically for testing or edge cases",
+
+            "RANDOM": "Random Selection\n\nPicks a random action from available choices. Adds unpredictability to AI behavior.\n\nArgument: Use 0 - selection is randomized",
+
+            "BEST_SAMBA": "Best Samba for Party\n\nAutomatically picks the most beneficial Samba (Haste, Accuracy, etc.) for current party needs.\n\nArgument: Use 0 - system handles selection",
+
+            "HIGHEST_WALTZ": "Best Waltz Available\n\nAutomatically picks the highest tier Waltz skill available.\n\nArgument: Use 0 - system handles selection",
+
+            "ENTRUSTED": "Entrust Behavior\n\nSpecial Geomancer behavior - applies buffs based on entrust status.\n\nArgument: Use 0 - system handles selection",
+
+            "EN_MOB_WEAKNESS": "En-spell for Mob Weakness\n\nAutomatically applies the best en-spell (fire, ice, wind, etc.) matching the mob's elemental weakness.\n\nArgument: Use 0 - system automatically detects weakness",
+
+            "STORM_MOB_WEAKNESS": "Storm for Mob Weakness\n\nAutomatically applies the best Storm spell matching the mob's elemental weakness.\n\nArgument: Use 0 - system automatically detects weakness",
+
+            "HELIX_MOB_WEAKNESS": "Helix for Mob Weakness\n\nAutomatically applies the best Helix spell matching the mob's elemental weakness.\n\nArgument: Use 0 - system automatically detects weakness",
+        }
+
+        message = info_map.get(selector, f"Selector: {selector}\n\nNo information available.")
+        messagebox.showinfo(f"Selector Help - {selector}", message)
 
     def save_current_gambit(self):
         """Save the current editor state to gambit data."""
@@ -7257,6 +7376,80 @@ class TrustEditor(tk.Tk):
                     "info": "Selectors like HIGHEST/LOWEST/MB_ELEMENT/BEST_SAMBA typically accept 0 when no explicit override is needed.",
                 }
             )
+        elif category == "SEL_ARG_SPECIFIC":
+            items.append(
+                {
+                    "name": "<HELP>",
+                    "info": "SPECIFIC Selector: Choose an exact action to perform.\n\nPick from available options:\n- xi.magic.spell.* (specific spells like CURE_IV, HASTE)\n- xi.magic.spellFamily.* (spell categories like CURE, HASTE)\n- xi.ja.* (job abilities like PROVOKE, SENTINEL)\n- xi.ws.* (weaponskills like RAMPAGE, VORPAL_BLADE)\n\nUse when Reaction is MA (magic), JA (ability), or WS (weaponskill).",
+                }
+            )
+            for spell_fam in SEL_ARG_MAGIC_FAMILIES:
+                items.append({"name": spell_fam, "info": f"Magic family: {spell_fam}"})
+            for spell in SEL_ARG_MAGIC_SPELLS:
+                items.append({"name": spell, "info": f"Specific spell: {spell}"})
+            for ability in SEL_ARG_JOB_ABILITIES:
+                items.append({"name": ability, "info": f"Job ability: {ability}"})
+            for ws in SEL_ARG_WEAPONSKILLS:
+                items.append({"name": ws, "info": f"Weaponskill: {ws}"})
+        elif category == "SEL_ARG_MB_ELEMENT":
+            items.append(
+                {
+                    "name": "<HELP>",
+                    "info": "MB_ELEMENT Selector: Pick spell family for magic burst.\n\nDuring a magic burst window, cast spells of the specified element for extra damage.\n\nOptions:\n- 0: System auto-selects best element based on skillchain\n- xi.magic.spellFamily.FIRE: Use Fire spells\n- xi.magic.spellFamily.BLIZZARD: Use Ice spells\n- xi.magic.spellFamily.AERO: Use Wind spells\n- xi.magic.spellFamily.STONE: Use Earth spells\n- xi.magic.spellFamily.WATER: Use Water spells\n- xi.magic.spellFamily.THUNDER: Use Lightning spells\n- xi.magic.spellFamily.LIGHT: Use Light spells\n- xi.magic.spellFamily.DARK: Use Dark spells",
+                }
+            )
+            items.append({"name": "0", "info": "Auto-select best element for magic burst (recommended)"})
+            for family in SEL_ARG_MAGIC_FAMILIES:
+                items.append({"name": family, "info": f"Magic burst with {family} element"})
+        elif category == "SEL_ARG_BEST_AGAINST_TARGET":
+            items.append(
+                {
+                    "name": "<HELP>",
+                    "info": "BEST_AGAINST_TARGET Selector: Pick element effective against mob.\n\nAutomatically selects and casts spells effective against the target's elemental weakness.\n\nOptions:\n- 0: System detects target weakness and picks best spell\n- xi.magic.spellFamily.FIRE: Force Fire spells\n- xi.magic.spellFamily.BLIZZARD: Force Ice spells\n- (other elements): Force specific element\n\nRecommended: Use 0 to let system detect weakness.",
+                }
+            )
+            items.append({"name": "0", "info": "Auto-detect mob weakness and cast accordingly"})
+            for family in SEL_ARG_MAGIC_FAMILIES:
+                items.append({"name": family, "info": f"Use {family} against target"})
+        elif category == "SEL_ARG_BEST_INDI":
+            items.append(
+                {
+                    "name": "<HELP>",
+                    "info": "BEST_INDI Selector: Pick Geomancer Indi spell.\n\nChoose which Indi-spell to maintain. Pick the one most useful for your party role.\n\nExamples:\n- xi.magic.spellFamily.INDI_HASTE: Speed boost\n- xi.magic.spellFamily.INDI_REFRESH: MP regen\n- xi.magic.spellFamily.INDI_REGEN: HP regen\n- xi.magic.spellFamily.INDI_DEX: Dexterity boost\n- xi.magic.spellFamily.INDI_STR: Strength boost",
+                }
+            )
+            for family in SEL_ARG_INDI_FAMILIES:
+                items.append({"name": family, "info": f"Maintain {family} buff on party"})
+        elif category == "SEL_ARG_STORM_DAY":
+            items.append(
+                {
+                    "name": "<HELP>",
+                    "info": "STORM_DAY Selector: Pick Geomancer Storm spell for day effect.\n\nApply Storm buffs based on the day (Firesday, Windsday, etc.).\n\nOptions:\n- 0: System picks appropriate Storm for current day\n- xi.magic.spellFamily.STORM_STR: Storm that boosts STR\n- xi.magic.spellFamily.STORM_DEX: Storm that boosts DEX\n- (other Storm families): Other stats\n\nRecommended: Use 0 to let system optimize.",
+                }
+            )
+            items.append({"name": "0", "info": "Auto-select Storm based on current day"})
+            for family in SEL_ARG_STORM_FAMILIES:
+                items.append({"name": family, "info": f"Apply {family} effect"})
+        elif category == "SEL_ARG_HELIX_DAY":
+            items.append(
+                {
+                    "name": "<HELP>",
+                    "info": "HELIX_DAY Selector: Pick Geomancer Helix spell for day effect.\n\nApply Helix debuffs to enemies based on the day (Firesday, Windsday, etc.).\n\nOptions:\n- 0: System picks appropriate Helix for current day\n- xi.magic.spellFamily.HELIX_STR: Helix that weakens STR\n- xi.magic.spellFamily.HELIX_DEX: Helix that weakens DEX\n- (other Helix families): Weaken other stats\n\nRecommended: Use 0 to let system optimize.",
+                }
+            )
+            items.append({"name": "0", "info": "Auto-select Helix based on current day"})
+            for family in SEL_ARG_HELIX_FAMILIES:
+                items.append({"name": family, "info": f"Apply {family} effect"})
+        elif category == "SEL_ARG_SPECIAL_AYAME":
+            items.append(
+                {
+                    "name": "<HELP>",
+                    "info": "SPECIAL_AYAME Selector: Ayame-specific weaponskill logic.\n\nUse with Ayame trust NPC only. Pick a weaponskill for her special attack rotation.\n\nOptions:\n- 0: System uses default Ayame rotation\n- xi.ws.RAMPAGE: Heavy multi-hit WS\n- xi.ws.VORPAL_BLADE: Critical-based WS\n- (other WSs): Specific weaponskill\n\nNote: Ayame has special rules for TP management.",
+                }
+            )
+            items.append({"name": "0", "info": "Use default Ayame rotation"})
+            for ws in SEL_ARG_WEAPONSKILLS:
+                items.append({"name": ws, "info": f"Ayame uses {ws}"})
         elif category == "TP_TRIGGER":
             for k in SORTED_AI_TP_TRIGGERS:
                 desc = TP_TRIGGER_DESCRIPTIONS.get(k, "")
