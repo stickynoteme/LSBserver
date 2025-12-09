@@ -534,6 +534,10 @@ SORTED_JOBS = sorted([job for job in JOBS.keys() if job != "NONE"])
 MAIN_JOB_CHOICES = [""] + SORTED_JOBS
 SUBJOB_CHOICES = ["NONE"] + SORTED_JOBS
 
+# Formatted lists for condition arguments
+COND_ARG_EFFECTS = sorted([f"xi.effect.{k}" for k in EFFECTS.keys()])
+COND_ARG_EFFECT_FLAGS = sorted([f"xi.effectFlag.{k}" for k in EFFECT_FLAGS.keys()])
+
 # Load spell list data
 SPELL_NAMES, SPELL_FAMILIES, FAMILY_SPELLS = parse_spell_list_names()
 MOB_SPELL_LISTS = parse_mob_spell_lists()
@@ -3138,6 +3142,7 @@ class TrustEditor(tk.Tk):
         filter_by_job=False,  # Added for job filtering
         filter_by_weapon=False,  # Added for weapon filtering
         selector_var=None,
+        is_text_widget=False,  # If True, target_var is a Text widget instead of StringVar
     ):
         dialog = tk.Toplevel(self)
         dialog.title(title)
@@ -3428,7 +3433,13 @@ class TrustEditor(tk.Tk):
         def choose(event=None):
             if listbox.curselection():
                 sel = listbox.get(tk.ACTIVE)
-                target_var.set(sel)
+                if is_text_widget:
+                    # For Text widgets, clear and insert the value
+                    target_var.delete("1.0", tk.END)
+                    target_var.insert("1.0", sel)
+                else:
+                    # For StringVar, use set()
+                    target_var.set(sel)
             dialog.destroy()
 
         def on_select(event=None):
@@ -4929,12 +4940,22 @@ class TrustEditor(tk.Tk):
 
         self.gambit_cond_var = tk.StringVar()
         ttk.Entry(cond_frame, textvariable=self.gambit_cond_var).pack(fill=tk.X, expand=True, padx=10, pady=5)
+        # Trace condition changes to update button visibility
+        self.gambit_cond_var.trace_add("write", self.update_cond_arg_button_visibility)
 
-        # Condition Arg - multi-line
+        # Condition Arg - multi-line with picker button
         cond_arg_label_frame = ttk.Frame(self.gambit_editor_frame)
         cond_arg_label_frame.pack(fill=tk.X, padx=10, pady=(5, 0))
 
         ttk.Label(cond_arg_label_frame, text="💭 Condition Argument", font=("TkDefaultFont", 11, "bold")).pack(side=tk.LEFT)
+        self.cond_arg_button = ttk.Button(
+            cond_arg_label_frame,
+            text="...",
+            width=3,
+            command=self.on_cond_arg_button_click
+        )
+        self.cond_arg_button.pack(side=tk.LEFT, padx=5)
+        self.cond_arg_button.pack_forget()  # Hidden by default
 
         cond_arg_frame = ttk.Frame(self.gambit_editor_frame)
         cond_arg_frame.pack(fill=tk.X, padx=10, pady=(0, 5))
@@ -5106,6 +5127,112 @@ class TrustEditor(tk.Tk):
         if self.selected_gambit_index is not None:
             self.save_current_gambit()
             self.refresh_gambit_list()
+
+    def update_cond_arg_button_visibility(self, *args):
+        """Show/hide condition argument button based on selected condition."""
+        condition = self.gambit_cond_var.get()
+        # Conditions that need a picker dialog ("..." button)
+        picker_conditions = ("STATUS", "NOT_STATUS", "STATUS_FLAG")
+        # All other conditions get info button ("?")
+        info_conditions = ("ALWAYS", "HPP_LT", "HPP_GTE", "MPP_LT", "TP_LT", "TP_GTE",
+                          "HAS_TOP_ENMITY", "NOT_HAS_TOP_ENMITY", "SC_AVAILABLE", "NOT_SC_AVAILABLE",
+                          "MB_AVAILABLE", "READYING_WS", "READYING_MS", "READYING_JA", "CASTING_MA",
+                          "RANDOM", "NO_SAMBA", "NO_STORM", "PT_HAS_TANK", "NOT_PT_HAS_TANK",
+                          "IS_ECOSYSTEM", "HP_MISSING")
+
+        if condition in picker_conditions or condition in info_conditions:
+            self.cond_arg_button.pack(side=tk.LEFT, padx=5)
+            # Update button text
+            if condition in picker_conditions:
+                self.cond_arg_button.config(text="...")
+            else:
+                self.cond_arg_button.config(text="?")
+        else:
+            self.cond_arg_button.pack_forget()
+
+    def on_cond_arg_button_click(self):
+        """Handle condition argument button click - either picker or info."""
+        condition = self.gambit_cond_var.get()
+
+        # Conditions with picker dialogs
+        if condition == "STATUS":
+            self.open_filter_list_dialog(
+                COND_ARG_EFFECTS,
+                self.gambit_cond_arg_text,
+                title="Pick Effect (STATUS)",
+                help_category="COND_ARG_EFFECTS",
+                is_text_widget=True
+            )
+        elif condition == "NOT_STATUS":
+            self.open_filter_list_dialog(
+                COND_ARG_EFFECTS,
+                self.gambit_cond_arg_text,
+                title="Pick Effect (NOT_STATUS)",
+                help_category="COND_ARG_EFFECTS",
+                is_text_widget=True
+            )
+        elif condition == "STATUS_FLAG":
+            self.open_filter_list_dialog(
+                COND_ARG_EFFECT_FLAGS,
+                self.gambit_cond_arg_text,
+                title="Pick Effect Flag (STATUS_FLAG)",
+                help_category="COND_ARG_EFFECT_FLAGS",
+                is_text_widget=True
+            )
+        else:
+            # Info dialog for all other conditions
+            self.show_condition_info(condition)
+
+    def show_condition_info(self, condition):
+        """Show a gamer-friendly explanation of the condition."""
+        info_map = {
+            "ALWAYS": "Always Trigger\n\nThis condition is ALWAYS true. Use it for gambits that should run every time on cooldown with no restrictions.\n\nArgument: Leave empty (0) - no value needed",
+
+            "HPP_LT": "Health Below (%)\n\nTriggers when the target's health is LESS THAN the specified percentage.\n\nArgument: Enter a number 0-100 (percent)\nExamples: 30 (below 30%), 50 (below 50%), 75 (below 75%)",
+
+            "HPP_GTE": "Health At or Above (%)\n\nTriggers when the target's health is AT or ABOVE the specified percentage.\n\nArgument: Enter a number 0-100 (percent)\nExamples: 50 (at or above 50%), 100 (full health)",
+
+            "MPP_LT": "Mana Below (%)\n\nTriggers when the target's mana is LESS THAN the specified percentage.\n\nArgument: Enter a number 0-100 (percent)\nExamples: 20 (below 20%), 50 (below 50%)",
+
+            "TP_LT": "TP Below Amount\n\nTriggers when the target's TP is LESS THAN the specified amount.\n\nArgument: Enter a TP value (typically 0-3000)\nExamples: 1000 (below 1000 TP), 1500 (below 1500 TP)",
+
+            "TP_GTE": "TP At or Above Amount\n\nTriggers when the target's TP is AT or ABOVE the specified amount. Useful for timing weaponskills.\n\nArgument: Enter a TP value (typically 0-3000)\nExamples: 1000 (at or above 1000 TP), 2500 (ready for WS)",
+
+            "HAS_TOP_ENMITY": "Has Enmity (Tank)\n\nTriggers when the target currently has the most enmity (is the tank).\n\nArgument: Leave empty (0) - no value needed",
+
+            "NOT_HAS_TOP_ENMITY": "Not Tank\n\nTriggers when the target does NOT have the most enmity (is not tanking).\n\nArgument: Leave empty (0) - no value needed",
+
+            "SC_AVAILABLE": "Skillchain Ready\n\nTriggers when a skillchain opportunity is available to close.\n\nArgument: Leave empty (0) - no value needed",
+
+            "NOT_SC_AVAILABLE": "No Skillchain Ready\n\nTriggers when there is no skillchain opportunity available.\n\nArgument: Leave empty (0) - no value needed",
+
+            "MB_AVAILABLE": "Magic Burst Window Open\n\nTriggers when there's an active magic burst window (enchantment effect on target).\n\nArgument: Leave empty (0) - no value needed",
+
+            "READYING_WS": "Target Preparing Weaponskill\n\nTriggers when the target is readying/charging a weaponskill.\n\nArgument: Leave empty (0) - no value needed",
+
+            "READYING_MS": "Target Preparing Mob Skill\n\nTriggers when the target is readying a mob-specific skill.\n\nArgument: Leave empty (0) - no value needed",
+
+            "READYING_JA": "Target Preparing Job Ability\n\nTriggers when the target is readying a job ability.\n\nArgument: Leave empty (0) - no value needed",
+
+            "CASTING_MA": "Target Casting Magic\n\nTriggers when the target is currently casting a spell.\n\nArgument: Leave empty (0) - no value needed",
+
+            "RANDOM": "Random Chance\n\nTriggers randomly. Useful for adding unpredictability to AI behavior.\n\nArgument: Enter a percentage (0-100)\nExamples: 25 (25% chance), 50 (50% chance), 100 (always)",
+
+            "NO_SAMBA": "No Samba Active\n\nTriggers when the target does NOT have any Dancer Samba effects (Haste Samba, etc.).\n\nArgument: Leave empty (0) - no value needed",
+
+            "NO_STORM": "No Storm Active\n\nTriggers when the target does NOT have any Geomancer Storm effect active.\n\nArgument: Leave empty (0) - no value needed",
+
+            "PT_HAS_TANK": "Party Has Tank\n\nTriggers when your party includes a member with tank role/capability.\n\nArgument: Leave empty (0) - no value needed",
+
+            "NOT_PT_HAS_TANK": "Party Missing Tank\n\nTriggers when your party does NOT have a tank.\n\nArgument: Leave empty (0) - no value needed",
+
+            "IS_ECOSYSTEM": "Mob Type Check\n\nTriggers when the target mob's ecosystem ID matches the specified value.\n\nArgument: Enter the ecosystem ID (numeric value)\nExamples: Check LandSandBoat wiki for specific mob ecosystem IDs",
+
+            "HP_MISSING": "HP Deficit\n\nTriggers when the target is missing more than the specified amount of health points.\n\nArgument: Enter an HP value (numeric)\nExamples: 100 (missing more than 100 HP), 500 (missing more than 500 HP)",
+        }
+
+        message = info_map.get(condition, f"Condition: {condition}\n\nNo information available.")
+        messagebox.showinfo(f"Condition Help - {condition}", message)
 
     def save_current_gambit(self):
         """Save the current editor state to gambit data."""
@@ -7014,6 +7141,34 @@ class TrustEditor(tk.Tk):
                     "info": "Toggle the ⚡ button to enable Dynamic Mode for a gambit row. This signals that the gambit uses custom Lua logic or advanced expressions in its arguments, preventing the editor from trying to force them into standard enum format. Use this for complex conditions or selectors.",
                 }
             )
+        elif category == "COND_ARG_EFFECTS":
+            items.append(
+                {
+                    "name": "<HELP>",
+                    "info": "NOT_STATUS: Condition is TRUE if target does NOT have the selected effect.\n\nSelect from all available xi.effect.* constants. When you choose an option, it will be inserted into the Condition Argument field.\n\nExamples:\n- xi.effect.PHALANX: Check if target doesn't have Phalanx\n- xi.effect.SENTINEL: Check if target doesn't have Sentinel\n- xi.effect.SLEEP_I: Check if target isn't asleep\n\nUse this with the NOT_STATUS condition to conditionally prevent or modify actions based on which buffs/debuffs the target currently lacks.",
+                }
+            )
+            for effect_name in COND_ARG_EFFECTS:
+                items.append(
+                    {
+                        "name": effect_name,
+                        "info": f"{effect_name}\n\nUse this constant with NOT_STATUS to check if the target doesn't have this effect.",
+                    }
+                )
+        elif category == "COND_ARG_EFFECT_FLAGS":
+            items.append(
+                {
+                    "name": "<HELP>",
+                    "info": "STATUS_FLAG: Condition is TRUE if target has any effect matching the selected flag.\n\nSelect from all available xi.effectFlag.* constants. When you choose an option, it will be inserted into the Condition Argument field.\n\nCommon flags:\n- xi.effectFlag.DISPELABLE: Effects that can be dispelled (Haste, Protect, Shell, etc.)\n- xi.effectFlag.ERASABLE: Effects that can be erased (Protect, Shell, etc.)\n- xi.effectFlag.WALTZABLE: Effects that can be removed by Healing Waltz\n- xi.effectFlag.SONG: Bard songs\n- xi.effectFlag.ROLL: Corsair rolls\n- xi.effectFlag.FOOD: Food buffs\n\nUse this with the STATUS_FLAG condition to check for categories of effects rather than specific effects.",
+                }
+            )
+            for flag_name in COND_ARG_EFFECT_FLAGS:
+                items.append(
+                    {
+                        "name": flag_name,
+                        "info": f"{flag_name}\n\nUse this constant with STATUS_FLAG to check if the target has any effect with this flag.",
+                    }
+                )
         elif category == "COND_ARG":
             items.append(
                 {

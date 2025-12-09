@@ -3,7 +3,8 @@
     "allow": [
       "Bash(grep:*)",
       "Bash(python3 -m py_compile:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(python3:*)"
     ],
     "deny": [],
     "ask": []
