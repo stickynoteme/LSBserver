@@ -2194,10 +2194,10 @@ JOB_TEMPLATES = {
                 "sel_arg": "0",
             },
             {
-                "name": "Box Step",
+                "name": "Box Step (No Daze)",
                 "target": "TARGET",
-                "condition": "ALWAYS",
-                "cond_arg": "0",
+                "condition": "NOT_STATUS",
+                "cond_arg": "xi.effect.SLUGGISH_DAZE_5",
                 "reaction": "JA",
                 "selector": "SPECIFIC",
                 "sel_arg": "xi.ja.BOX_STEP",
