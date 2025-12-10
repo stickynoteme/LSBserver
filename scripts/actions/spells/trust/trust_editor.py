@@ -6768,8 +6768,9 @@ class TrustEditor(tk.Tk):
 
         ttk.Button(controls_frame, text="➕ Add", command=self.add_gambit, width=10).pack(side=tk.LEFT, padx=2)
         ttk.Button(controls_frame, text="❌ Remove", command=self.remove_gambit, width=10).pack(side=tk.LEFT, padx=2)
-        ttk.Button(controls_frame, text="⬆", command=self.move_gambit_up, width=3).pack(side=tk.LEFT, padx=2)
-        ttk.Button(controls_frame, text="⬇", command=self.move_gambit_down, width=3).pack(side=tk.LEFT, padx=2)
+        ttk.Button(controls_frame, text="📋 Duplicate", command=self.duplicate_gambit, width=12).pack(side=tk.LEFT, padx=2)
+        ttk.Button(controls_frame, text="↑ Up", command=self.move_gambit_up, width=6).pack(side=tk.LEFT, padx=2)
+        ttk.Button(controls_frame, text="↓ Down", command=self.move_gambit_down, width=8).pack(side=tk.LEFT, padx=2)
 
         buttons_frame = ttk.Frame(left_frame)
         buttons_frame.pack(pady=5, fill=tk.X, padx=5)
@@ -7801,6 +7802,28 @@ class TrustEditor(tk.Tk):
         self.selected_gambit_index = idx + 1
         self.refresh_gambit_list()
         self.gambits_tree.selection_set(str(self.selected_gambit_index))
+
+    def duplicate_gambit(self):
+        """Create a copy of the selected gambit and add it after the original."""
+        if self.selected_gambit_index is None:
+            messagebox.showwarning("No Selection", "Please select a gambit to duplicate.")
+            return
+
+        # Create a deep copy of the selected gambit
+        original_gambit = self.gambit_data[self.selected_gambit_index]
+        duplicated_gambit = original_gambit.copy()
+        duplicated_gambit["name"] = f"{original_gambit.get('name', 'Gambit')} (Copy)"
+
+        # Insert the copy right after the original
+        self.gambit_data.insert(self.selected_gambit_index + 1, duplicated_gambit)
+        self.refresh_gambit_list()
+
+        # Select the newly created copy
+        self.selected_gambit_index = self.selected_gambit_index + 1
+        self.gambits_tree.selection_set(str(self.selected_gambit_index))
+        self.gambits_tree.see(str(self.selected_gambit_index))
+        self.load_gambit_to_editor(self.selected_gambit_index)
+        self.set_editor_state("normal")
 
     def open_gambit_palette(self):
         """Open a window with gambit templates and examples."""
