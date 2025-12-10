@@ -2597,22 +2597,22 @@ JOB_ROLE_MAP = {
 }
 
 # Default spell lists for jobs (based on mob_spell_lists.sql)
-# NOTE: These map job names to mob_spell_list IDs from mob_spell_lists.sql
-# For manual spell list creation, use the new SPELL_LISTS_BY_JOB dictionary above
-# which contains complete spell IDs for each job and job combination.
+# NOTE: These map job names to the new comprehensive spell list IDs
+# Auto-generated from spell directories, includes all available spells for each job
 JOB_SPELL_LISTS = {
-    "WHM": 1,  # Beastmen_WHM
-    "BLM": 2,  # Beastmen_BLM
-    "RDM": 3,  # Beastmen_RDM
-    "PLD": 4,  # Beastmen_PLD
-    "DRK": 5,  # Beastmen_DRK
-    "BRD": 6,  # Beastmen_BRD
-    "NIN": 7,  # Beastmen_NIN
-    "BLU": 8,  # Beastmen_BLU
-    "SMN": 30,  # Yagudo_SMN
-    "GEO": 2,  # Fallback to BLM? Or custom.
-    "SCH": 3,  # Fallback to RDM?
-    "RUN": 4,  # Fallback to PLD?
+    "WHM": 578,  # WHM_SPELLS (270 spells)
+    "BLM": 566,  # BLM_SPELLS (291 spells)
+    "RDM": 574,  # RDM_SPELLS (109 spells)
+    "PLD": 573,  # PLD_SPELLS (109 spells)
+    "DRK": 570,  # DRK_SPELLS (109 spells)
+    "BRD": 568,  # BRD_SPELLS (205 spells)
+    "NIN": 572,  # NIN_SPELLS (152 spells)
+    "BLU": 567,  # BLU_SPELLS (220 spells)
+    "SMN": 577,  # SMN_SPELLS (130 spells)
+    "GEO": 571,  # GEO_SPELLS (109 spells)
+    "SCH": 576,  # SCH_SPELLS (109 spells)
+    "RUN": 575,  # RUN_SPELLS (109 spells)
+    "BST": 569,  # BST_SPELLS (109 spells)
 }
 
 # Base delay set by changeJob in lua_baseentity.cpp
