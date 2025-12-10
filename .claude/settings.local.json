@@ -4,7 +4,9 @@
       "Bash(grep:*)",
       "Bash(python3 -m py_compile:*)",
       "Bash(find:*)",
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "Bash(xargs ls:*)",
+      "Bash(ls:*)"
     ],
     "deny": [],
     "ask": []
