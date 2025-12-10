@@ -9156,6 +9156,31 @@ class TrustEditor(tk.Tk):
 
         base_template["main_job"] = main_job
         base_template["sub_job"] = sub_job or "NONE"
+
+        # Auto-select spell list based on job combination
+        # Try job combination list first (e.g., WHM_RDM = 653), then fall back to main job only
+        spell_list_id = None
+        if sub_job and sub_job != "NONE":
+            # Try both orderings: main_sub and sub_main
+            # Example: BLU/BLM would check BLU_BLM first, then BLM_BLU
+            combo_keys = [f"{main_job}_{sub_job}", f"{sub_job}_{main_job}"]
+
+            # Look for combination spell list in MOB_SPELL_LISTS by name
+            for combo_key in combo_keys:
+                for list_id, list_data in MOB_SPELL_LISTS.items():
+                    if list_data.get("name") == combo_key:
+                        spell_list_id = list_id
+                        break
+                if spell_list_id:  # Exit outer loop if found
+                    break
+
+        # If no combo list found or no sub job, use main job spell list
+        if not spell_list_id and main_job in JOB_SPELL_LISTS:
+            spell_list_id = JOB_SPELL_LISTS[main_job]
+
+        if spell_list_id:
+            base_template["spell_list"] = spell_list_id
+
         return base_template
 
     def can_equip(self, job_name, item_jobs_mask):
