@@ -6,7 +6,8 @@
       "Bash(find:*)",
       "Bash(python3:*)",
       "Bash(xargs ls:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(sort:*)"
     ],
     "deny": [],
     "ask": []
