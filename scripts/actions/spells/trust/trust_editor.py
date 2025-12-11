@@ -8632,9 +8632,8 @@ class TrustEditor(tk.Tk):
                     for spell in spells:
                         spell_id = spell.get("spell_id")
                         spell_name = SPELL_NAMES.get(spell_id, f"Unknown({spell_id})")
-                        min_lvl = spell.get("min_level", "?")
                         max_lvl = spell.get("max_level", "?")
-                        spell_preview.insert(tk.END, f"{spell_name:30} Lv {min_lvl:3} - {max_lvl:3}")
+                        spell_preview.insert(tk.END, f"{spell_name:30} LV {max_lvl}")
                 else:
                     spell_preview.insert(tk.END, "(no spells in this list)")
 
