@@ -461,12 +461,11 @@ def generate_sql_insertions(spell_lists, spell_levels, start_list_id=566):
 
         lines.append(f"-- {job_name} ({list_id})")
         for spell_id, level in spell_data:
-            # Use the level from BG Wiki
-            min_lvl = 1
-            max_lvl = level
+            # Spell learn level (not a range - both min and max are the learn level)
+            lvl = level
             stats['total_entries'] += 1
             stats['with_levels'] += 1
-            lines.append(f"INSERT INTO `mob_spell_lists` VALUES ('{job_name}',{list_id},{spell_id},{min_lvl},{max_lvl});")
+            lines.append(f"INSERT INTO `mob_spell_lists` VALUES ('{job_name}',{list_id},{spell_id},{lvl},{lvl});")
         lines.append("")
         list_id += 1
 
@@ -507,11 +506,11 @@ def generate_sql_insertions(spell_lists, spell_levels, start_list_id=566):
             lines.append(f"-- {combo_name} ({list_id})")
             for spell_id in sorted(combined_spells.keys()):
                 level = combined_spells[spell_id]
-                min_lvl = 1
-                max_lvl = level
+                # Spell learn level (not a range - both min and max are the learn level)
+                lvl = level
                 stats['total_entries'] += 1
                 stats['with_levels'] += 1
-                lines.append(f"INSERT INTO `mob_spell_lists` VALUES ('{combo_name}',{list_id},{spell_id},{min_lvl},{max_lvl});")
+                lines.append(f"INSERT INTO `mob_spell_lists` VALUES ('{combo_name}',{list_id},{spell_id},{lvl},{lvl});")
             lines.append("")
             list_id += 1
 
