@@ -5046,105 +5046,2093 @@ SUB_JOB_EXTRAS = {
 }
 
 TARGET_DESCRIPTIONS = {
-    "SELF": "The trust itself.",
-    "PARTY": "All party members.",
-    "TARGET": "Current combat target.",
-    "MASTER": "The summoning player.",
-    "TANK": "Party member with top enmity.",
-    "MELEE": "Frontline DD allies.",
-    "RANGED": "Ranged allies.",
-    "CASTER": "Casters in party.",
-    "TOP_ENMITY": "Entity with highest enmity.",
-    "CURILLA": "Curilla only (special).",
-    "PARTY_DEAD": "Party members who are KO’d.",
-    "PARTY_MULTI": "Multiple party targets.",
+    "SELF": """The trust itself.
+    
+Use Case: Self-buffs, self-heals, or abilities that affect only the trust.
+Examples:
+  • Buffs: Haste, Protect, Shell, Stoneskin, Phalanx, Regen
+  • Job Abilities: Sentinel (PLD), Souleater (DRK), Hasso (SAM), Berserk (WAR)
+  • Stances: Defender, Aggressor, Third Eye, Focus
+  
+Common Patterns:
+  • NOT_STATUS check for reapplying buffs when they wear off
+  • ALWAYS condition for maintaining critical self-buffs
+  • MPP_LT for MP conservation (only buff when MP is available)
+  
+⚠️ Note: Some abilities automatically target SELF regardless of target selector.""",
+
+    "PARTY": """All party members including the master and other trusts.
+    
+Use Case: Party-wide buffs, heals, or support actions. The gambit will iterate through 
+all valid party members and check conditions against each one.
+Examples:
+  • Healing: Cure spells when ally HP drops below threshold
+  • Buffs: Refresh, Haste, Protect, Shell
+  • Support: Raise/Reraise on KO'd members
+  • Status removal: Paralyna, Silena, Blindna, Erase
+  
+Common Patterns:
+  • HPP_LT with Cure family for healing wounded allies
+  • NOT_STATUS with buff effects to maintain party buffs
+  • STATUS with debuff effects to cleanse harmful statuses
+  
+💡 Tip: The trust will check each party member individually. The first member matching
+all conditions will be selected as the target.
+Range: 15 yalms (party members outside this range will be skipped).""",
+
+    "TARGET": """Current combat target (the enemy the trust is engaged with).
+    
+Use Case: Offensive actions, debuffs, or reactions to enemy behavior.
+Examples:
+  • Offensive Magic: Nukes, DoTs (Bio, Dia, Poison)
+  • Debuffs: Slow, Paralyze, Blind, Gravity, Bind
+  • Enmity: Flash, Provoke, Shield Bash
+  • Weaponskills: Standard melee finishers
+  
+Common Patterns:
+  • NOT_STATUS with debuff effects to apply crowd control
+  • SC_AVAILABLE to coordinate skillchains
+  • MB_AVAILABLE for magic bursting
+  • IS_ECOSYSTEM for element-specific strategies
+  
+⚠️ Important: If the trust has no battle target, this selector fails. Ensure the trust
+is engaged before using TARGET-based gambits.""",
+
+    "MASTER": """The summoning player who called the trust.
+    
+Use Case: Master-focused support, protection, or conditional reactions.
+Examples:
+  • Protection: Cover, healing priority for master
+  • Buffs: Maintaining critical buffs on the player
+  • Emergency actions: Cures when master's HP is critical
+  • Geomancer: Entrust and Indi-spells
+  
+Common Patterns:
+  • HPP_LT with high-priority Cure to keep master alive
+  • HAS_TOP_ENMITY to detect when master is tanking
+  • STATUS checks for master-specific debuff removal
+  
+�� Tip: Useful for healer trusts to prioritize the player's survival or for support
+trusts that enhance the player's performance.""",
+
+    "TANK": """Party member with tank role (PLD or RUN main job).
+    
+Use Case: Tank-focused support, healing, or coordination.
+Examples:
+  • Priority Healing: Cure spells on the tank
+  • Enmity Support: Flash when tank loses hate
+  • Defensive Buffs: Protect, Shell, Stoneskin on tank
+  
+Common Patterns:
+  • HPP_LT to keep tank healthy (higher threshold than for others)
+  • NOT_STATUS with defensive buffs
+  
+⚠️ Note: Only searches for party members with PLD or RUN as main job. If no tank
+is present, this selector fails.""",
+
+    "MELEE": """Frontline damage dealers (WAR, MNK, THF, PLD, DRK, BST, SAM, NIN, DRG, BLU, PUP, DNC, RUN).
+    
+Use Case: Melee-specific support and buffs.
+Examples:
+  • Attack Buffs: Haste, Berserk
+  • Support: Healing melee who take damage in close range
+  • Coordination: Skillchain setups
+  
+Common Patterns:
+  • HPP_LT for healing melees in danger
+  • NOT_STATUS with Haste or attack buffs
+  
+💡 Tip: Good for support trusts that want to enhance physical damage dealers.""",
+
+    "RANGED": """Ranged damage dealers (RNG or COR main job).
+    
+Use Case: Ranged-specific support.
+Examples:
+  • Buffs: Haste, AGI/DEX boost
+  • Support: Healing ranged from a distance
+  
+⚠️ Note: Only RNG and COR are considered ranged. Other jobs using ranged attacks
+(like melee with throwing weapons) are not included.""",
+
+    "CASTER": """Magic users (WHM, BLM, RDM, BRD, SMN, BLU, SCH, GEO, RUN).
+    
+Use Case: Caster-focused support and coordination.
+Examples:
+  • MP Support: Refresh, Ballad
+  • Magic Buffs: Fast Cast, INT/MND boost
+  • Healing: Priority healing for squishy mages
+  
+Common Patterns:
+  • MPP_LT with Refresh to maintain caster MP
+  • NOT_STATUS with caster buffs
+  
+💡 Tip: Note that some hybrid jobs (BLU, RUN) are in both melee and caster categories.""",
+
+    "TOP_ENMITY": """The party member currently holding the most enmity (tanking).
+    
+Use Case: Supporting whoever is currently tanking, regardless of their job.
+Examples:
+  • Emergency Heals: Critical cures for the current tank
+  • Defensive Support: Stoneskin, Phalanx on current tank
+  • Enmity Management: Flash when enmity holder is struggling
+  
+Common Patterns:
+  • HPP_LT with urgent healing thresholds
+  • NOT_STATUS with defensive buffs
+  
+💡 Tip: Unlike TANK selector, this works with any job that has aggro, not just PLD/RUN.
+Useful for adapting to dynamic threat situations.""",
+
+    "CURILLA": """Targets Curilla specifically (special case for Rainemard).
+    
+Use Case: Trust-specific interactions (primarily for Rainemard's teamwork).
+Examples:
+  • Rainemard buffs Curilla with special priority
+  
+⚠️ Note: Very specialized selector. Searches party for a trust named "Curilla".
+Rarely useful outside of specific trust interaction scripts.""",
+
+    "PARTY_DEAD": """Party members who are knocked out (KO status).
+    
+Use Case: Revival and resurrection actions.
+Examples:
+  • Raise spells: Raise, Raise II, Raise III
+  • Reraise application: Before critical encounters
+  
+Common Patterns:
+  • ALWAYS condition with Raise action
+  • HPP_GTE 0 (always true for KO'd members)
+  
+💡 Tip: Essential for healer trusts. Combine with MA reaction and SPECIFIC selector
+pointing to xi.magic.spell.RAISE or RAISE_II.""",
+
+    "PARTY_MULTI": """Multiple party targets (for multi-target actions).
+    
+Use Case: Area-of-effect abilities or multi-target support.
+Examples:
+  • AoE Buffs: Protectra, Shellra, Barfira, Baraera
+  • AoE Heals: Cura, Curaga
+  
+⚠️ Note: Implementation details may vary. Check the trust's capabilities to ensure
+multi-target actions work as expected.""",
 }
 
 CONDITION_DESCRIPTIONS = {
-    "ALWAYS": "Always true; use to spam on cooldown.",
-    "HPP_LT": "Target HP% < arg (0-100).",
-    "HPP_GTE": "Target HP% >= arg (0-100).",
-    "MPP_LT": "Target MP% < arg.",
-    "TP_LT": "Target TP < arg.",
-    "TP_GTE": "Target TP >= arg.",
-    "STATUS": "Has xi.effect.* equal to arg.",
-    "NOT_STATUS": "Does NOT have xi.effect.* arg.",
-    "STATUS_FLAG": "Has xi.effectFlag.* bitfield arg.",
-    "HAS_TOP_ENMITY": "Target currently tanks.",
-    "NOT_HAS_TOP_ENMITY": "Target does not tank.",
-    "SC_AVAILABLE": "Skillchain is possible. Arg ignored.",
-    "NOT_SC_AVAILABLE": "No SC available. Arg ignored.",
-    "MB_AVAILABLE": "Magic burst window. Arg ignored.",
-    "READYING_WS": "Target readies WS. Arg ignored.",
-    "READYING_MS": "Target readies mob skill.",
-    "READYING_JA": "Target readies job ability.",
-    "CASTING_MA": "Target casting magic.",
-    "RANDOM": "Random chance; arg is percent (0-100).",
-    "NO_SAMBA": "No Samba effect active.",
-    "NO_STORM": "No Storm effect active.",
-    "PT_HAS_TANK": "Party has a tank.",
-    "NOT_PT_HAS_TANK": "Party lacks a tank.",
-    "IS_ECOSYSTEM": "Mob ecosystem matches arg id.",
-    "HP_MISSING": "HP missing >= arg.",
+    "ALWAYS": """Always evaluates to true. Use for actions that should trigger on every check cycle.
+    
+Use Case: Spam abilities on cooldown, maintain constant pressure, or ensure buffs are always active.
+Examples:
+  • Auto-attack toggles
+  • Constant debuff application (Flash, Dia, Bio)
+  • Abilities with long cooldowns that should be used ASAP
+  
+💡 Tip: Be careful with ALWAYS - it will attempt the action every gambit tick. Combine with
+a retry_delay parameter to avoid spamming and wasting MP/TP.
+
+Example: trust:addGambit(ai.t.TARGET, { ai.c.ALWAYS }, { ai.r.MA, ai.s.SPECIFIC, xi.magic.spell.FLASH }, 30)
+This casts Flash every 30 seconds.""",
+
+    "HPP_LT": """Target's HP percentage is LESS THAN the argument value.
+    
+Use Case: Healing triggers, emergency actions, or HP-threshold based tactics.
+Argument Range: 0-100 (percentage)
+
+Common Thresholds:
+  • 25% - Emergency/critical healing
+  • 50% - Standard healing trigger  
+  • 75% - Proactive/preventive healing
+  • 90% - Tank maintenance healing
+  
+Examples:
+  • Heal party when HP < 75%: { ai.c.HPP_LT, 75 }
+  • Emergency Cure IV when HP < 30%: { ai.c.HPP_LT, 30 }
+  • Maintain tank HP above 85%: { ai.c.HPP_LT, 85 }
+  
+💡 Tip: Lower thresholds for emergency actions, higher thresholds for tanks and proactive healing.""",
+
+    "HPP_GTE": """Target's HP percentage is GREATER THAN OR EQUAL TO the argument value.
+    
+Use Case: Conditional buffs, situational actions, or ensuring target is healthy enough.
+Argument Range: 0-100 (percentage)
+
+Common Use Cases:
+  • Only buff if target HP >= 50% (avoid healing + buffing at same time)
+  • Offensive actions when target HP >= 80% (focus on damage when healthy)
+  • Conditional support when HP >= 60%
+  
+Examples:
+  • Buff Haste only if HP >= 70%: { ai.c.HPP_GTE, 70 }
+  • Offensive spells when HP >= 85%: { ai.c.HPP_GTE, 85 }
+  
+💡 Tip: Use to prevent buff/heal conflicts. Ensure healing happens before other support.""",
+
+    "MPP_LT": """Target's MP percentage is LESS THAN the argument value.
+    
+Use Case: MP management, Refresh triggers, or MP-dependent tactics.
+Argument Range: 0-100 (percentage)
+
+Common Thresholds:
+  • 30% - Critical MP conservation, stop nuking
+  • 50% - Refresh/Ballad trigger
+  • 70% - Proactive MP management
+  
+Examples:
+  • Refresh when MP < 50%: { ai.c.MPP_LT, 50 }
+  • Aspir when self MP < 40%: { ai.c.MPP_LT, 40 }
+  • Stop nuking when MP < 25%: Use with NOT_MPP_LT or combine conditions
+  
+💡 Tip: Essential for caster trusts to maintain their MP pool. Combine with PARTY target
+for party-wide Refresh support.""",
+
+    "TP_LT": """Target's TP is LESS THAN the argument value.
+    
+Use Case: TP accumulation checks, pre-weaponskill conditions, or TP-threshold tactics.
+Argument Range: 0-3000 (TP points)
+
+Common Thresholds:
+  • 1000 - Minimum for weaponskills
+  • 1500 - Higher damage weaponskills
+  • 2000 - Maximum damage weaponskills
+  
+Examples:
+  • Store TP ability when TP < 500: { ai.c.TP_LT, 500 }
+  • Meditate when TP < 1000: { ai.c.TP_LT, 1000 }
+  • Build TP before specific thresholds
+  
+💡 Tip: Useful for SAM/MNK trusts that want to manage TP before using weaponskills.""",
+
+    "TP_GTE": """Target's TP is GREATER THAN OR EQUAL TO the argument value.
+    
+Use Case: Weaponskill readiness, TP-consuming abilities, or high-TP tactics.
+Argument Range: 0-3000 (TP points)
+
+Common Thresholds:
+  • 1000 - Ready for weaponskill
+  • 1500 - Optimal damage range
+  • 2000+ - Maximum damage potential
+  
+Examples:
+  • Use WS when TP >= 1000: { ai.c.TP_GTE, 1000 }
+  • Delay WS until TP >= 2000: { ai.c.TP_GTE, 2000 }
+  • TP-consuming abilities at thresholds
+  
+💡 Tip: Coordinate with TP triggers. This is typically used in custom conditions rather
+than standard gambit flows.""",
+
+    "STATUS": """Target HAS the specified status effect active.
+    
+Use Case: Conditional actions based on existing buffs/debuffs, avoiding redundant casts.
+Argument: xi.effect.* constant (658 effect options available)
+
+Common Status Checks:
+  • Buffs: HASTE, PROTECT, SHELL, REGEN, REFRESH, PHALANX
+  • Debuffs: POISON, PARALYSIS, SILENCE, BLIND, SLOW, PLAGUE
+  • Special: SENTINEL, BERSERK, THIRD_EYE, COPY_IMAGE
+  
+Examples:
+  • Cast Erase if target has SILENCE: { ai.c.STATUS, xi.effect.SILENCE }
+  • Use Paralyna if PARALYSIS present: { ai.c.STATUS, xi.effect.PARALYSIS }
+  • Conditional tactics based on BERSERK: { ai.c.STATUS, xi.effect.BERSERK }
+  
+💡 Tip: Use STATUS for cleansing debuffs. Use NOT_STATUS (opposite) for applying buffs.
+⚠️ Important: Check exact effect IDs in scripts/enum/effect.lua for full list.""",
+
+    "NOT_STATUS": """Target DOES NOT HAVE the specified status effect active.
+    
+Use Case: Applying buffs, ensuring status isn't already active, avoiding overwrite.
+Argument: xi.effect.* constant (658 effect options available)
+
+🔥 MOST COMMON CONDITION - Used for 90% of buff applications!
+
+Common Usage Patterns:
+  • Self Buffs: Check if trust lacks Haste/Protect/Shell before casting
+  • Party Buffs: Ensure Refresh/Regen isn't already on party members
+  • Debuffs: Apply status effects to enemies that don't have them
+  
+Popular Examples:
+  • Haste: { ai.c.NOT_STATUS, xi.effect.HASTE }
+  • Protect: { ai.c.NOT_STATUS, xi.effect.PROTECT }
+  • Shell: { ai.c.NOT_STATUS, xi.effect.SHELL }
+  • Refresh: { ai.c.NOT_STATUS, xi.effect.REFRESH }
+  • Phalanx: { ai.c.NOT_STATUS, xi.effect.PHALANX }
+  • Stoneskin: { ai.c.NOT_STATUS, xi.effect.STONESKIN }
+  • Regen: { ai.c.NOT_STATUS, xi.effect.REGEN }
+  • Sentinel (PLD): { ai.c.NOT_STATUS, xi.effect.SENTINEL }
+  • Berserk (WAR): { ai.c.NOT_STATUS, xi.effect.BERSERK }
+  • Third Eye (SAM): { ai.c.NOT_STATUS, xi.effect.THIRD_EYE }
+  • Flash (debuff enemy): { ai.c.NOT_STATUS, xi.effect.FLASH }
+  • Slow (debuff enemy): { ai.c.NOT_STATUS, xi.effect.SLOW }
+  • Paralyze (debuff enemy): { ai.c.NOT_STATUS, xi.effect.PARALYSIS }
+  
+Real Trust Examples:
+1. PLD Curilla maintains Sentinel:
+   trust:addGambit(ai.t.SELF, { ai.c.NOT_STATUS, xi.effect.SENTINEL }, { ai.r.JA, ai.s.SPECIFIC, xi.ja.SENTINEL })
+
+2. WHM maintains party Haste:
+   trust:addGambit(ai.t.PARTY, { ai.c.NOT_STATUS, xi.effect.HASTE }, { ai.r.MA, ai.s.HIGHEST, xi.magic.spellFamily.HASTE })
+
+3. RDM keeps Refresh on casters:
+   trust:addGambit(ai.t.CASTER, { ai.c.NOT_STATUS, xi.effect.REFRESH }, { ai.r.MA, ai.s.HIGHEST, xi.magic.spellFamily.REFRESH })
+
+4. BLM ensures Stoneskin before nuking:
+   trust:addGambit(ai.t.SELF, { ai.c.NOT_STATUS, xi.effect.STONESKIN }, { ai.r.MA, ai.s.SPECIFIC, xi.magic.spell.STONESKIN })
+
+💡 Pro Tips:
+  • NOT_STATUS prevents wasting MP/abilities by recasting active buffs
+  • Essential for all buff-type gambits
+  • The trust will automatically skip targets that already have the buff
+  • Combine with PARTY target to maintain buffs on all party members
+  
+⚠️ Important: Always use NOT_STATUS (not STATUS) when applying buffs to avoid recast waste!
+📚 Reference: See scripts/enum/effect.lua for complete list of 658 effect constants.""",
+
+    "STATUS_FLAG": """Target has status effects matching the specified effect flag bitfield.
+    
+Use Case: Check for categories of effects (erasable, dispelable, beneficial, detrimental).
+Argument: xi.effectFlag.* constant
+
+Common Effect Flags:
+  • ERASABLE - Can be removed by Erase
+  • DISPELABLE - Can be removed by Dispel
+  • FOOD - Food effects
+  • SONG - Bard song effects
+  • ROLL - Corsair roll effects
+  
+Examples:
+  • Cast Erase if erasable debuff: { ai.c.STATUS_FLAG, xi.effectFlag.ERASABLE }
+  • Dispel if enemy has dispelable buff: { ai.c.STATUS_FLAG, xi.effectFlag.DISPELABLE }
+  
+💡 Tip: More flexible than STATUS for checking categories of effects rather than specific ones.
+⚠️ Note: Less commonly used than STATUS/NOT_STATUS. Check xi.effectFlag enum for full options.""",
+
+    "HAS_TOP_ENMITY": """Target currently has the highest enmity (is tanking the mob).
+    
+Use Case: Detect when a party member is actively tanking, tank-focused support.
+Argument: None (ignored, use 0)
+
+Common Patterns:
+  • Tank priority healing
+  • Defensive buff application to current tank
+  • Enmity management awareness
+  • Cover/Protect tank actions
+  
+Examples:
+  • Priority heal for tank: Use PARTY or TANK target with this condition
+  • Flash when tank has aggro (support enmity)
+  • Defensive buffs for whoever is tanking
+  
+💡 Tip: Useful for adapting to dynamic combat where enmity shifts between party members.
+⚠️ Note: Target selector determines WHO you check. Use with PARTY to find tank, or
+with SELF/MASTER to check if they're tanking.""",
+
+    "NOT_HAS_TOP_ENMITY": """Target DOES NOT have the highest enmity (is not tanking).
+    
+Use Case: Detect when party member has lost aggro, backup tank scenarios.
+Argument: None (ignored, use 0)
+
+Common Patterns:
+  • Provoke when tank loses hate
+  • Defensive cooldowns when not tanking
+  • DPS-focused actions when not main tank
+  
+Examples:
+  • Provoke when master loses hate
+  • Switch to DPS stance when not tanking
+  
+💡 Tip: Useful for tank trusts to detect when they need to regain enmity.""",
+
+    "SC_AVAILABLE": """A skillchain window is currently available (tier 0 SC ready for closure).
+    
+Use Case: Skillchain coordination, closing skillchains, tactical burst timing.
+Argument: None (ignored, use 0)
+
+What This Checks:
+  • A skillchain was opened by a weaponskill
+  • At least 3 seconds have passed since the opening WS
+  • No magic burst has occurred yet (tier 0)
+  • The SC window is still active
+  
+Common Patterns:
+  • Close skillchains with matching WS
+  • Coordinate trust WS with party skillchains
+  • Tactical skillchain chains (opening -> closing)
+  
+Examples:
+  • Trust waits for SC then closes: TP_TRIGGER = CLOSER
+  • Conditional WS only during SC windows
+  
+💡 Tip: Combine with TP management for sophisticated SC coordination.
+⚠️ Important: Trust must have a weaponskill that can close the available skillchain!""",
+
+    "NOT_SC_AVAILABLE": """No skillchain window is currently available.
+    
+Use Case: Normal combat actions when not coordinating skillchains.
+Argument: None (ignored, use 0)
+
+Common Patterns:
+  • Standard attack rotation when no SC is active
+  • Open skillchains (opposite of closing)
+  
+Examples:
+  • Use opening WS when no SC is active
+  • Normal nuke rotation outside of MB windows
+  
+💡 Tip: Less commonly used. Most trusts use TP triggers for SC management instead.""",
+
+    "MB_AVAILABLE": """A magic burst window is active (tier 1+ skillchain ready for MB).
+    
+Use Case: Magic burst coordination, elemental nuke timing, burst damage maximization.
+Argument: None (ignored, use 0)
+
+What This Checks:
+  • A skillchain was completed (tier 1 or higher)
+  • At least 3 seconds have passed since skillchain
+  • Magic burst window is still active
+  • Ready for elemental magic burst
+  
+Common Patterns:
+  • BLM/SCH burst nukes during skillchains
+  • Elemental magic coordination with physical DDs
+  • Maximize damage with burst timing
+  
+Examples:
+  • Nuke during MB: { ai.c.MB_AVAILABLE } + MB_ELEMENT selector
+  • Hold nukes for burst windows only
+  
+💡 Tip: Essential for BLM trusts. Combine with MB_ELEMENT selector for automatic element matching.
+⚠️ Important: Trust must have appropriate elemental nukes available!""",
+
+    "READYING_WS": """Target is currently readying a weaponskill (charging animation).
+    
+Use Case: Interrupt tactics, defensive reactions, counter-tactics.
+Argument: None (ignored, use 0)
+
+Common Patterns:
+  • Stun dangerous weaponskills
+  • Defensive buffs before incoming WS
+  • Shield bash to interrupt
+  • Counterstance reactions
+  
+Examples:
+  • Stun enemy WS: { ai.c.READYING_WS }
+  • Defensive cooldown before enemy WS hits
+  
+💡 Tip: Requires fast reaction time. Useful for PLD/RUN tank trusts.
+⚠️ Note: Works on TARGET (enemy) primarily. Detection window is brief.""",
+
+    "READYING_MS": """Target is currently readying a monster skill (special attack).
+    
+Use Case: Interrupt tactics, defensive preparation, counter-actions.
+Argument: None (ignored, use 0)
+
+Common Patterns:
+  • Stun dangerous mob TP moves
+  • Defensive buffs before big attacks
+  • Interrupt AoE abilities
+  • Tank cooldowns for survival
+  
+Examples:
+  • Stun mob TP move: { ai.c.READYING_MS }
+  • Sentinel before mob special attack
+  
+💡 Tip: Critical for surviving dangerous mob abilities. Essential for tank trusts.
+⚠️ Warning: Not all mob skills can be stunned! Check mob skill properties.""",
+
+    "READYING_JA": """Target is currently readying a job ability.
+    
+Use Case: PvP tactics, interrupt coordination, ability-based reactions.
+Argument: None (ignored, use 0)
+
+Common Patterns:
+  • Interrupt dangerous JA
+  • React to ally ability usage
+  • Coordinate with party actions
+  
+💡 Tip: Rarely used for trust gambits. More relevant for PvP or complex coordination.
+⚠️ Note: Most trusts don't need this condition. Consider simpler alternatives.""",
+
+    "CASTING_MA": """Target is currently casting magic (magic casting animation active).
+    
+Use Case: Interrupt tactics, silence application, counter-magic tactics.
+Argument: None (ignored, use 0)
+
+Common Patterns:
+  • Stun enemy casters
+  • Silence enemy mages
+  • Interrupt dangerous spells
+  • Counter-magic tactics
+  
+Examples:
+  • Stun enemy cast: { ai.c.CASTING_MA }
+  • Silence caster mobs: { ai.c.CASTING_MA }
+  
+💡 Tip: Useful for controlling enemy casters. Combine with TARGET selector.
+⚠️ Important: Detection window depends on cast time. Fast casts are hard to interrupt!""",
+
+    "RANDOM": """Random chance based on percentage argument. Adds unpredictability to AI.
+    
+Use Case: Varied tactics, randomized behavior, unpredictable actions, testing.
+Argument Range: 0-100 (percentage chance to succeed)
+
+Common Usage:
+  • 50 = 50% chance (coin flip)
+  • 25 = 25% chance (1 in 4)
+  • 75 = 75% chance (3 in 4)
+  • 10 = 10% chance (1 in 10)
+  
+Examples:
+  • 30% chance to buff: { ai.c.RANDOM, 30 }
+  • 50% chance for alternate tactic: { ai.c.RANDOM, 50 }
+  • 10% chance for special move: { ai.c.RANDOM, 10 }
+  
+💡 Tip: Adds variety but reduces reliability. Use sparingly for critical actions.
+⚠️ Warning: Don't use RANDOM for essential buffs/healing - use condition-based logic!""",
+
+    "NO_SAMBA": """Target has NO active Samba effect (Drain Samba or Haste Samba).
+    
+Use Case: DNC trust samba management, ensuring samba is active.
+Argument: None (ignored, use 0)
+
+What It Checks:
+  • No DRAIN_SAMBA effect
+  • No HASTE_SAMBA effect
+  • Target is eligible for new samba
+  
+Common Patterns:
+  • Maintain samba uptime on self
+  • Apply best samba for party composition
+  • Dancer trust optimization
+  
+Example:
+  • Apply samba: { ai.c.NO_SAMBA } + BEST_SAMBA selector
+  
+💡 Tip: Essential for DNC trusts. Use with BEST_SAMBA selector for automatic selection.
+⚠️ Note: DNC-specific condition. Other jobs don't need this.""",
+
+    "NO_STORM": """Target has NO active Storm effect (any tier I or II storm).
+    
+Use Case: SCH trust storm management, ensuring storm buffs are active.
+Argument: None (ignored, use 0)
+
+What It Checks All Storms:
+  • FIRESTORM / FIRESTORM_II
+  • HAILSTORM / HAILSTORM_II  
+  • WINDSTORM / WINDSTORM_II
+  • SANDSTORM / SANDSTORM_II
+  • THUNDERSTORM / THUNDERSTORM_II
+  • RAINSTORM / RAINSTORM_II
+  • AURORASTORM / AURORASTORM_II
+  • VOIDSTORM / VOIDSTORM_II
+  
+Common Patterns:
+  • Maintain storm uptime
+  • Apply storm matching day
+  • Storm for mob weakness
+  
+Examples:
+  • Storm for day: { ai.c.NO_STORM } + STORM_DAY selector
+  • Storm for mob: { ai.c.NO_STORM } + STORM_MOB_WEAKNESS selector
+  
+💡 Tip: Essential for SCH trusts. Storms boost elemental magic and healing.
+⚠️ Note: SCH-specific condition. Use specialized selectors for smart storm choice.""",
+
+    "PT_HAS_TANK": """Party currently has a tank (PLD or RUN main job present).
+    
+Use Case: Adjust trust behavior based on party composition.
+Argument: None (ignored, use 0)
+
+Common Patterns:
+  • DPS focus when tank is present
+  • Different tactics with/without dedicated tank
+  • Healer priorities (heal tank vs spread healing)
+  
+Examples:
+  • Use DPS samba if tank present: { ai.c.PT_HAS_TANK }
+  • Aggressive stance when protected by tank
+  
+💡 Tip: Smart trusts adapt to party composition. Useful for hybrid trusts.
+⚠️ Note: Only checks for PLD/RUN main jobs, not NIN or other tank-capable jobs.""",
+
+    "NOT_PT_HAS_TANK": """Party does NOT have a tank (no PLD or RUN main job).
+    
+Use Case: Adjust trust behavior when tank is absent.
+Argument: None (ignored, use 0)
+
+Common Patterns:
+  • Defensive tactics without tank
+  • Self-preservation when no dedicated tank
+  • Altered healing priorities
+  • Apply drain samba for survivability
+  
+Examples:
+  • Defensive samba without tank: { ai.c.NOT_PT_HAS_TANK }
+  • More cautious behavior
+  
+💡 Tip: Trusts can adapt to solo/low-man scenarios. Essential for smart AI.
+⚠️ Note: Complement to PT_HAS_TANK. Use for adaptive behavior.""",
+
+    "IS_ECOSYSTEM": """Target mob belongs to the specified ecosystem type.
+    
+Use Case: Elemental weakness exploitation, ecosystem-specific tactics, niche strategies.
+Argument: Ecosystem ID (see ecosystem enums)
+
+Common Ecosystems:
+  • Beast, Lizard, Vermin, Plantoid
+  • Bird, Amorph, Aquan, Undead
+  • Arcana, Dragon, Demon, Empty
+  
+Common Patterns:
+  • Fire spells vs ice-weak mobs (Lizards)
+  • Water spells vs fire-weak mobs (Bombs)
+  • Undead-specific tactics (Fire/Light damage, avoid drain)
+  
+Examples:
+  • Nuke with element advantage
+  • Ecosystem-tailored weaponskills
+  
+💡 Tip: Advanced condition for elemental strategy. Most trusts use simpler conditions.
+⚠️ Warning: Requires ecosystem knowledge. Check enemy ecosystem before using.
+📚 Reference: Ecosystem IDs in C++ enums or Lua constants.""",
+
+    "HP_MISSING": """Target is missing HP greater than or equal to the argument amount (raw HP, not %).
+    
+Use Case: Healing based on absolute HP loss, high-HP target healing, tank HP management.
+Argument: HP amount (raw number, not percentage)
+
+Common Thresholds:
+  • 200 HP - Minor healing trigger
+  • 500 HP - Moderate healing trigger
+  • 1000 HP - Major healing trigger (tanks)
+  • 2000+ HP - Critical healing for high-HP targets
+  
+Examples:
+  • Cure IV when missing 800+ HP: { ai.c.HP_MISSING, 800 }
+  • Curaga when party missing significant HP
+  
+💡 Tip: Better than HPP_LT for high-HP targets (tanks). A 1000 HP player at 80% HP
+is much different than a 3000 HP player at 80% HP.
+⚠️ Note: Consider target's max HP. What's "critical" varies by job/level.""",
 }
+
 
 CONDITION_ARG_GUIDE = {
-    "HPP_LT": "Percent 0-100",
-    "HPP_GTE": "Percent 0-100",
-    "MPP_LT": "Percent 0-100",
-    "TP_LT": "TP amount (e.g. 1000)",
-    "TP_GTE": "TP amount (e.g. 1000)",
-    "STATUS": "xi.effect.* ({} options)".format(len(EFFECTS)),
-    "NOT_STATUS": "xi.effect.* ({} options)".format(len(EFFECTS)),
-    "STATUS_FLAG": "xi.effectFlag.* ({} options)".format(len(EFFECT_FLAGS)),
-    "RANDOM": "Percent 0-100",
-    "IS_ECOSYSTEM": "Ecosystem id",
-    "HP_MISSING": "HP amount missing",
+    "HPP_LT": """Percentage value: 0-100
+
+Recommended Values:
+  • 90-95: Proactive tank healing (keep tanks topped off)
+  • 75-80: Standard party healing trigger
+  • 50-60: Moderate healing threshold
+  • 25-35: Emergency healing (critical HP)
+  • 10-20: Desperate measures (near death)
+
+Example: { ai.c.HPP_LT, 75 } triggers when target drops below 75% HP""",
+
+    "HPP_GTE": """Percentage value: 0-100
+
+Common Patterns:
+  • 80-90: Buff when healthy (avoid interfering with healing)
+  • 50-70: Conditional support (only if somewhat healthy)
+  • 30-50: Emergency actions (only if not critical)
+
+Example: { ai.c.HPP_GTE, 70 } triggers when target is at or above 70% HP""",
+
+    "MPP_LT": """Percentage value: 0-100
+
+Recommended Thresholds:
+  • 70-80: Proactive MP management (before MP becomes critical)
+  • 50-60: Standard Refresh trigger
+  • 30-40: Critical MP conservation (stop nuking)
+  • 10-20: Emergency MP measures
+
+Example: { ai.c.MPP_LT, 50 } triggers Refresh when target drops below 50% MP""",
+
+    "TP_LT": """TP amount: 0-3000
+
+Common Values:
+  • 1000: Check if below WS-ready threshold
+  • 500: Build TP actions
+  • 1500: High TP threshold checks
+  • 2000: Maximum TP optimization
+
+Example: { ai.c.TP_LT, 1000 } triggers Meditate when TP is below 1000""",
+
+    "TP_GTE": """TP amount: 0-3000
+
+Common Values:
+  • 1000: Standard WS-ready threshold
+  • 1500: Optimal damage range (many WSs)
+  • 2000: Maximum damage potential
+  • 2500+: Over-TP scenarios
+
+Example: { ai.c.TP_GTE, 1000 } ensures TP is ready for weaponskill""",
+
+    "STATUS": """xi.effect.* constant - 658 effect options available
+
+Most Common Effects for Cleansing:
+  • xi.effect.POISON - Remove poison
+  • xi.effect.PARALYSIS - Remove paralysis  
+  • xi.effect.SILENCE - Remove silence
+  • xi.effect.BLINDNESS - Remove blind
+  • xi.effect.SLOW - Remove slow
+  • xi.effect.PLAGUE - Remove plague
+  • xi.effect.CURSE_I / CURSE_II - Remove curse
+  • xi.effect.DISEASE - Remove disease
+  • xi.effect.PETRIFICATION - Remove petrification
+  
+Detection Examples (check if buff/debuff is active):
+  • xi.effect.HASTE - Check if hasted
+  • xi.effect.PROTECT - Check if protected
+  • xi.effect.BERSERK - Check if berserked
+  • xi.effect.SENTINEL - Check if sentinel active
+  
+Example: { ai.c.STATUS, xi.effect.PARALYSIS } detects paralysis for cleansing
+See scripts/enum/effect.lua for complete list of 658 effects""",
+
+    "NOT_STATUS": """xi.effect.* constant - 658 effect options available
+
+⭐ MOST IMPORTANT ARGUMENT TYPE! 
+
+Essential Self-Buffs:
+  • xi.effect.HASTE - Apply Haste if missing
+  • xi.effect.PROTECT - Apply Protect if missing
+  • xi.effect.SHELL - Apply Shell if missing
+  • xi.effect.STONESKIN - Apply Stoneskin if missing
+  • xi.effect.PHALANX - Apply Phalanx if missing
+  • xi.effect.REGEN - Apply Regen if missing
+  • xi.effect.REFRESH - Apply Refresh if missing
+  • xi.effect.BLAZE_SPIKES - Apply Blaze Spikes if missing
+  • xi.effect.ICE_SPIKES - Apply Ice Spikes if missing
+  • xi.effect.SHOCK_SPIKES - Apply Shock Spikes if missing
+  • xi.effect.AQUAVEIL - Apply Aquaveil if missing
+  • xi.effect.BLINK - Apply Blink if missing
+
+Essential Party Buffs:
+  • xi.effect.HASTE - Party Haste
+  • xi.effect.REFRESH - Party Refresh
+  • xi.effect.PROTECT - Party Protect
+  • xi.effect.SHELL - Party Shell
+  • xi.effect.REGEN - Party Regen
+
+Job Ability Buffs (JA-specific):
+  • xi.effect.SENTINEL - PLD defensive stance
+  • xi.effect.BERSERK - WAR attack boost
+  • xi.effect.DEFENDER - Defensive stance
+  • xi.effect.AGGRESSOR - Offensive stance
+  • xi.effect.THIRD_EYE - SAM anticipate
+  • xi.effect.HASSO - SAM offensive stance
+  • xi.effect.SEIGAN - SAM defensive stance
+  • xi.effect.SOULEATER - DRK damage conversion
+  • xi.effect.LAST_RESORT - DRK power mode
+  • xi.effect.COPY_IMAGE - NIN shadows (Utsusemi)
+  • xi.effect.COUNTERSTANCE - MNK counter mode
+  • xi.effect.DODGE - MNK evasion boost
+  • xi.effect.FOCUS - MNK accuracy boost
+  • xi.effect.BOOST - MNK attack boost
+
+Enemy Debuffs (on TARGET):
+  • xi.effect.FLASH - Apply Flash (enmity + blind)
+  • xi.effect.SLOW - Apply Slow
+  • xi.effect.PARALYSIS - Apply Paralyze
+  • xi.effect.BLINDNESS - Apply Blind
+  • xi.effect.POISON - Apply Poison/Bio
+  • xi.effect.GRAVITY - Apply Gravity
+  • xi.effect.BIND - Apply Bind
+  • xi.effect.SILENCE - Apply Silence
+  • xi.effect.PLAGUE - Apply Plague
+  • xi.effect.CHOKE - Apply Choke
+  • xi.effect.BURN - Apply Burn
+  • xi.effect.FROST - Apply Frost
+  • xi.effect.RASP - Apply Rasp
+  • xi.effect.SHOCK - Apply Shock
+  • xi.effect.DROWN - Apply Drown
+  • xi.effect.DIA - Apply Dia
+
+Complete Trust Examples:
+1. PLD Self-Buff Setup:
+   trust:addGambit(ai.t.SELF, { ai.c.NOT_STATUS, xi.effect.SENTINEL }, { ai.r.JA, ai.s.SPECIFIC, xi.ja.SENTINEL })
+   trust:addGambit(ai.t.SELF, { ai.c.NOT_STATUS, xi.effect.PROTECT }, { ai.r.MA, ai.s.HIGHEST, xi.magic.spellFamily.PROTECT })
+   trust:addGambit(ai.t.SELF, { ai.c.NOT_STATUS, xi.effect.SHELL }, { ai.r.MA, ai.s.HIGHEST, xi.magic.spellFamily.SHELL })
+
+2. WHM Party Support:
+   trust:addGambit(ai.t.PARTY, { ai.c.NOT_STATUS, xi.effect.HASTE }, { ai.r.MA, ai.s.HIGHEST, xi.magic.spellFamily.HASTE })
+   trust:addGambit(ai.t.PARTY, { ai.c.NOT_STATUS, xi.effect.REFRESH }, { ai.r.MA, ai.s.HIGHEST, xi.magic.spellFamily.REFRESH })
+
+3. BLM Self-Protection:
+   trust:addGambit(ai.t.SELF, { ai.c.NOT_STATUS, xi.effect.STONESKIN }, { ai.r.MA, ai.s.SPECIFIC, xi.magic.spell.STONESKIN })
+   trust:addGambit(ai.t.SELF, { ai.c.NOT_STATUS, xi.effect.BLINK }, { ai.r.MA, ai.s.SPECIFIC, xi.magic.spell.BLINK })
+
+4. Tank Enemy Debuffing:
+   trust:addGambit(ai.t.TARGET, { ai.c.NOT_STATUS, xi.effect.FLASH }, { ai.r.MA, ai.s.SPECIFIC, xi.magic.spell.FLASH })
+   trust:addGambit(ai.t.TARGET, { ai.c.NOT_STATUS, xi.effect.SLOW }, { ai.r.MA, ai.s.SPECIFIC, xi.magic.spell.SLOW })
+
+💡 Best Practices:
+  • ALWAYS use NOT_STATUS for buff application (never STATUS)
+  • Check the buff isn't active before casting to save MP
+  • Combine with appropriate target selector (SELF for self-buffs, PARTY for party buffs, TARGET for enemy debuffs)
+  • Use retry_delay parameter to prevent buff spam (e.g., 30 seconds for long-duration buffs)
+
+📚 Full Reference: scripts/enum/effect.lua contains all 658 effect constants with exact names""",
+
+    "STATUS_FLAG": """xi.effectFlag.* constant
+
+Available Effect Flags:
+  • xi.effectFlag.ERASABLE - Effects removable by Erase
+  • xi.effectFlag.DISPELABLE - Effects removable by Dispel
+  • xi.effectFlag.FOOD - Food buff effects
+  • xi.effectFlag.SONG - Bard song effects
+  • xi.effectFlag.ROLL - Corsair roll effects
+  • xi.effectFlag.ON_ZONE - Effects that persist through zoning
+  • xi.effectFlag.INFLUENCE - Geomancer Indi/Geo effects
+  • xi.effectFlag.NO_CANCEL - Cannot be manually cancelled
+  • xi.effectFlag.SYNTH_SUPPORT - Synthesis support effects
+  • xi.effectFlag.ELEMENTAL_SEAL - Elemental Seal effects
+  • xi.effectFlag.ENCUMBRANCE - Weight/encumbrance effects
+
+Example: { ai.c.STATUS_FLAG, xi.effectFlag.ERASABLE } checks for any erasable debuff
+See scripts/enum/effect_flag.lua for complete flag list""",
+
+    "RANDOM": """Percentage chance: 0-100
+
+Value Guide:
+  • 100 - Always (same as ALWAYS condition)
+  • 75 - Very likely (3 in 4 chance)
+  • 50 - Coin flip (50/50)
+  • 25 - Unlikely (1 in 4 chance)
+  • 10 - Rare (1 in 10 chance)
+  • 1 - Very rare (1 in 100 chance)
+
+Example: { ai.c.RANDOM, 30 } has a 30% chance of triggering each check""",
+
+    "IS_ECOSYSTEM": """Ecosystem ID number
+
+Common Ecosystem IDs:
+  • 1 - Amorph (Slimes, Flans)
+  • 2 - Aquan (Crabs, Pugils, Uragnites)
+  • 3 - Beast (Tigers, Rabbits, Sheep, Dhalmels)
+  • 4 - Bird (Cockatrice, Colibri, Rocs)
+  • 5 - Demon (Demons, Imps, Fomors)
+  • 6 - Dragon (Wyverns, Dragons, Adamantoise)
+  • 7 - Lizard (Lizards, Raptor, Wivre)
+  • 8 - Luminian (Elementals, Clusters)
+  • 9 - Plantoid (Mandragora, Goobbue, Treants)
+  • 10 - Undead (Skeletons, Ghosts, Hounds)
+  • 11 - Vermin (Bees, Beetles, Crawlers, Spiders)
+  • 12 - Arcana (Bombs, Magic Pots, Golems, Dolls)
+  • 13 - Empty (Promyvion mobs)
+  • 14 - Humanoid (Orcs, Goblins, Quadav, Yagudo)
+  • 15 - Luminion (Pixies, Sprites)
+  • 19 - Voragean (Xzomits, Hpemdes)
+
+Elemental Weaknesses by Ecosystem:
+  • Undead: Weak to Fire/Light, resist Dark/Ice
+  • Lizard: Weak to Ice, resist Fire
+  • Plantoid: Weak to Fire, resist Water/Ice
+  • Beast: Varies by type
+  • Arcana: Often magic-resistant
+  
+Example: { ai.c.IS_ECOSYSTEM, 10 } checks if target is Undead
+⚠️ Note: Requires knowledge of mob ecosystems. Advanced condition.""",
+
+    "HP_MISSING": """HP amount (raw number, not percentage)
+
+Recommended Values by Healing Tier:
+  • 100-200 HP: Cure I territory
+  • 200-400 HP: Cure II territory
+  • 400-600 HP: Cure III territory
+  • 600-800 HP: Cure IV territory
+  • 800-1000 HP: Cure V territory
+  • 1000-1200 HP: Cure VI territory
+  • 1500+ HP: Curaga or multiple heals needed
+
+Practical Examples:
+  • Tank with 3000 max HP at 70% = 900 HP missing
+  • Mage with 1000 max HP at 70% = 300 HP missing
+  • Same % but very different healing needs!
+
+Usage Tips:
+  • Better for tanks with high max HP
+  • More accurate than percentage for scaling heal needs
+  • Combine with specific Cure tier for efficient healing
+
+Example: { ai.c.HP_MISSING, 800 } triggers Cure IV when target is missing 800+ HP""",
 }
 
+
 REACTION_DESCRIPTIONS = {
-    "ATTACK": "Melee attack target.",
-    "RATTACK": "Ranged attack.",
-    "MA": "Cast magic action.",
-    "JA": "Use job ability.",
-    "WS": "Use weaponskill.",
-    "MS": "Use mob skill.",
+    "ATTACK": """Engage in melee auto-attack combat.
+    
+Use Case: Standard physical combat, maintain aggro, DPS contribution.
+Compatible Selectors: N/A (attack is automatic once engaged)
+
+Behavior:
+  • Initiates standard melee auto-attacks on the target
+  • Trust will approach target and attack with equipped weapon
+  • Continues until target is defeated or trust disengages
+  • Does not consume MP or TP
+  
+Common Patterns:
+  • Use with ALWAYS condition for pure DD trusts
+  • Combine with target engagement logic
+  • Foundation for melee-focused trusts
+
+Example:
+  trust:addGambit(ai.t.TARGET, { ai.c.ALWAYS }, { ai.r.ATTACK })
+  
+💡 Tip: Usually doesn't need explicit gambit - trusts auto-attack when engaged.
+Use this when you want conditional attacking (e.g., only attack when certain conditions met).""",
+
+    "RATTACK": """Execute a ranged attack (bow, gun, crossbow, thrown weapon).
+    
+Use Case: Ranged physical damage, pulling, kiting tactics.
+Compatible Selectors: N/A (ranged attack is direct action)
+
+Requirements:
+  • Trust must have ranged weapon equipped
+  • Ammunition must be available (if required)
+  • Target must be within ranged weapon range
+  • Sufficient TP may be required (varies by weapon)
+
+Behavior:
+  • Fires a ranged attack at the target
+  • Consumes ammunition (if applicable)
+  • Subject to ranged accuracy calculations
+  • Generates enmity on hit
+
+Common Patterns:
+  • RNG/COR trust ranged attacks
+  • Pulling single targets from groups
+  • Kiting or maintaining distance
+
+Example:
+  trust:addGambit(ai.t.TARGET, { ai.c.TP_GTE, 1000 }, { ai.r.RATTACK })
+  
+💡 Tip: Ensure trust has proper ranged equipment and ammo.
+⚠️ Note: Not all trusts can use ranged attacks effectively.""",
+
+    "MA": """Cast a magic action (spell, ninjutsu, song).
+    
+Use Case: Healing, buffing, nuking, debuffing, support magic.
+Compatible Selectors: SPECIFIC, HIGHEST, LOWEST, RANDOM, MB_ELEMENT, BEST_AGAINST_TARGET, 
+BEST_INDI, ENTRUSTED, STORM_DAY, HELIX_DAY, EN_MOB_WEAKNESS, STORM_MOB_WEAKNESS, HELIX_MOB_WEAKNESS
+
+🔥 MOST VERSATILE REACTION - Handles all magic!
+
+Common Selector Combinations:
+  • SPECIFIC + xi.magic.spell.* - Cast exact spell
+  • HIGHEST + xi.magic.spellFamily.* - Cast best available spell from family
+  • MB_ELEMENT - Auto-select element for magic burst
+  • BEST_AGAINST_TARGET + family - Cast element matching mob weakness
+
+Spell Types:
+  • White Magic: Cure, Curaga, Protect, Shell, Raise, Bar-spells, status removal
+  • Black Magic: Nukes (Fire, Blizzard, Thunder, etc.), Drain, Aspir, Sleep, Bind
+  • Enfeebling: Slow, Paralyze, Blind, Silence, Gravity, Dispel
+  • Enhancing: Haste, Refresh, Stoneskin, Phalanx, Spikes, En-spells
+  • Geomancy: Indi-spells, Geo-spells, Entrust
+  • Scholar: Storm spells, Helix nukes
+  • Ninjutsu: Utsusemi, Elemental ninjutsu
+
+Requirements:
+  • Trust must know the spell
+  • Sufficient MP to cast
+  • Valid target for spell type
+  • Not silenced or otherwise unable to cast
+
+Real-World Examples:
+1. WHM Healing:
+   trust:addGambit(ai.t.PARTY, { ai.c.HPP_LT, 75 }, { ai.r.MA, ai.s.HIGHEST, xi.magic.spellFamily.CURE })
+
+2. RDM Refresh Support:
+   trust:addGambit(ai.t.CASTER, { ai.c.NOT_STATUS, xi.effect.REFRESH }, { ai.r.MA, ai.s.HIGHEST, xi.magic.spellFamily.REFRESH })
+
+3. BLM Nuking with MB:
+   trust:addGambit(ai.t.TARGET, { ai.c.MB_AVAILABLE }, { ai.r.MA, ai.s.MB_ELEMENT, 0 })
+
+4. PLD Self-Protection:
+   trust:addGambit(ai.t.SELF, { ai.c.NOT_STATUS, xi.effect.PROTECT }, { ai.r.MA, ai.s.HIGHEST, xi.magic.spellFamily.PROTECT })
+
+5. BLM Specific Nuke:
+   trust:addGambit(ai.t.TARGET, { ai.c.ALWAYS }, { ai.r.MA, ai.s.SPECIFIC, xi.magic.spell.FIRE_IV })
+
+💡 Pro Tips:
+  • Use HIGHEST with spell families for automatic tier selection
+  • Use SPECIFIC for exact spell control
+  • Combine with appropriate conditions (NOT_STATUS for buffs, HPP_LT for heals)
+  • Consider MP cost - high-level trusts should use higher-tier spells
+
+📚 References:
+  • Spell IDs: scripts/enum/magic_spell.lua
+  • Spell Families: scripts/enum/magic_family.lua""",
+
+    "JA": """Use a job ability (non-magic ability with recast timer).
+    
+Use Case: Job-specific abilities, tactical skills, special actions.
+Compatible Selectors: SPECIFIC, BEST_SAMBA, HIGHEST_WALTZ
+
+Common Job Abilities by Job:
+  • PLD: Sentinel, Shield Bash, Cover, Rampart, Holy Circle, Chivalry
+  • WAR: Berserk, Defender, Warcry, Aggressor, Provoke, Tomahawk
+  • DRK: Souleater, Last Resort, Weapon Bash, Arcane Circle, Dark Seal
+  • SAM: Hasso, Seigan, Third Eye, Meditate, Sekkanoki, Warding Circle
+  • NIN: Hide, Innin, Yonin
+  • DNC: Samba (Drain/Haste), Waltz (Curing I-V), Steps, Flourishes
+  • MNK: Dodge, Focus, Chakra, Counterstance, Boost, Perfect Counter
+  • THF: Sneak Attack, Trick Attack, Flee, Hide, Perfect Dodge
+  • RNG: Sharpshot, Barrage, Eagle Eye Shot, Shadowbind
+  • DRG: Jump, High Jump, Super Jump, Spirit Surge, Call Wyvern
+  • BLU: Azure Lore, Chain Affinity, Burst Affinity, Convergence, Diffusion
+  • PUP: Activate, Repair, Deploy, Deactivate, Ventriloquy
+  • BST: Charm, Familiar, Tame, Call Beast, Sic
+  • BRD: Soul Voice, Troubadour, Marcato, Nightingale
+  • RDM: Convert, Composure
+  • WHM: Divine Seal, Benediction
+  • BLM: Manafont, Elemental Seal
+  • SCH: Addendum: White/Black, Light/Dark Arts, Tabula Rasa, Strategems
+  • GEO: Bolster, Ecliptic Attrition, Full Circle, Blaze of Glory
+  • RUN: Ignis, Gelus, Flabra, Tellus, Sulpor, Unda, Lux, Tenebrae, Vallation, Swordplay
+
+Requirements:
+  • Trust must have the job ability available
+  • Ability must not be on recast timer
+  • Valid target for the ability
+  • Some abilities have TP costs
+
+Examples:
+1. PLD Sentinel (self-buff):
+   trust:addGambit(ai.t.SELF, { ai.c.NOT_STATUS, xi.effect.SENTINEL }, { ai.r.JA, ai.s.SPECIFIC, xi.ja.SENTINEL })
+
+2. WAR Berserk (self-buff):
+   trust:addGambit(ai.t.SELF, { ai.c.NOT_STATUS, xi.effect.BERSERK }, { ai.r.JA, ai.s.SPECIFIC, xi.ja.BERSERK })
+
+3. SAM Meditate (TP gain):
+   trust:addGambit(ai.t.SELF, { ai.c.TP_LT, 1000 }, { ai.r.JA, ai.s.SPECIFIC, xi.ja.MEDITATE })
+
+4. DNC Best Waltz (smart healing):
+   trust:addGambit(ai.t.PARTY, { ai.c.HPP_LT, 70 }, { ai.r.JA, ai.s.HIGHEST_WALTZ, 0 })
+
+5. DNC Best Samba (adaptive buff):
+   trust:addGambit(ai.t.SELF, { ai.c.NO_SAMBA }, { ai.r.JA, ai.s.BEST_SAMBA, 0 })
+
+💡 Tips:
+  • Most JA abilities target SELF (even if you specify another target)
+  • Use SPECIFIC selector with exact ability ID
+  • Check ability recast times - don't spam abilities on cooldown
+  • Some abilities (like Sentinel) provide both an effect and an action
+
+📚 Reference: scripts/enum/jobability.lua for ability IDs""",
+
+    "WS": """Execute a weaponskill (TP-consuming melee finisher).
+    
+Use Case: Damage burst, skillchain coordination, TP expenditure.
+Compatible Selectors: SPECIFIC, HIGHEST, RANDOM, SPECIAL_AYAME
+
+⚠️ Important: Weaponskills are typically handled via TP trigger system, not regular gambits!
+
+Common Configuration:
+  trust:setTrustTPSkillSettings(ai.tp.CLOSER, ai.s.HIGHEST)
+  trust:addTrustMobSkillSpell("<skill_id>")
+
+However, WS can be used in gambits for conditional weaponskill usage.
+
+Popular Weaponskills by Weapon:
+  • Great Sword: Ground Strike, Scourge, Resolution
+  • Sword: Fast Blade, Savage Blade, Requiscat
+  • Great Axe: Steel Cyclone, Fell Cleave, Metatron Torment
+  • Axe: Raging Axe, Decimation, Mistral Axe
+  • Scythe: Guillotine, Cross Reaper, Insurgency
+  • Polearm: Penta Thrust, Stardiver, Impulse Drive
+  • Great Katana: Tachi: Gekko, Tachi: Shoha, Tachi: Fudo
+  • Katana: Blade: Ten, Blade: Shun, Blade: Hi
+  • Club: Shining Strike, Seraph Strike, True Strike
+  • Staff: Spirit Taker, Cataclysm, Earth Crusher
+  • Hand-to-Hand: Asuran Fists, Victory Smite, Shijin Spiral
+  • Dagger: Dancing Edge, Evisceration, Rudra's Storm
+
+Requirements:
+  • Minimum 1000 TP (some WSs scale with higher TP)
+  • Valid target within melee range
+  • Appropriate weapon equipped
+  • Trust must know the weaponskill
+
+TP Scaling:
+  • 1000 TP: Minimum (100% effect)
+  • 1500 TP: Moderate (varies by WS)
+  • 2000 TP: High (varies by WS)
+  • 2500 TP: Very High (varies by WS)
+  • 3000 TP: Maximum (varies by WS)
+
+Skillchain Properties:
+  Each WS has 1-3 skillchain properties (Light, Dark, Gravitation, Fragmentation, etc.)
+  Properties determine what skillchains can be formed
+
+Example (Advanced):
+  trust:addGambit(ai.t.TARGET, { ai.c.SC_AVAILABLE }, { ai.r.WS, ai.s.SPECIFIC, <ws_id> })
+  
+💡 Recommended: Use TP trigger system instead of gambits for normal WS usage.
+Gambits are for conditional/special WS scenarios.""",
+
+    "MS": """Execute a mob skill (trust special ability, often TP-consuming).
+    
+Use Case: Trust-specific abilities, unique trust moves, alternative to weaponskills.
+Compatible Selectors: SPECIFIC
+
+What are Mob Skills?
+  • Special abilities unique to trusts
+  • Often replicate NPC/Monster abilities
+  • May cost TP or have other requirements
+  • Can have special effects (AoE, healing, buffing, etc.)
+
+Common Trust Mob Skills:
+  • Healing abilities (trust casts healing move)
+  • Support buffs (trust provides party buff)
+  • Damage abilities (trust special attack)
+  • Defensive abilities (trust protective move)
+
+Requirements:
+  • Trust must have the mob skill defined
+  • May require TP (varies by skill)
+  • Valid target for the skill
+  • Not stunned or otherwise prevented
+
+Example:
+  trust:addGambit(ai.t.TARGET, { ai.c.TP_GTE, 1000 }, { ai.r.MS, ai.s.SPECIFIC, <mobskill_id> })
+  
+💡 Note: Mob skills are trust-specific and less commonly used than WS/MA/JA.
+Check individual trust scripts for available mob skills.
+⚠️ Advanced: Requires knowledge of trust mob skill IDs.""",
 }
 
 SELECTOR_DESCRIPTIONS = {
-    "HIGHEST": "Pick highest-rated option / target.",
-    "LOWEST": "Pick lowest-rated option / target.",
-    "SPECIFIC": "Use explicit Sel. Arg constant.",
-    "RANDOM": "Choose randomly.",
-    "MB_ELEMENT": "Pick burst element based on SC.",
-    "SPECIAL_AYAME": "Ayame WS logic.",
-    "BEST_AGAINST_TARGET": "Best element vs target.",
-    "BEST_SAMBA": "Best Samba for party.",
-    "HIGHEST_WALTZ": "Best Waltz available.",
-    "ENTRUSTED": "Entrust behavior (GEO).",
-    "BEST_INDI": "Best Indi spell.",
-    "STORM_DAY": "Storm for day.",
-    "HELIX_DAY": "Helix for day.",
-    "EN_MOB_WEAKNESS": "En-spell for mob weakness.",
-    "STORM_MOB_WEAKNESS": "Storm for mob weakness.",
-    "HELIX_MOB_WEAKNESS": "Helix for mob weakness.",
+    "HIGHEST": """Automatically select the highest tier/best available option from a family or list.
+    
+Use Case: Smart spell tier selection, best available ability, adaptive power scaling.
+Compatible Reactions: MA (most common), WS, JA (limited)
+
+How It Works:
+  • For spells: Selects highest tier spell the trust knows from a family
+  • For healing: Picks best Cure tier (Cure VI > V > IV > III > II > I)
+  • For buffs: Picks best version (Haste II > Haste, Protect V > IV, etc.)
+  • For nukes: Picks highest tier nuke from specified element
+  • Auto-scales with trust level and available spells
+
+Common Usage:
+  • Healing: xi.magic.spellFamily.CURE
+  • Haste: xi.magic.spellFamily.HASTE
+  • Protect: xi.magic.spellFamily.PROTECT
+  • Shell: xi.magic.spellFamily.SHELL
+  • Refresh: xi.magic.spellFamily.REFRESH
+  • Nukes: xi.magic.spellFamily.FIRE, BLIZZARD, THUNDER, etc.
+  • Regen: xi.magic.spellFamily.REGEN
+  • Phalanx: xi.magic.spellFamily.PHALANX
+
+Examples:
+  trust:addGambit(ai.t.PARTY, { ai.c.HPP_LT, 75 }, { ai.r.MA, ai.s.HIGHEST, xi.magic.spellFamily.CURE })
+  → Casts best Cure spell available (VI if known, otherwise V, IV, etc.)
+  
+  trust:addGambit(ai.t.SELF, { ai.c.NOT_STATUS, xi.effect.HASTE }, { ai.r.MA, ai.s.HIGHEST, xi.magic.spellFamily.HASTE })
+  → Casts Haste II if available, otherwise Haste
+
+💡 Best Practice: Use HIGHEST for spell families to make trusts adaptive to their level.
+⚠️ Important: Sel. Arg must be a valid spell family constant.""",
+
+    "LOWEST": """Select the lowest tier/weakest available option from a family (rarely used).
+    
+Use Case: MP conservation, weak attacks for testing, minimum effective spell.
+Compatible Reactions: MA
+
+How It Works:
+  • Picks the lowest tier spell from a family
+  • Cure I instead of Cure VI
+  • Useful for MP conservation on low-damage scenarios
+  • Testing purposes
+
+Common Usage:
+  • Low-level trust behavior
+  • MP-starved scenarios
+  • Minimal healing (Cure I spam)
+
+Example:
+  trust:addGambit(ai.t.PARTY, { ai.c.MPP_LT, 20 }, { ai.r.MA, ai.s.LOWEST, xi.magic.spellFamily.CURE })
+  → Use Cure I when MP is critically low
+  
+💡 Tip: Rarely used in practice. HIGHEST is almost always preferred.
+⚠️ Note: May not be fully implemented for all spell types.""",
+
+    "SPECIFIC": """Use an exact, explicitly specified spell, ability, or item by ID.
+    
+Use Case: Precise control, specific spells, exact abilities, unique trust behavior.
+Compatible Reactions: MA, JA, WS, MS
+
+🔥 MOST PRECISE SELECTOR - Total control over action!
+
+When to Use SPECIFIC:
+  • You want an exact spell (e.g., always cast Cure IV, not Cure V)
+  • Specific job abilities (e.g., Sentinel, Berserk, Meditate)
+  • Specific weaponskills (e.g., only use Tachi: Gekko)
+  • Unique spells without families (e.g., Flash, Raise II, Teleport-Altep)
+  • When HIGHEST might pick wrong tier
+
+Common Sel. Arg Types:
+  • xi.magic.spell.* - Exact spell (CURE_IV, HASTE, STONE_IV, FLASH, RAISE_II)
+  • xi.ja.* - Job ability (SENTINEL, BERSERK, MEDITATE, PROVOKE)
+  • xi.ws.* - Weaponskill (FAST_BLADE, TACHI_GEKKO, ASURAN_FISTS)
+  • Numeric ID - Direct ID reference (less readable, not recommended)
+
+Magic Examples:
+  • xi.magic.spell.CURE_IV - Always cast Cure IV (not V or VI)
+  • xi.magic.spell.FLASH - Cast Flash (no family exists)
+  • xi.magic.spell.STONESKIN - Cast Stoneskin
+  • xi.magic.spell.RAISE_II - Cast Raise II specifically
+  • xi.magic.spell.UTSUSEMI_NI - Cast Utsusemi: Ni (shadows)
+  • xi.magic.spell.FIRE_V - Cast Fire V nuke
+  • xi.magic.spell.PARALYZE - Cast Paralyze
+  • xi.magic.spell.SLOW - Cast Slow
+  • xi.magic.spell.DISPEL - Cast Dispel
+
+Job Ability Examples:
+  • xi.ja.SENTINEL - PLD defensive stance
+  • xi.ja.BERSERK - WAR attack boost
+  • xi.ja.PROVOKE - Generate enmity
+  • xi.ja.MEDITATE - SAM TP gain
+  • xi.ja.CHAKRA - MNK self-heal
+  • xi.ja.THIRD_EYE - SAM anticipate
+  • xi.ja.DIVINE_EMBLEM - PLD Flash power-up
+
+Complete Trust Examples:
+1. PLD Flash (enmity tool):
+   trust:addGambit(ai.t.TARGET, { ai.c.NOT_STATUS, xi.effect.FLASH }, { ai.r.MA, ai.s.SPECIFIC, xi.magic.spell.FLASH })
+
+2. PLD Sentinel (defensive):
+   trust:addGambit(ai.t.SELF, { ai.c.NOT_STATUS, xi.effect.SENTINEL }, { ai.r.JA, ai.s.SPECIFIC, xi.ja.SENTINEL })
+
+3. WHM Raise II (revival):
+   trust:addGambit(ai.t.PARTY_DEAD, { ai.c.ALWAYS }, { ai.r.MA, ai.s.SPECIFIC, xi.magic.spell.RAISE_II })
+
+4. NIN Utsusemi (shadows):
+   trust:addGambit(ai.t.SELF, { ai.c.NOT_STATUS, xi.effect.COPY_IMAGE }, { ai.r.MA, ai.s.SPECIFIC, xi.magic.spell.UTSUSEMI_NI })
+
+5. BLM specific nuke (always Fire V):
+   trust:addGambit(ai.t.TARGET, { ai.c.ALWAYS }, { ai.r.MA, ai.s.SPECIFIC, xi.magic.spell.FIRE_V })
+
+💡 Pro Tip: Use SPECIFIC when you want exact spell control. Use HIGHEST when you want adaptive tier selection.
+📚 References:
+  • Spells: scripts/enum/magic_spell.lua
+  • Job Abilities: scripts/enum/jobability.lua  
+  • Weaponskills: scripts/enum/weaponskill.lua""",
+
+    "RANDOM": """Randomly select from available options (adds unpredictability).
+    
+Use Case: Varied behavior, unpredictable tactics, testing, fun AI.
+Compatible Reactions: MA, WS
+
+How It Works:
+  • Picks a random spell/ability from available pool
+  • Different action each time the gambit triggers
+  • Adds variety to trust behavior
+
+Example Usage:
+  • Random nuke element
+  • Random weaponskill
+  • Varied debuffs
+
+Example:
+  trust:addGambit(ai.t.TARGET, { ai.c.ALWAYS }, { ai.r.MA, ai.s.RANDOM, 0 })
+  → Casts a random spell from trust's spell list
+  
+💡 Tip: Adds flavor but reduces reliability. Not recommended for critical actions.
+⚠️ Note: May select inappropriate spells. Use with caution.""",
+
+    "MB_ELEMENT": """Automatically select the correct elemental nuke for magic burst based on active skillchain.
+    
+Use Case: BLM magic burst coordination, automatic element matching, SC exploitation.
+Compatible Reactions: MA (nukes only)
+
+🌟 ESSENTIAL FOR BLM TRUSTS!
+
+How It Works:
+  1. Detects active skillchain on target
+  2. Analyzes SC properties (Light, Dark, Fusion, Fragmentation, Gravitation, etc.)
+  3. Selects appropriate elemental nuke from trust's spell list
+  4. Casts the spell for magic burst damage bonus
+
+Skillchain -> Element Mapping:
+  • Light SC → Fire, Thunder, Wind, Light
+  • Dark SC → Blizzard, Water, Stone, Dark
+  • Fusion → Fire, Thunder
+  • Fragmentation → Thunder, Wind
+  • Gravitation → Stone, Water
+  • Distortion → Blizzard, Water
+  • Liquefaction → Fire
+  • Scission → Stone
+  • Reverberation → Water
+  • Induration → Blizzard
+  • Compression → Dark
+  • Transfixion → Light
+
+Requirements:
+  • MB_AVAILABLE condition must be true (skillchain window open)
+  • Trust must have appropriate elemental nukes learned
+  • Target must have active skillchain effect
+  • Proper timing (3+ seconds after SC formation)
+
+Complete BLM Example:
+  -- Magic burst when available
+  trust:addGambit(ai.t.TARGET, { ai.c.MB_AVAILABLE }, { ai.r.MA, ai.s.MB_ELEMENT, 0 })
+  
+  -- Or limit to specific family:
+  trust:addGambit(ai.t.TARGET, { ai.c.MB_AVAILABLE }, { ai.r.MA, ai.s.MB_ELEMENT, xi.magic.spellFamily.FIRE })
+
+Sel. Arg Options:
+  • 0 - Auto-select from all available nukes
+  • xi.magic.spellFamily.FIRE - Prefer Fire nukes
+  • xi.magic.spellFamily.BLIZZARD - Prefer Ice nukes
+  • etc. (but usually 0 for full auto mode)
+
+💡 Best Practice: Let MB_ELEMENT handle element selection automatically (use 0).
+🎯 Result: Trust will contribute massive burst damage during skillchains!
+⚠️ Important: Only works during valid MB windows. Must have MB_AVAILABLE condition.""",
+
+    "SPECIAL_AYAME": """Ayame-specific weaponskill coordination logic (trust-specific).
+    
+Use Case: Ayame trust only, special SC coordination.
+Compatible Reactions: WS
+
+What It Does:
+  • Custom logic for Ayame's weaponskill selection
+  • Coordinates with party skillchains
+  • Attempts to close SCs opened by master
+
+⚠️ VERY SPECIALIZED - Only for Ayame trust!
+
+Example:
+  trust:setTrustTPSkillSettings(ai.tp.CLOSER, ai.s.SPECIAL_AYAME)
+  
+💡 Note: Most trusts should use HIGHEST or SPECIFIC instead.
+Not applicable to general trust creation.""",
+
+    "BEST_AGAINST_TARGET": """Select best elemental spell based on target's elemental weakness.
+    
+Use Case: Exploit mob weaknesses, maximum magical damage, adaptive nuking.
+Compatible Reactions: MA (elemental spells)
+
+How It Works:
+  • Analyzes target mob's elemental weaknesses/resistances
+  • Selects most effective element from available spells
+  • Prioritizes weak elements, avoids resistant elements
+
+Common Targets:
+  • Fire-weak: Undead, Plantoids, Bombs → Use Fire/Flare
+  • Ice-weak: Lizards, Fire elementals → Use Blizzard
+  • Water-weak: Fire elementals → Use Water/Flood
+  • Varies by mob ecosystem and type
+
+Example:
+  trust:addGambit(ai.t.TARGET, { ai.c.ALWAYS }, { ai.r.MA, ai.s.BEST_AGAINST_TARGET, xi.magic.spellFamily.FIRE })
+  → Prioritize Fire, but adapt if target resists
+  
+  trust:addGambit(ai.t.TARGET, { ai.c.ALWAYS }, { ai.r.MA, ai.s.BEST_AGAINST_TARGET, 0 })
+  → Fully automatic element selection
+  
+💡 Tip: Great for BLM/SCH trusts to maximize damage.
+⚠️ Note: Requires game knowledge of mob weaknesses to work effectively.""",
+
+    "BEST_SAMBA": """Automatically select the best Samba for current party composition (DNC-specific).
+    
+Use Case: DNC trust Samba optimization, adaptive party support.
+Compatible Reactions: JA (Samba abilities only)
+
+🎭 DANCER TRUST ESSENTIAL!
+
+How It Works:
+  • Analyzes party composition
+  • Checks if party has healers (WHM, RDM, PLD, SCH)
+  • Selects optimal Samba based on party needs
+
+Logic:
+  • Has healers? → Use Haste Samba (DPS boost)
+  • No healers? → Use Drain Samba (self-sustain)
+  • Trust level determines Samba tier (I, II, III)
+
+Available Sambas by Level:
+  • Drain Samba (Lv 5): Basic HP drain
+  • Drain Samba II (Lv 45): Better HP drain
+  • Drain Samba III (Lv 65): Best HP drain
+  • Haste Samba (Lv 35): Party-wide haste
+
+Complete DNC Example:
+  trust:addGambit(ai.t.SELF, { ai.c.NO_SAMBA }, { ai.r.JA, ai.s.BEST_SAMBA, 0 })
+  → Automatically applies best Samba when none is active
+
+💡 Smart Choice: Adapts to party! Solo/low-man → Drain. Full party with WHM → Haste.
+⚠️ DNC Only: No effect on non-DNC trusts.""",
+
+    "HIGHEST_WALTZ": """Automatically select the highest TP-affordable Curing Waltz (DNC-specific).
+    
+Use Case: DNC trust healing, TP-efficient healing, smart Waltz selection.
+Compatible Reactions: JA (Waltz abilities only)
+
+🩹 DANCER HEALING SELECTOR!
+
+How It Works:
+  • Checks current TP available
+  • Selects highest Waltz tier trust can afford
+  • Prioritizes bigger heals if TP permits
+
+Available Waltzes by TP Cost:
+  • Curing Waltz (Lv 15): 200 TP, ~300 HP heal
+  • Curing Waltz II (Lv 30): 350 TP, ~600 HP heal
+  • Curing Waltz III (Lv 45): 500 TP, ~1000 HP heal
+  • Curing Waltz IV (Lv 60): 650 TP, ~1400 HP heal
+  • Curing Waltz V (Lv 75): 800 TP, ~2000 HP heal
+
+Complete DNC Healing Example:
+  trust:addGambit(ai.t.PARTY, { ai.c.HPP_LT, 70 }, { ai.r.JA, ai.s.HIGHEST_WALTZ, 0 })
+  → Heals party with best affordable Waltz when HP < 70%
+  
+  trust:addGambit(ai.t.SELF, { ai.c.HPP_LT, 60 }, { ai.r.JA, ai.s.HIGHEST_WALTZ, 0 })
+  → Self-heal when HP < 60%
+
+💡 Smart Healing: Trust will use Waltz V if it has 800+ TP, or Waltz II if only 350 TP available.
+⚠️ DNC Only: No effect on non-DNC trusts.
+🎯 TP Management: Waltz costs compete with weaponskill TP - balance healing vs damage!""",
+
+    "ENTRUSTED": """Cast best Entrust-ed Geomancy spell on master (GEO-specific).
+    
+Use Case: GEO trust Entrust support, double Indi-spell strategy.
+Compatible Reactions: MA (Indi-spells only)
+
+🌍 GEOMANCER ENTRUST MECHANIC!
+
+What is Entrust?
+  • GEO job ability that allows casting Indi-spell on another player
+  • Normally Indi-spells only affect the caster
+  • Entrust breaks this rule, applying Indi to master
+  • Allows GEO to run TWO Indi-spells (one on self, one Entrusted on master)
+
+How It Works:
+  1. Trust uses Entrust ability first
+  2. Selects best Indi-spell for party/master
+  3. Casts Indi-spell on master (not self!)
+  4. Master gains Indi-buff, trust can still use different Indi on self
+
+Common Entrust Choices:
+  • Indi-Haste: Party-wide haste (very popular)
+  • Indi-Refresh: Party-wide MP regen
+  • Indi-Fury: Party-wide attack boost
+  • Indi-Precision: Party-wide accuracy
+  • Indi-Barrier: Party-wide defense
+
+Complete GEO Example:
+  -- Entrust Indi-spell on master
+  trust:addGambit(ai.t.MASTER, { ai.c.ALWAYS }, { ai.r.MA, ai.s.ENTRUSTED, 0 })
+  
+  -- Then use different Indi on self
+  trust:addGambit(ai.t.SELF, { ai.c.NOT_STATUS, xi.effect.INDI_FURY }, { ai.r.MA, ai.s.SPECIFIC, xi.magic.spell.INDI_FURY })
+
+Sel. Arg: Usually 0 (auto-select best)
+
+💡 Pro Strategy: GEO trust uses Entrust on master, then separate Indi on self = 2 Indi-spells active!
+⚠️ GEO Only: Requires Entrust ability and GEO main job.
+🎯 Power Move: Double Indi coverage is incredibly strong!""",
+
+    "BEST_INDI": """Select best Indi-spell for party composition (GEO-specific).
+    
+Use Case: GEO trust automatic Indi-spell selection, party optimization.
+Compatible Reactions: MA (Indi-spells)
+
+🔮 GEOMANCER INDI AUTO-SELECT!
+
+How It Works:
+  • Analyzes party composition and needs
+  • Selects most beneficial Indi-spell
+  • Adapts to party jobs and current situation
+
+Common Indi-Spells:
+  • Indi-Haste: Haste all actions
+  • Indi-Refresh: MP regeneration
+  • Indi-Fury: Attack boost
+  • Indi-Precision: Accuracy boost
+  • Indi-Focus: Magic Accuracy boost
+  • Indi-Barrier: Defense boost
+  • Indi-Acumen: Magic Attack boost
+
+Example:
+  trust:addGambit(ai.t.SELF, { ai.c.NOT_STATUS, xi.effect.INDI_HASTE }, { ai.r.MA, ai.s.BEST_INDI, xi.magic.spellFamily.INDI_HASTE })
+  → Cast best Indi-Haste variant
+  
+  trust:addGambit(ai.t.MASTER, { ai.c.ALWAYS }, { ai.r.MA, ai.s.BEST_INDI, 0 })
+  → Auto-select best Indi for master (if Entrusted)
+
+💡 Tip: Let GEO trust adapt Indi-spell to party needs.
+⚠️ GEO Only: Requires GEO main job.""",
+
+    "STORM_DAY": """Cast Storm spell matching current in-game day element (SCH-specific).
+    
+Use Case: SCH Storm optimization, day element matching, automatic Storm rotation.
+Compatible Reactions: MA (Storm spells)
+
+⛈️ SCHOLAR STORM DAY-MATCHING!
+
+How It Works:
+  • Checks current Vana'diel day (Firesday, Iceday, Windsday, etc.)
+  • Selects Storm spell matching that day's element
+  • Provides elemental bonus for matching day
+
+Day -> Storm Mapping:
+  • Firesday → Firestorm / Firestorm II
+  • Iceday → Hailstorm / Hailstorm II
+  • Windsday → Windstorm / Windstorm II
+  • Earthsday → Sandstorm / Sandstorm II
+  • Lightningday → Thunderstorm / Thunderstorm II
+  • Watersday → Rainstorm / Rainstorm II
+  • Lightsday → Aurorastorm / Aurorastorm II
+  • Darksday → Voidstorm / Voidstorm II
+
+Storm Benefits:
+  • Boosts elemental magic damage of matching element
+  • Enhances healing magic (white SCH)
+  • Provides elemental resistance
+  • SCH job trait enhancement
+
+Example:
+  trust:addGambit(ai.t.SELF, { ai.c.NO_STORM }, { ai.r.MA, ai.s.STORM_DAY, 0 })
+  → Casts Storm matching today's element when no Storm is active
+
+Sel. Arg: 0 or xi.magic.spellFamily.STORM
+
+💡 Optimization: Matching day element provides best bonus!
+⚠️ SCH Only: Requires Scholar job and Storm spells learned.""",
+
+    "HELIX_DAY": """Cast Helix spell matching current in-game day element (SCH-specific).
+    
+Use Case: SCH Helix nuking, day element matching, DoT optimization.
+Compatible Reactions: MA (Helix spells)
+
+🌀 SCHOLAR HELIX DAY-MATCHING!
+
+How It Works:
+  • Checks current Vana'diel day
+  • Selects Helix spell matching that day's element
+  • Maximizes damage with day bonus
+
+Day -> Helix Mapping:
+  • Firesday → Pyrohelix / Pyrohelix II
+  • Iceday → Cryohelix / Cryohelix II
+  • Windsday → Anemohelix / Anemohelix II
+  • Earthsday → Geohelix / Geohelix II
+  • Lightningday → Ionohelix / Ionohelix II
+  • Watersday → Hydrohelix / Hydrohelix II
+  • Lightsday → Luminohelix / Luminohelix II
+  • Darksday → Noctohelix / Noctohelix II
+
+Helix Spells:
+  • Damage-over-time (DoT) elemental spells
+  • Initial damage + ticking damage
+  • Very MP efficient
+  • SCH signature nukes
+
+Example:
+  trust:addGambit(ai.t.TARGET, { ai.c.ALWAYS }, { ai.r.MA, ai.s.HELIX_DAY, 0 })
+  → Nukes with Helix matching today's element
+
+Sel. Arg: 0 or xi.magic.spellFamily.HELIX
+
+💡 SCH Nuking: Helix spells are MP-efficient DoTs. Day matching boosts damage!
+⚠️ SCH Only: Requires Scholar job and Helix spells learned.""",
+
+    "EN_MOB_WEAKNESS": """Cast En-spell (weapon enchant) matching target mob's elemental weakness (RDM-specific).
+    
+Use Case: RDM melee optimization, exploit weaknesses, enhance auto-attacks.
+Compatible Reactions: MA (En-spells)
+
+⚔️ RED MAGE WEAPON ENCHANT SELECTOR!
+
+How It Works:
+  • Analyzes target mob's elemental weakness
+  • Selects matching En-spell to enchant weapon
+  • Adds elemental damage to melee attacks
+
+Available En-Spells:
+  • Enfire / Enfire II - Fire damage
+  • Enblizzard / Enblizzard II - Ice damage
+  • Enaero / Enaero II - Wind damage
+  • Enstone / Enstone II - Earth damage
+  • Enthunder / Enthunder II - Lightning damage
+  • Enwater / Enwater II - Water damage
+
+Benefits:
+  • Additional elemental damage on every melee hit
+  • Exploits mob's elemental weakness
+  • Enhances RDM melee DPS
+  • Works with all weapon types
+
+Example:
+  trust:addGambit(ai.t.SELF, { ai.c.ALWAYS }, { ai.r.MA, ai.s.EN_MOB_WEAKNESS, 0 })
+  → Enchants weapon with element matching current target's weakness
+
+Sel. Arg: Usually 0 (auto-select)
+
+💡 RDM Melee: Adds significant damage against weakness-vulnerable mobs!
+⚠️ RDM Focus: Works best with melee-oriented RDM trusts.
+🎯 Mob Knowledge: Effectiveness depends on knowing mob weaknesses.""",
+
+    "STORM_MOB_WEAKNESS": """Cast Storm spell matching target mob's elemental weakness (SCH-specific).
+    
+Use Case: SCH Storm optimization against specific targets, exploit weaknesses.
+Compatible Reactions: MA (Storm spells)
+
+⚡ SCHOLAR STORM MOB-WEAKNESS MATCHING!
+
+How It Works:
+  • Analyzes current target mob
+  • Detects elemental weakness
+  • Casts Storm matching that weakness
+  • Boosts elemental magic damage against that mob
+
+Example:
+  trust:addGambit(ai.t.SELF, { ai.c.NO_STORM }, { ai.r.MA, ai.s.STORM_MOB_WEAKNESS, 0 })
+  → Casts Storm matching current target's weakness
+
+Benefit: Storm + Mob Weakness = Maximum elemental damage!
+
+Sel. Arg: 0 or xi.magic.spellFamily.STORM
+
+💡 Nuke Optimization: SCH nukes hit hardest with matching Storm vs weak target!
+⚠️ SCH Only: Requires Scholar job and Storm spells.""",
+
+    "HELIX_MOB_WEAKNESS": """Cast Helix spell matching target mob's elemental weakness (SCH-specific).
+    
+Use Case: SCH Helix nuking optimization, target weakness exploitation, maximum DoT.
+Compatible Reactions: MA (Helix spells)
+
+🎯 SCHOLAR HELIX MOB-WEAKNESS MATCHING!
+
+How It Works:
+  • Analyzes current target mob
+  • Detects elemental weakness
+  • Casts Helix matching that weakness
+  • Maximizes DoT damage against weak element
+
+Example:
+  trust:addGambit(ai.t.TARGET, { ai.c.ALWAYS }, { ai.r.MA, ai.s.HELIX_MOB_WEAKNESS, 0 })
+  → Nukes with Helix matching current target's weakness
+
+Benefit: Helix DoT ticks harder against weakness!
+
+Sel. Arg: 0 or xi.magic.spellFamily.HELIX
+
+💡 MP Efficiency + High Damage: Helix vs weakness is SCH's strongest DoT option!
+⚠️ SCH Only: Requires Scholar job and Helix spells.""",
 }
 
 SELECTOR_ARG_GUIDE = {
-    "HIGHEST": "Usually 0",
-    "LOWEST": "Usually 0",
-    "SPECIFIC": "Explicit constant (xi.magic.spell.*, xi.ja.*, xi.ws.*, etc.)",
-    "MB_ELEMENT": "0 or xi.magic.spellFamily.*",
-    "BEST_AGAINST_TARGET": "0 or xi.magic.spellFamily.*",
-    "BEST_SAMBA": "0",
-    "HIGHEST_WALTZ": "0",
-    "ENTRUSTED": "0",
-    "BEST_INDI": "xi.magic.spellFamily.INDI_*",
-    "STORM_DAY": "0 or xi.magic.spellFamily.STORM",
-    "HELIX_DAY": "0 or xi.magic.spellFamily.HELIX",
-    "EN_MOB_WEAKNESS": "0",
-    "STORM_MOB_WEAKNESS": "0",
-    "HELIX_MOB_WEAKNESS": "0",
+    "HIGHEST": """Spell Family constant: xi.magic.spellFamily.*
+
+🎯 MOST COMMON SPELL FAMILIES:
+
+Healing & Support:
+  • xi.magic.spellFamily.CURE - Cure (I through VI, based on trust level)
+  • xi.magic.spellFamily.CURAGA - Curaga (I through V, AoE healing)
+  • xi.magic.spellFamily.CURA - Cura (AoE party heal)
+  • xi.magic.spellFamily.HASTE - Haste / Haste II
+  • xi.magic.spellFamily.REFRESH - Refresh / Refresh II
+  • xi.magic.spellFamily.PROTECT - Protect (I through V)
+  • xi.magic.spellFamily.PROTECTRA - Protectra (I through V, AoE)
+  • xi.magic.spellFamily.SHELL - Shell (I through V)
+  • xi.magic.spellFamily.SHELLRA - Shellra (I through V, AoE)
+  • xi.magic.spellFamily.REGEN - Regen (I through IV)
+  • xi.magic.spellFamily.PHALANX - Phalanx / Phalanx II
+  • xi.magic.spellFamily.STONESKIN - Stoneskin
+  • xi.magic.spellFamily.BLINK - Blink
+  • xi.magic.spellFamily.AQUAVEIL - Aquaveil
+
+Offensive Black Magic (Nukes):
+  • xi.magic.spellFamily.FIRE - Fire (I through VI)
+  • xi.magic.spellFamily.BLIZZARD - Blizzard (I through VI)
+  • xi.magic.spellFamily.AERO - Aero (I through VI)
+  • xi.magic.spellFamily.STONE - Stone (I through VI)
+  • xi.magic.spellFamily.THUNDER - Thunder (I through VI)
+  • xi.magic.spellFamily.WATER - Water (I through VI)
+  • xi.magic.spellFamily.FLARE - Flare / Flare II (ancient magic)
+  • xi.magic.spellFamily.FREEZE - Freeze / Freeze II
+  • xi.magic.spellFamily.TORNADO - Tornado / Tornado II
+  • xi.magic.spellFamily.QUAKE - Quake / Quake II
+  • xi.magic.spellFamily.BURST - Burst / Burst II
+  • xi.magic.spellFamily.FLOOD - Flood / Flood II
+
+Enfeebling Magic (Debuffs):
+  • xi.magic.spellFamily.SLOW - Slow / Slow II
+  • xi.magic.spellFamily.PARALYZE - Paralyze / Paralyze II
+  • xi.magic.spellFamily.BLIND - Blind / Blind II
+  • xi.magic.spellFamily.SILENCE - Silence
+  • xi.magic.spellFamily.GRAVITY - Gravity / Gravity II
+  • xi.magic.spellFamily.BIND - Bind
+  • xi.magic.spellFamily.SLEEP - Sleep / Sleep II / Sleepga
+  • xi.magic.spellFamily.POISON - Poison / Poison II
+  • xi.magic.spellFamily.BIO - Bio (I through III)
+  • xi.magic.spellFamily.DIA - Dia (I through III)
+  • xi.magic.spellFamily.DISPEL - Dispel
+
+Status Removal:
+  • xi.magic.spellFamily.POISONA - Poisona
+  • xi.magic.spellFamily.PARALYNA - Paralyna
+  • xi.magic.spellFamily.BLINDNA - Blindna
+  • xi.magic.spellFamily.SILENA - Silena
+  • xi.magic.spellFamily.CURSNA - Cursna
+  • xi.magic.spellFamily.VIRUNA - Viruna
+  • xi.magic.spellFamily.ERASE - Erase
+
+Scholar Spells:
+  • xi.magic.spellFamily.HELIX - Helix nukes (Pyro, Cryo, Anemo, etc.)
+  • xi.magic.spellFamily.STORM - Storm buffs (Firestorm, Hailstorm, etc.)
+
+Geomancer Spells:
+  • xi.magic.spellFamily.INDI - Indi-spells (buff aura)
+  • xi.magic.spellFamily.GEO - Geo-spells (field effect)
+
+Red Mage:
+  • xi.magic.spellFamily.ENFIRE - Enfire / Enfire II (weapon enchant)
+  • xi.magic.spellFamily.ENBLIZZARD - Enblizzard / Enblizzard II
+  • xi.magic.spellFamily.ENTHUNDER - Enthunder / Enthunder II
+  • xi.magic.spellFamily.ENSTONE - Enstone / Enstone II
+  • xi.magic.spellFamily.ENAERO - Enaero / Enaero II
+  • xi.magic.spellFamily.ENWATER - Enwater / Enwater II
+
+Elemental Debuffs:
+  • xi.magic.spellFamily.BURN - Burn (fire-based attack down)
+  • xi.magic.spellFamily.FROST - Frost (ice-based accuracy down)
+  • xi.magic.spellFamily.CHOKE - Choke (wind-based VIT down)
+  • xi.magic.spellFamily.RASP - Rasp (earth-based DEX down)
+  • xi.magic.spellFamily.SHOCK - Shock (lightning-based MND down)
+  • xi.magic.spellFamily.DROWN - Drown (water-based STR down)
+
+Bar-Spells (Elemental Resistance):
+  • xi.magic.spellFamily.BARFIRE - Barfire / Barfira
+  • xi.magic.spellFamily.BARBLIZZARD - Barblizzard / Barblizzara
+  • xi.magic.spellFamily.BARTHUNDER - Barthunder / Barthundra
+  • xi.magic.spellFamily.BARSTONE - Barstone / Barstonra
+  • xi.magic.spellFamily.BARAERO - Baraero / Baraerora
+  • xi.magic.spellFamily.BARWATER - Barwater / Barwatera
+
+Examples:
+  { ai.r.MA, ai.s.HIGHEST, xi.magic.spellFamily.CURE }
+  { ai.r.MA, ai.s.HIGHEST, xi.magic.spellFamily.HASTE }
+  { ai.r.MA, ai.s.HIGHEST, xi.magic.spellFamily.FIRE }
+  
+📚 Full Reference: scripts/enum/magic_family.lua""",
+
+    "LOWEST": """Spell Family constant: xi.magic.spellFamily.*
+
+Same options as HIGHEST, but selects lowest tier instead.
+
+Example: xi.magic.spellFamily.CURE → Selects Cure I (not VI)
+
+⚠️ Rarely used. HIGHEST is almost always preferred.""",
+
+    "SPECIFIC": """Exact spell/ability/weaponskill constant or numeric ID
+
+🎯 MOST PRECISE - Use exact IDs!
+
+Spell Examples (xi.magic.spell.*):
+  • xi.magic.spell.CURE_IV - Cure IV (not V or VI)
+  • xi.magic.spell.CURE_VI - Cure VI specifically
+  • xi.magic.spell.CURAGA_III - Curaga III
+  • xi.magic.spell.HASTE - Haste (tier I)
+  • xi.magic.spell.HASTE_II - Haste II
+  • xi.magic.spell.REFRESH - Refresh (tier I)
+  • xi.magic.spell.REFRESH_II - Refresh II
+  • xi.magic.spell.PROTECT_V - Protect V
+  • xi.magic.spell.SHELL_V - Shell V
+  • xi.magic.spell.REGEN_IV - Regen IV
+  • xi.magic.spell.STONESKIN - Stoneskin
+  • xi.magic.spell.PHALANX - Phalanx
+  • xi.magic.spell.FLASH - Flash (enmity tool)
+  • xi.magic.spell.RAISE - Raise (tier I)
+  • xi.magic.spell.RAISE_II - Raise II
+  • xi.magic.spell.RAISE_III - Raise III
+  • xi.magic.spell.RERAISE - Reraise
+  • xi.magic.spell.FIRE_V - Fire V nuke
+  • xi.magic.spell.BLIZZARD_VI - Blizzard VI
+  • xi.magic.spell.FLARE - Flare (ancient magic)
+  • xi.magic.spell.FREEZE - Freeze
+  • xi.magic.spell.UTSUSEMI_NI - Utsusemi: Ni (shadows)
+  • xi.magic.spell.UTSUSEMI_ICHI - Utsusemi: Ichi
+  • xi.magic.spell.SLOW - Slow
+  • xi.magic.spell.SLOW_II - Slow II
+  • xi.magic.spell.PARALYZE - Paralyze
+  • xi.magic.spell.PARALYZE_II - Paralyze II
+  • xi.magic.spell.BLIND - Blind
+  • xi.magic.spell.BLIND_II - Blind II
+  • xi.magic.spell.SILENCE - Silence
+  • xi.magic.spell.GRAVITY - Gravity
+  • xi.magic.spell.GRAVITY_II - Gravity II
+  • xi.magic.spell.BIND - Bind
+  • xi.magic.spell.SLEEP - Sleep
+  • xi.magic.spell.SLEEP_II - Sleep II
+  • xi.magic.spell.SLEEPGA - Sleepga (AoE sleep)
+  • xi.magic.spell.DISPEL - Dispel
+  • xi.magic.spell.BIO_III - Bio III (DoT)
+  • xi.magic.spell.POISONA - Poisona
+  • xi.magic.spell.PARALYNA - Paralyna
+  • xi.magic.spell.BLINDNA - Blindna
+  • xi.magic.spell.SILENA - Silena
+  • xi.magic.spell.CURSNA - Cursna
+  • xi.magic.spell.ERASE - Erase
+  • xi.magic.spell.TELEPORT_HOLLA - Teleport-Holla
+  • xi.magic.spell.WARP - Warp
+  • xi.magic.spell.WARP_II - Warp II
+
+Job Ability Examples (xi.ja.*):
+  • xi.ja.SENTINEL - PLD: Defensive stance
+  • xi.ja.SHIELD_BASH - PLD: Stun with shield
+  • xi.ja.COVER - PLD: Protect ally
+  • xi.ja.RAMPART - PLD: Party defense boost
+  • xi.ja.PROVOKE - WAR/PLD: Enmity generation
+  • xi.ja.BERSERK - WAR: Attack boost
+  • xi.ja.DEFENDER - WAR/PLD: Defense boost
+  • xi.ja.WARCRY - WAR: Party attack boost
+  • xi.ja.AGGRESSOR - WAR: Accuracy boost
+  • xi.ja.SOULEATER - DRK: Damage conversion
+  • xi.ja.LAST_RESORT - DRK: Massive power boost
+  • xi.ja.WEAPON_BASH - DRK: Stun with weapon
+  • xi.ja.HASSO - SAM: Offensive stance
+  • xi.ja.SEIGAN - SAM: Defensive stance
+  • xi.ja.THIRD_EYE - SAM: Anticipate next attack
+  • xi.ja.MEDITATE - SAM: TP gain
+  • xi.ja.SEKKANOKI - SAM: Double weaponskill
+  • xi.ja.INNIN - NIN: Evasion/crit boost
+  • xi.ja.YONIN - NIN: Enmity/defense boost
+  • xi.ja.HIDE - THF/NIN: Stealth
+  • xi.ja.FLEE - THF: Movement speed
+  • xi.ja.SNEAK_ATTACK - THF: Backstab setup
+  • xi.ja.TRICK_ATTACK - THF: SA transfer
+  • xi.ja.PERFECT_DODGE - THF: Invulnerability
+  • xi.ja.DODGE - MNK: Evasion boost
+  • xi.ja.FOCUS - MNK: Accuracy boost
+  • xi.ja.CHAKRA - MNK: Self-heal
+  • xi.ja.COUNTERSTANCE - MNK: Counter mode
+  • xi.ja.BOOST - MNK: Attack charging
+  • xi.ja.SHARPSHOT - RNG: Ranged attack boost
+  • xi.ja.BARRAGE - RNG: Multi-shot
+  • xi.ja.EAGLE_EYE_SHOT - RNG: Super shot (2HR)
+  • xi.ja.CALL_WYVERN - DRG: Summon wyvern
+  • xi.ja.JUMP - DRG: Jump attack
+  • xi.ja.HIGH_JUMP - DRG: Enhanced jump
+  • xi.ja.SUPER_JUMP - DRG: Hate reset jump
+  • xi.ja.SPIRIT_SURGE - DRG: Wyvern merge (2HR)
+  • xi.ja.DIVINE_SEAL - WHM: Next cure potency boost
+  • xi.ja.BENEDICTION - WHM: Full HP heal (2HR)
+  • xi.ja.MANAFONT - BLM: Full MP restore (2HR)
+  • xi.ja.ELEMENTAL_SEAL - BLM: Next spell accuracy boost
+  • xi.ja.CONVERT - RDM: HP<->MP swap
+  • xi.ja.COMPOSURE - RDM: Extend buff duration
+  • xi.ja.SOUL_VOICE - BRD: Song potency boost (2HR)
+  • xi.ja.ACTIVATE - PUP: Deploy automaton
+  • xi.ja.REPAIR - PUP: Heal automaton
+  • xi.ja.CHARM - BST: Tame beast
+  • xi.ja.FAMILIAR - BST: Enhance pet
+  • xi.ja.CALL_BEAST - BST: Summon jug pet
+  • xi.ja.SIC - BST: Pet attack
+  • xi.ja.LIGHT_ARTS - SCH: White magic mode
+  • xi.ja.DARK_ARTS - SCH: Black magic mode
+  • xi.ja.ADDENDUM_WHITE - SCH: Enhanced white spells
+  • xi.ja.ADDENDUM_BLACK - SCH: Enhanced black spells
+  • xi.ja.TABULA_RASA - SCH: Ultimate stratagem (2HR)
+  • xi.ja.BOLSTER - GEO: Super Indi/Geo boost (2HR)
+  • xi.ja.ENTRUST - GEO: Cast Indi on ally
+  • xi.ja.FULL_CIRCLE - GEO: Remove Geo-spell
+  • xi.ja.VALLATION - RUN: Elemental resistance
+  • xi.ja.SWORDPLAY - RUN: TP generation
+  • xi.ja.IGNIS - RUN: Fire rune
+  • xi.ja.GELUS - RUN: Ice rune
+  • xi.ja.FLABRA - RUN: Wind rune
+  • xi.ja.TELLUS - RUN: Earth rune
+  • xi.ja.SULPOR - RUN: Lightning rune
+  • xi.ja.UNDA - RUN: Water rune
+  • xi.ja.LUX - RUN: Light rune
+  • xi.ja.TENEBRAE - RUN: Dark rune
+  • xi.ja.CURING_WALTZ - DNC: Healing (Lv 15)
+  • xi.ja.CURING_WALTZ_II - DNC: Better healing (Lv 30)
+  • xi.ja.CURING_WALTZ_III - DNC: Good healing (Lv 45)
+  • xi.ja.CURING_WALTZ_IV - DNC: Strong healing (Lv 60)
+  • xi.ja.CURING_WALTZ_V - DNC: Best healing (Lv 75)
+  • xi.ja.DRAIN_SAMBA - DNC: HP drain aura
+  • xi.ja.DRAIN_SAMBA_II - DNC: Better HP drain
+  • xi.ja.DRAIN_SAMBA_III - DNC: Best HP drain
+  • xi.ja.HASTE_SAMBA - DNC: Haste aura
+
+Weaponskill Examples (xi.ws.*):
+  • xi.ws.FAST_BLADE - Sword WS (Light/Fusion)
+  • xi.ws.SAVAGE_BLADE - Sword WS (Slashing/Fragmentation)
+  • xi.ws.VORPAL_BLADE - Sword WS (Slashing/Scission)
+  • xi.ws.REQUIESCAT - Sword WS (Light/Fragmentation)
+  • xi.ws.TACHI_GEKKO - GKT WS (Reverberation/Impaction)
+  • xi.ws.TACHI_SHOHA - GKT WS (Fusion/Compression)
+  • xi.ws.TACHI_FUDO - GKT WS (Light/Distortion)
+  • xi.ws.GROUND_STRIKE - GSW WS (Fragmentation/Distortion)
+  • xi.ws.RESOLUTION - GSW WS (Fragmentation/Scission)
+  • xi.ws.SCOURGE - GSW WS (Light/Fusion/Transfixion)
+  • xi.ws.STEEL_CYCLONE - GAX WS (Distortion/Detonation)
+  • xi.ws.FELL_CLEAVE - GAX WS (Scission/Gravitation)
+  • xi.ws.METATRON_TORMENT - GAX WS (Light/Fragmentation)
+  • xi.ws.CROSS_REAPER - SCY WS (Distortion)
+  • xi.ws.GUILLOTINE - SCY WS (Fusion/Gravitation)
+  • xi.ws.INSURGENCY - SCY WS (Fusion)
+  • xi.ws.PENTA_THRUST - PLM WS (Compression)
+  • xi.ws.STARDIVER - PLM WS (Fragmentation/Gravitation)
+  • xi.ws.IMPULSE_DRIVE - PLM WS (Induration/Detonation)
+  • xi.ws.BLADE_TEN - KAT WS (Gravitation/Transfixion)
+  • xi.ws.BLADE_SHUN - KAT WS (Fragmentation/Distortion)
+  • xi.ws.BLADE_HI - KAT WS (Detonation/Impaction)
+  • xi.ws.ASURAN_FISTS - H2H WS (Gravitation/Liquefaction)
+  • xi.ws.VICTORY_SMITE - H2H WS (Light/Fragmentation)
+  • xi.ws.SHIJIN_SPIRAL - H2H WS (Fusion/Reverberation)
+  • xi.ws.DANCING_EDGE - DAG WS (Slashing/Scission)
+  • xi.ws.EVISCERATION - DAG WS (Gravitation)
+  • xi.ws.RUDRAS_STORM - DAG WS (Darkness/Distortion)
+  • xi.ws.SHINING_STRIKE - CLB WS (Light)
+  • xi.ws.SERAPH_STRIKE - CLB WS (Light/Transfixion)
+  • xi.ws.TRUE_STRIKE - CLB WS (Light/Transfixion/Scission)
+  • xi.ws.SPIRIT_TAKER - STF WS (Transfixion)
+  • xi.ws.CATACLYSM - STF WS (Darkness)
+  • xi.ws.EARTH_CRUSHER - STF WS (Detonation/Impaction)
+
+Numeric ID:
+  • Can use raw numbers, but not recommended (hard to read)
+  • Example: 12 instead of xi.magic.spell.CURE_IV
+
+Complete Examples:
+1. PLD Flash:
+   { ai.r.MA, ai.s.SPECIFIC, xi.magic.spell.FLASH }
+
+2. WHM Raise II:
+   { ai.r.MA, ai.s.SPECIFIC, xi.magic.spell.RAISE_II }
+
+3. PLD Sentinel:
+   { ai.r.JA, ai.s.SPECIFIC, xi.ja.SENTINEL }
+
+4. SAM Tachi: Gekko:
+   { ai.r.WS, ai.s.SPECIFIC, xi.ws.TACHI_GEKKO }
+
+📚 Full References:
+  • Spells: scripts/enum/magic_spell.lua
+  • Job Abilities: scripts/enum/jobability.lua
+  • Weaponskills: scripts/enum/weaponskill.lua""",
+
+    "MB_ELEMENT": """Usually 0 (auto-select best burst element)
+
+Optional: xi.magic.spellFamily.* to prefer specific element family
+
+Values:
+  • 0 - Fully automatic (recommended)
+  • xi.magic.spellFamily.FIRE - Prefer Fire nukes
+  • xi.magic.spellFamily.BLIZZARD - Prefer Ice nukes
+  • xi.magic.spellFamily.THUNDER - Prefer Lightning nukes
+  • xi.magic.spellFamily.WATER - Prefer Water nukes
+  • xi.magic.spellFamily.AERO - Prefer Wind nukes
+  • xi.magic.spellFamily.STONE - Prefer Earth nukes
+
+Example:
+  { ai.r.MA, ai.s.MB_ELEMENT, 0 } - Auto burst element
+  { ai.r.MA, ai.s.MB_ELEMENT, xi.magic.spellFamily.FIRE } - Prefer Fire
+
+💡 Recommended: Use 0 for full automation""",
+
+    "BEST_AGAINST_TARGET": """Usually 0 (auto-select best element vs mob)
+
+Optional: xi.magic.spellFamily.* to specify element family
+
+Values:
+  • 0 - Fully automatic element matching
+  • xi.magic.spellFamily.* - Specific element preference
+
+Example:
+  { ai.r.MA, ai.s.BEST_AGAINST_TARGET, 0 } - Auto element
+  { ai.r.MA, ai.s.BEST_AGAINST_TARGET, xi.magic.spellFamily.FIRE } - Fire focus""",
+
+    "BEST_SAMBA": """Always 0 (auto-selects best Samba)
+
+The selector analyzes party composition automatically.
+
+Value: 0
+
+Example:
+  { ai.r.JA, ai.s.BEST_SAMBA, 0 }""",
+
+    "HIGHEST_WALTZ": """Always 0 (auto-selects highest affordable Waltz)
+
+The selector checks current TP and selects accordingly.
+
+Value: 0
+
+Example:
+  { ai.r.JA, ai.s.HIGHEST_WALTZ, 0 }""",
+
+    "ENTRUSTED": """Usually 0 (auto-select best Entrust spell)
+
+The selector analyzes party needs automatically.
+
+Value: 0
+
+Example:
+  { ai.r.MA, ai.s.ENTRUSTED, 0 }""",
+
+    "BEST_INDI": """Indi-spell family: xi.magic.spellFamily.INDI_*
+
+Available Indi-Spell Families:
+  • xi.magic.spellFamily.INDI_HASTE - Indi-Haste (party haste)
+  • xi.magic.spellFamily.INDI_REFRESH - Indi-Refresh (party MP regen)
+  • xi.magic.spellFamily.INDI_FURY - Indi-Fury (party attack)
+  • xi.magic.spellFamily.INDI_PRECISION - Indi-Precision (party accuracy)
+  • xi.magic.spellFamily.INDI_FOCUS - Indi-Focus (party magic accuracy)
+  • xi.magic.spellFamily.INDI_BARRIER - Indi-Barrier (party defense)
+  • xi.magic.spellFamily.INDI_ACUMEN - Indi-Acumen (party magic attack)
+  • xi.magic.spellFamily.INDI_FEND - Indi-Fend (party magic defense)
+
+Or use 0 for automatic selection.
+
+Example:
+  { ai.r.MA, ai.s.BEST_INDI, xi.magic.spellFamily.INDI_HASTE }
+  { ai.r.MA, ai.s.BEST_INDI, 0 } - Auto-select""",
+
+    "STORM_DAY": """Usually 0 or xi.magic.spellFamily.STORM
+
+Values:
+  • 0 - Auto-select Storm matching current day
+  • xi.magic.spellFamily.STORM - Storm family
+
+Example:
+  { ai.r.MA, ai.s.STORM_DAY, 0 }""",
+
+    "HELIX_DAY": """Usually 0 or xi.magic.spellFamily.HELIX
+
+Values:
+  • 0 - Auto-select Helix matching current day
+  • xi.magic.spellFamily.HELIX - Helix family
+
+Example:
+  { ai.r.MA, ai.s.HELIX_DAY, 0 }""",
+
+    "EN_MOB_WEAKNESS": """Usually 0 (auto-select En-spell matching mob weakness)
+
+Value: 0
+
+Example:
+  { ai.r.MA, ai.s.EN_MOB_WEAKNESS, 0 }""",
+
+    "STORM_MOB_WEAKNESS": """Usually 0 (auto-select Storm matching mob weakness)
+
+Value: 0
+
+Example:
+  { ai.r.MA, ai.s.STORM_MOB_WEAKNESS, 0 }""",
+
+    "HELIX_MOB_WEAKNESS": """Usually 0 (auto-select Helix matching mob weakness)
+
+Value: 0
+
+Example:
+  { ai.r.MA, ai.s.HELIX_MOB_WEAKNESS, 0 }""",
 }
 
 TP_TRIGGER_DESCRIPTIONS = {
